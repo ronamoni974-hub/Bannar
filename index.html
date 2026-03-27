@@ -11,7 +11,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;700&family=Baloo+Da+2:wght@500;700&family=Galada&family=Hind+Siliguri:wght@400;600;700&family=Mina:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&family=Tiro+Bangla:ital@0;1&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;700&family=Baloo+Da+2:wght@500;700&family=Galada&family=Hind+Siliguri:wght@400;600;700&family=Mina:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&family=Tiro+Bangla:ital@0;1&family=Poppins:wght@400;600&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Montserrat:wght@400;700&family=Lato:wght@400;700&family=Oswald:wght@400;700&family=Raleway:wght@400;700&family=Playfair+Display:wght@400;700&family=Merriweather:wght@400;700&family=Nunito:wght@400;700&family=Ubuntu:wght@400;700&family=Rubik:wght@400;700&family=Work+Sans:wght@400;700&family=Lora:wght@400;700&family=Fira+Sans:wght@400;700&family=Quicksand:wght@400;700&family=Dancing+Script:wght@400;700&family=Pacifico&family=Caveat:wght@400;700&family=Satisfy&family=Courgette&family=Great+Vibes&family=Lobster&family=Righteous&display=swap" rel="stylesheet">
 
     <script src="templates.js"></script>
 
@@ -19,21 +19,18 @@
         body { font-family: 'Poppins', 'Hind Siliguri', sans-serif; height: 100vh; display: flex; flex-direction: column; background-color: #f1f5f9; overflow: hidden; touch-action: manipulation; }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
         
-        /* Smooth UI Transitions */
         .tab-content { display: none; opacity: 0; transition: opacity 0.3s ease; }
         .tab-content.active { display: block; opacity: 1; animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
         .font-item.selected { border-color: #4f46e5; background-color: #eef2ff; color: #4338ca; font-weight: 600; }
-        
-        /* Premium Canvas Shadow */
-        .canvas-container { margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border-radius: 4px; overflow: hidden; touch-action: none; }
-        
-        /* Undo/Redo Disabled State */
+        .canvas-container { margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border-radius: 4px; overflow: hidden; touch-action: none; }
         .history-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .bottom-panel { border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
         
-        /* Bottom Sheet Feel */
-        .bottom-panel { border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
+        /* Text Editor Input Style */
+        .custom-textarea { resize: none; border: 2px solid #e2e8f0; transition: border-color 0.2s; }
+        .custom-textarea:focus { border-color: #6366f1; outline: none; }
     </style>
 </head>
 <body class="text-gray-800 flex flex-col h-screen">
@@ -46,8 +43,8 @@
             <h1 class="text-xl font-bold text-gray-800 tracking-tight">ব্যানার<span class="text-indigo-600">প্রো</span></h1>
         </div>
         
-        <div class="flex items-center gap-4">
-            <div class="flex gap-3 bg-gray-100 px-3 py-1.5 rounded-full">
+        <div class="flex items-center gap-3">
+            <div class="flex gap-2 bg-gray-100 px-3 py-1.5 rounded-full">
                 <button id="undoBtn" onclick="undo()" class="history-btn text-gray-700 text-lg active:scale-90 transition-transform" disabled><i class="fa-solid fa-arrow-rotate-left"></i></button>
                 <div class="w-px h-5 bg-gray-300 self-center"></div>
                 <button id="redoBtn" onclick="redo()" class="history-btn text-gray-700 text-lg active:scale-90 transition-transform" disabled><i class="fa-solid fa-arrow-rotate-right"></i></button>
@@ -58,7 +55,7 @@
         </div>
     </header>
 
-    <main class="flex-none flex items-center justify-center p-3 relative bg-slate-200" style="height: 48vh;">
+    <main class="flex-none flex items-center justify-center p-3 relative bg-slate-200" style="height: 45vh;">
         <div id="canvasWrapper" class="relative w-full h-full flex items-center justify-center">
             <canvas id="bannerCanvas"></canvas>
         </div>
@@ -66,7 +63,7 @@
 
     <div class="flex-1 flex flex-col bg-white bottom-panel z-10 overflow-hidden relative -mt-3 pt-2">
         
-        <div class="flex px-4 pt-2 border-b border-gray-100">
+        <div class="flex px-4 pt-2 border-b border-gray-100 shrink-0">
             <button id="templatesTabBtn" onclick="openTab('templatesTab')" class="flex-1 pb-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600 transition-colors">
                 <i class="fa-regular fa-clone mr-1"></i> টেমপ্লেট
             </button>
@@ -75,58 +72,62 @@
             </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto pb-6 custom-scroll">
+        <div class="flex-1 overflow-y-auto pb-6">
             
             <div id="templatesTab" class="tab-content active p-4">
                 <div id="templateList" class="grid grid-cols-2 gap-4">
                     </div>
             </div>
 
-            <div id="toolsTab" class="tab-content p-4 space-y-6">
+            <div id="toolsTab" class="tab-content p-4 space-y-5">
                 
                 <div class="grid grid-cols-3 gap-3">
-                    <button onclick="addText()" class="bg-slate-50 active:bg-slate-100 text-slate-700 py-3.5 rounded-xl font-medium text-xs border border-slate-200 flex flex-col items-center gap-1.5 transition-colors">
-                        <i class="fa-solid fa-font text-lg text-indigo-500"></i> টেক্সট যোগ
+                    <button onclick="addText()" class="bg-slate-50 active:bg-slate-100 text-slate-700 py-3 rounded-xl font-medium text-[11px] border border-slate-200 flex flex-col items-center gap-1 transition-colors">
+                        <i class="fa-solid fa-font text-lg text-indigo-500"></i> নতুন টেক্সট
                     </button>
-                    <label class="bg-slate-50 active:bg-slate-100 text-slate-700 py-3.5 rounded-xl font-medium text-xs border border-slate-200 flex flex-col items-center gap-1.5 transition-colors cursor-pointer">
+                    <label class="bg-slate-50 active:bg-slate-100 text-slate-700 py-3 rounded-xl font-medium text-[11px] border border-slate-200 flex flex-col items-center gap-1 transition-colors cursor-pointer">
                         <i class="fa-regular fa-image text-lg text-emerald-500"></i> ছবি আপলোড
                         <input type="file" id="imageLoader" class="hidden" accept="image/*">
                     </label>
-                    <button onclick="deleteObject()" class="bg-red-50 active:bg-red-100 text-red-600 py-3.5 rounded-xl font-medium text-xs border border-red-100 flex flex-col items-center gap-1.5 transition-colors">
+                    <button onclick="deleteObject()" class="bg-red-50 active:bg-red-100 text-red-600 py-3 rounded-xl font-medium text-[11px] border border-red-100 flex flex-col items-center gap-1 transition-colors">
                         <i class="fa-regular fa-trash-can text-lg"></i> মুছে ফেলুন
                     </button>
                 </div>
 
-                <div id="noSelectionPanel" class="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                <div id="noSelectionPanel" class="flex flex-col items-center justify-center py-6 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
                     <div class="bg-white p-3 rounded-full shadow-sm mb-2"><i class="fa-solid fa-hand-pointer text-indigo-300 text-xl"></i></div>
-                    <h3 class="text-sm font-semibold text-gray-700 mb-1">কিছু সিলেক্ট করা নেই</h3>
                     <p class="text-xs text-gray-400 max-w-[200px]">এডিট করতে ক্যানভাসের ওপরের যেকোনো লেখা বা ছবিতে ক্লিক করুন।</p>
                 </div>
 
-                <div id="textEditPanel" class="hidden space-y-5">
+                <div id="textEditPanel" class="hidden space-y-4">
                     
-                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-4">
+                    <div>
+                        <label class="text-[11px] font-semibold text-indigo-500 uppercase tracking-wider mb-1 block pl-1"><i class="fa-solid fa-keyboard"></i> এখানে লিখে এডিট করুন</label>
+                        <textarea id="externalTextInput" class="w-full custom-textarea rounded-xl p-3 text-sm bg-gray-50 text-gray-800" rows="2" placeholder="টেক্সট লিখুন..."></textarea>
+                    </div>
+
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
                         <div class="flex justify-between items-center gap-4">
                             <div class="flex-1">
-                                <label class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5 block">রঙ পরিবর্তন</label>
-                                <div class="relative w-full h-10 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1 block">রঙ পরিবর্তন</label>
+                                <div class="relative w-full h-9 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
                                     <input type="color" id="colorPicker" onchange="changeColor(this.value)" class="absolute -top-2 -left-2 w-16 h-16 cursor-pointer">
                                 </div>
                             </div>
                             <div class="text-properties flex-1">
-                                <label class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5 block">এলাইনমেন্ট</label>
-                                <div class="flex gap-1 bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
-                                    <button onclick="changeAlignment('left')" class="flex-1 py-1.5 rounded bg-white text-gray-600 active:bg-gray-100"><i class="fa-solid fa-align-left"></i></button>
-                                    <button onclick="changeAlignment('center')" class="flex-1 py-1.5 rounded bg-white text-gray-600 active:bg-gray-100"><i class="fa-solid fa-align-center"></i></button>
-                                    <button onclick="changeAlignment('right')" class="flex-1 py-1.5 rounded bg-white text-gray-600 active:bg-gray-100"><i class="fa-solid fa-align-right"></i></button>
+                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1 block">এলাইনমেন্ট</label>
+                                <div class="flex gap-1 bg-white border border-gray-200 rounded-lg p-1 shadow-sm h-9">
+                                    <button onclick="changeAlignment('left')" class="flex-1 rounded bg-white text-gray-600 active:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-align-left text-xs"></i></button>
+                                    <button onclick="changeAlignment('center')" class="flex-1 rounded bg-white text-gray-600 active:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-align-center text-xs"></i></button>
+                                    <button onclick="changeAlignment('right')" class="flex-1 rounded bg-white text-gray-600 active:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-align-right text-xs"></i></button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="text-properties">
-                        <label class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2 block pl-1">ফন্ট স্টাইল</label>
-                        <div id="fontListContainer" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto px-1 pb-2">
+                        <label class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2 block pl-1">ফন্ট স্টাইল পরিবর্তন করুন</label>
+                        <div id="fontListContainer" class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto px-1 pb-2">
                             </div>
                     </div>
                 </div>
@@ -139,7 +140,6 @@
         const CANVAS_WIDTH = 900;
         const CANVAS_HEIGHT = 1200;
 
-        // --- Fabric Initialization ---
         const canvas = new fabric.Canvas('bannerCanvas', {
             width: CANVAS_WIDTH,
             height: CANVAS_HEIGHT,
@@ -162,14 +162,13 @@
         window.addEventListener('resize', resizeCanvas);
         setTimeout(resizeCanvas, 100);
 
-        // --- Advanced Undo/Redo Engine ---
+        // --- Perfect Undo/Redo Engine ---
         let historyData = [];
         let historyIndex = -1;
-        let isTrackingHistory = false; // Lock flag to prevent loops
+        let isTrackingHistory = false;
 
         function saveHistory() {
             if (!isTrackingHistory) return;
-            // Remove future history if we modify after undoing
             historyData = historyData.slice(0, historyIndex + 1);
             historyData.push(JSON.stringify(canvas.toJSON()));
             historyIndex++;
@@ -183,7 +182,7 @@
 
         function undo() {
             if (historyIndex > 0) {
-                isTrackingHistory = false; // Turn off tracking while loading
+                isTrackingHistory = false;
                 historyIndex--;
                 canvas.loadFromJSON(historyData[historyIndex], function() {
                     canvas.renderAll();
@@ -209,18 +208,31 @@
         canvas.on('object:added', saveHistory);
         canvas.on('object:removed', saveHistory);
 
-        // --- Single Click Text Editing Fix for Mobile ---
-        canvas.on('mouse:down', function(options) {
-            const obj = options.target;
+        // --- Prevent Default Keyboard on Canvas ---
+        // আমরা চাই না ক্যানভাসের ভেতরের কি-বোর্ড ওপেন হোক, আমরা চাই নিচের ইনপুট বক্স দিয়ে কাজ হোক।
+        canvas.on('object:added', function(e) {
+            if(e.target.type === 'i-text') {
+                e.target.set({ editable: false }); // Disable double-click editing
+            }
+        });
+
+        // --- EXTERNAL TEXT EDITOR LOGIC ---
+        const textInput = document.getElementById('externalTextInput');
+        
+        textInput.addEventListener('input', function(e) {
+            const obj = canvas.getActiveObject();
             if (obj && obj.type === 'i-text') {
-                canvas.setActiveObject(obj);
-                obj.enterEditing();
-                obj.hiddenTextarea.focus(); // Force keyboard open
+                obj.set('text', e.target.value);
                 canvas.requestRenderAll();
             }
         });
 
-        // --- Render Templates with Details ---
+        // Save history when user stops typing (loses focus or presses enter)
+        textInput.addEventListener('change', function() {
+            saveHistory();
+        });
+
+        // --- Advanced Template Rendering (Fixing the blank templates issue) ---
         function initTemplates() {
             const list = document.getElementById('templateList');
             if (window.bannerTemplates) {
@@ -229,16 +241,31 @@
                     btn.className = "flex flex-col bg-white border border-slate-200 rounded-xl overflow-hidden active:scale-95 transition-transform shadow-sm hover:shadow-md text-left";
                     btn.onclick = () => loadTemplate(template.id);
                     
-                    // Detail-rich Template Card
+                    // JSON থেকে টেক্সট বের করে আসল প্রিভিউ বানানো
+                    let previewHTML = '';
+                    let textCount = 0;
+                    
+                    template.data.objects.forEach(obj => {
+                        if (obj.type === 'circle') {
+                            previewHTML += `<div style="width: 40px; height: 40px; border-radius: 50%; background-color: ${obj.fill === 'transparent' ? 'transparent' : '#ffffff'}; border: 2px solid ${obj.stroke || 'transparent'}; margin: 5px auto;"></div>`;
+                        } else if (obj.type === 'i-text' && textCount < 3) {
+                            previewHTML += `<div style="color: ${obj.fill}; font-size: 8px; font-weight: bold; margin-top: 3px; text-align: center; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px;">${obj.text}</div>`;
+                            textCount++;
+                        }
+                    });
+
+                    // যদি টেমপ্লেটে কোনো কিছু না থাকে
+                    if(previewHTML === '') {
+                        previewHTML = `<div class="w-10 h-10 rounded-full bg-white/30 mb-2"></div><div class="w-2/3 h-1.5 bg-white/50 rounded-full"></div>`;
+                    }
+
                     btn.innerHTML = `
-                        <div style="background-color: ${template.bgColor}" class="w-full aspect-[3/4] flex flex-col items-center justify-center p-3 relative">
-                            <div class="w-12 h-12 rounded-full border-2 border-white/50 mb-4 shadow-sm"></div>
-                            <div class="w-3/4 h-2 bg-white/80 rounded-full mb-2"></div>
-                            <div class="w-1/2 h-1.5 bg-white/50 rounded-full"></div>
+                        <div style="background-color: ${template.bgColor}" class="w-full aspect-[3/4] flex flex-col items-center justify-center p-2 relative overflow-hidden">
+                            ${previewHTML}
                         </div>
-                        <div class="p-3 w-full bg-white">
-                            <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wide">ID: ${template.id}</span>
-                            <h3 class="text-sm font-semibold text-gray-800 mt-0.5 truncate">${template.name}</h3>
+                        <div class="p-2.5 w-full bg-white border-t border-slate-100">
+                            <span class="text-[9px] font-bold text-indigo-500 uppercase tracking-wide">ID: ${template.id}</span>
+                            <h3 class="text-[11px] font-semibold text-gray-800 mt-0.5 truncate">${template.name}</h3>
                         </div>
                     `;
                     list.appendChild(btn);
@@ -252,13 +279,17 @@
             const template = window.bannerTemplates.find(t => t.id === id);
             if (!template) return;
             
-            isTrackingHistory = false; // Stop tracking during template load
+            isTrackingHistory = false;
             canvas.loadFromJSON(JSON.stringify(template.data), () => {
+                // ক্যানভাস লোড হওয়ার পর সবগুলো টেক্সটকে editable: false করে দেওয়া
+                canvas.getObjects().forEach(obj => {
+                    if(obj.type === 'i-text') obj.set({ editable: false });
+                });
+                
                 canvas.requestRenderAll();
                 openTab('toolsTab');
                 onSelectionCleared();
                 
-                // Reset history for new template
                 historyData = [JSON.stringify(canvas.toJSON())];
                 historyIndex = 0;
                 isTrackingHistory = true;
@@ -266,22 +297,48 @@
             });
         }
 
-        // --- Fonts Setup ---
-        const fonts = [
+        // --- 50+ Beautiful Fonts ---
+        const fontCollection = [
+            // Bengali Fonts
             { name: 'আনেক বাংলা', family: 'Anek Bangla' },
             { name: 'বালু দা ২', family: 'Baloo Da 2' },
-            { name: 'গালাদা', family: 'Galada' },
+            { name: 'গালাদা (স্টাইলিশ)', family: 'Galada' },
             { name: 'হিন্দ শিলিগুড়ি', family: 'Hind Siliguri' },
             { name: 'তীরো বাংলা', family: 'Tiro Bangla' },
             { name: 'মিনা', family: 'Mina' },
-            { name: 'পপিন্স (Eng)', family: 'Poppins' }
+            { name: 'নোটো সান্স', family: 'Noto Sans Bengali' },
+            // English Fonts
+            { name: 'Poppins', family: 'Poppins' },
+            { name: 'Roboto', family: 'Roboto' },
+            { name: 'Open Sans', family: 'Open Sans' },
+            { name: 'Montserrat', family: 'Montserrat' },
+            { name: 'Lato', family: 'Lato' },
+            { name: 'Oswald', family: 'Oswald' },
+            { name: 'Raleway', family: 'Raleway' },
+            { name: 'Playfair Display', family: 'Playfair Display' },
+            { name: 'Merriweather', family: 'Merriweather' },
+            { name: 'Nunito', family: 'Nunito' },
+            { name: 'Ubuntu', family: 'Ubuntu' },
+            { name: 'Rubik', family: 'Rubik' },
+            { name: 'Work Sans', family: 'Work Sans' },
+            { name: 'Lora', family: 'Lora' },
+            { name: 'Fira Sans', family: 'Fira Sans' },
+            { name: 'Quicksand', family: 'Quicksand' },
+            { name: 'Pacifico', family: 'Pacifico' },
+            { name: 'Caveat', family: 'Caveat' },
+            { name: 'Dancing Script', family: 'Dancing Script' },
+            { name: 'Satisfy', family: 'Satisfy' },
+            { name: 'Courgette', family: 'Courgette' },
+            { name: 'Great Vibes', family: 'Great Vibes' },
+            { name: 'Lobster', family: 'Lobster' },
+            { name: 'Righteous', family: 'Righteous' }
         ];
 
         function initFonts() {
             const container = document.getElementById('fontListContainer');
-            fonts.forEach(font => {
+            fontCollection.forEach(font => {
                 const div = document.createElement('div');
-                div.className = "font-item cursor-pointer border border-slate-200 rounded-lg py-2.5 px-2 text-center text-sm transition-colors text-slate-600";
+                div.className = "font-item cursor-pointer border border-slate-200 rounded-lg py-2 px-2 text-center text-[11px] transition-colors text-slate-700 truncate";
                 div.style.fontFamily = `'${font.family}', sans-serif`;
                 div.innerText = font.name;
                 div.onclick = () => {
@@ -291,7 +348,7 @@
                     if(activeObj && activeObj.type === 'i-text') {
                         activeObj.set('fontFamily', font.family);
                         canvas.requestRenderAll();
-                        saveHistory(); // Manual trigger
+                        saveHistory();
                     }
                 };
                 container.appendChild(div);
@@ -305,16 +362,28 @@
         canvas.on('selection:cleared', onSelectionCleared);
 
         function onObjectSelected(e) {
-            const obj = e.target;
+            // যদি একসাথে একাধিক জিনিস সিলেক্ট করে (Group), তাহলে প্যানেল হাইড থাকবে
+            if (canvas.getActiveObjects().length > 1) {
+                onSelectionCleared();
+                return;
+            }
+
+            const obj = canvas.getActiveObject();
             document.getElementById('noSelectionPanel').classList.add('hidden');
             document.getElementById('textEditPanel').classList.remove('hidden');
             
-            if (obj.type === 'i-text') {
+            if (obj && obj.type === 'i-text') {
                 document.querySelectorAll('.text-properties').forEach(el => el.style.display = 'block');
                 document.getElementById('colorPicker').value = obj.fill;
+                
+                // টেক্সটবক্সে লেখা নিয়ে আসা
+                textInput.value = obj.text;
+                openTab('toolsTab'); // অটোমেটিক টুলস ট্যাব ওপেন হবে
+                
             } else {
                 document.querySelectorAll('.text-properties').forEach(el => el.style.display = 'none');
-                if (obj.fill && typeof obj.fill === 'string' && !obj.fill.startsWith('url')) {
+                textInput.value = '';
+                if (obj && obj.fill && typeof obj.fill === 'string' && !obj.fill.startsWith('url')) {
                     document.getElementById('colorPicker').value = obj.fill;
                 }
             }
@@ -324,19 +393,21 @@
             document.getElementById('textEditPanel').classList.add('hidden');
             document.getElementById('noSelectionPanel').classList.remove('hidden');
             document.querySelectorAll('.font-item').forEach(el => el.classList.remove('selected'));
+            textInput.value = '';
         }
 
         function addText() {
             const text = new fabric.IText('আপনার লেখা', { 
                 left: CANVAS_WIDTH/2, top: CANVAS_HEIGHT/2, originX: 'center', originY: 'center',
-                fontFamily: 'Hind Siliguri', fontSize: 60, fill: '#1e293b'
+                fontFamily: 'Hind Siliguri', fontSize: 60, fill: '#1e293b',
+                editable: false // Disable on-canvas typing
             });
             canvas.add(text);
             canvas.setActiveObject(text);
+            saveHistory();
         }
 
         // --- Advanced Image Upload (Absolute ClipPath) ---
-        // এই লজিকের ফলে আপলোড করা ছবিকে বৃত্তের ভেতর ইচ্ছামতো সাইজ ও পজিশন করা যাবে
         document.getElementById('imageLoader').addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -346,14 +417,12 @@
                 const targetCircle = canvas.getActiveObject();
                 
                 fabric.Image.fromURL(event.target.result, function(img) {
-                    isTrackingHistory = false; // Pause history to prevent multiple entries
+                    isTrackingHistory = false;
 
-                    // ১. যদি ইউজার গোল বৃত্ত সিলেক্ট করে ছবি আপলোড করে
                     if (targetCircle && targetCircle.type === 'circle') {
                         let radius = targetCircle.radius * targetCircle.scaleX;
                         let center = targetCircle.getCenterPoint();
 
-                        // বৃত্তাকার মাস্ক তৈরি করা (absolutePositioned: true হচ্ছে ম্যাজিক ট্রিক)
                         let clipPath = new fabric.Circle({
                             radius: radius,
                             left: center.x,
@@ -363,7 +432,6 @@
                             absolutePositioned: true 
                         });
 
-                        // ছবিটিকে অন্তত বৃত্তের সাইজে স্কেল করা
                         let scale = Math.max((radius * 2) / img.width, (radius * 2) / img.height);
                         
                         img.set({
@@ -376,11 +444,10 @@
                             clipPath: clipPath
                         });
 
-                        canvas.remove(targetCircle); // পুরোনো বৃত্ত মুছে ফেলা
+                        canvas.remove(targetCircle);
                         canvas.add(img);
                         canvas.setActiveObject(img);
                     } 
-                    // ২. যদি কিছু সিলেক্ট না করে ছবি আপলোড করে (ফ্রি ইমেজ)
                     else {
                         const scale = (CANVAS_WIDTH * 0.4) / img.width; 
                         img.set({ 
@@ -392,10 +459,9 @@
                         canvas.setActiveObject(img);
                     }
 
-                    e.target.value = ''; // Input reset
-                    
-                    isTrackingHistory = true; // Resume tracking
-                    saveHistory(); // Save the final state
+                    e.target.value = ''; 
+                    isTrackingHistory = true; 
+                    saveHistory(); 
                 });
             }
             reader.readAsDataURL(file);
@@ -425,7 +491,6 @@
         function downloadBanner() {
             canvas.discardActiveObject();
             canvas.requestRenderAll();
-            // High Resolution Export
             const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1, multiplier: 2 }); 
             const link = document.createElement('a');
             link.href = dataURL;
