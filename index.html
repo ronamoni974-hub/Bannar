@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Banner Maker</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Poppins', 'Hind Siliguri', sans-serif; }
+        .canvas-container { margin: 0 auto; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); border-radius: 8px; overflow: hidden; }
+        /* Custom Scrollbar for tools */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen flex flex-col overflow-hidden">
+
+    <header class="bg-white shadow-sm border-b px-6 py-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-indigo-600"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>BannerPro</h1>
+        <button onclick="downloadBanner()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-semibold transition shadow-md">
+            <i class="fa-solid fa-download mr-2"></i> ব্যানার ডাউনলোড
+        </button>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        
+        <aside class="w-72 bg-white border-r shadow-sm flex flex-col p-5 overflow-y-auto">
+            <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">ডিজাইন টুলস</h2>
+
+            <button onclick="addText()" class="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-lg mb-4 font-medium transition border border-gray-200">
+                <i class="fa-solid fa-t"></i> নতুন টেক্সট যোগ করুন
+            </button>
+
+            <label class="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-lg mb-4 font-medium transition cursor-pointer border border-gray-200">
+                <i class="fa-solid fa-image"></i> ছবি আপলোড করুন
+                <input type="file" id="imageLoader" class="hidden" accept="image/*">
+            </label>
+
+            <hr class="my-4 border-gray-200">
+
+            <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">এডিট অপশন</h2>
+            
+            <div class="mb-4">
+                <label class="block text-sm text-gray-600 mb-1">ফন্ট স্টাইল</label>
+                <select id="fontFamily" onchange="changeFont(this.value)" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="Poppins">Poppins (English)</option>
+                    <option value="Hind Siliguri">Hind Siliguri (বাংলা)</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Courier New">Courier New</option>
+                </select>
+            </div>
+
+            <div class="mb-4 flex items-center justify-between">
+                <label class="text-sm text-gray-600">রঙ পরিবর্তন</label>
+                <input type="color" id="colorPicker" onchange="changeColor(this.value)" class="w-10 h-10 rounded cursor-pointer border-0">
+            </div>
+
+            <button onclick="deleteObject()" class="w-full mt-auto flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 px-4 py-3 rounded-lg font-medium transition border border-red-200">
+                <i class="fa-solid fa-trash"></i> সিলেক্টেড অংশ মুছুন
+            </button>
+        </aside>
+
+        <main class="flex-1 bg-gray-100 flex items-center justify-center p-8 overflow-auto relative">
+            <canvas id="bannerCanvas"></canvas>
+        </main>
+    </div>
+
+    <script>
+        // ক্যানভাস ইনিশিয়ালাইজ করা (Standard Facebook/Web Banner Size)
+        const canvas = new fabric.Canvas('bannerCanvas', {
+            width: 800,
+            height: 450,
+            backgroundColor: '#ffffff'
+        });
+
+        // ডিফল্ট টেক্সট
+        const defaultText = new fabric.IText('আপনার দারুণ ব্যানার', {
+            left: 250,
+            top: 180,
+            fontFamily: 'Hind Siliguri',
+            fill: '#1e293b',
+            fontSize: 45,
+            fontWeight: 'bold'
+        });
+        canvas.add(defaultText);
+
+        // টেক্সট অ্যাড ফাংশন
+        function addText() {
+            const newText = new fabric.IText('ডাবল ক্লিক করে এডিট করুন', { 
+                left: 100, 
+                top: 100, 
+                fontFamily: 'Hind Siliguri',
+                fontSize: 30,
+                fill: '#000000'
+            });
+            canvas.add(newText);
+            canvas.setActiveObject(newText);
+        }
+
+        // ছবি আপলোড ফাংশন
+        document.getElementById('imageLoader').addEventListener('change', function (e) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const imgObj = new Image();
+                imgObj.src = event.target.result;
+                imgObj.onload = function () {
+                    const img = new fabric.Image(imgObj);
+                    // ছবি বড় হলে ক্যানভাসের মাপে রিসাইজ করা
+                    img.scaleToWidth(300);
+                    img.set({ left: 50, top: 50 });
+                    canvas.add(img);
+                    canvas.setActiveObject(img);
+                }
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        // ফন্ট পরিবর্তন ফাংশন
+        function changeFont(fontName) {
+            const activeObject = canvas.getActiveObject();
+            if (activeObject && activeObject.type === 'i-text') {
+                activeObject.set("fontFamily", fontName);
+                canvas.requestRenderAll();
+            }
+        }
+
+        // রঙ পরিবর্তন ফাংশন
+        function changeColor(color) {
+            const activeObject = canvas.getActiveObject();
+            if (activeObject) {
+                if (activeObject.type === 'i-text') {
+                    activeObject.set("fill", color);
+                } else if (activeObject.type === 'rect' || activeObject.type === 'circle') {
+                    activeObject.set("fill", color);
+                }
+                canvas.requestRenderAll();
+            }
+        }
+
+        // অবজেক্ট ডিলিট ফাংশন
+        function deleteObject() {
+            const activeObject = canvas.getActiveObject();
+            if (activeObject) {
+                canvas.remove(activeObject);
+            } else {
+                alert("প্রথমে একটি টেক্সট বা ছবি সিলেক্ট করুন!");
+            }
+        }
+
+        // কীবোর্ডের 'Delete' বা 'Backspace' বাটন চাপলে ডিলিট হবে
+        window.addEventListener('keydown', function(e) {
+            if(e.key === 'Delete' || e.key === 'Backspace') {
+                // টেক্সট এডিট মোডে থাকলে যেন টেক্সট ডিলিট হয়, পুরো অবজেক্ট নয়
+                const activeObject = canvas.getActiveObject();
+                if (activeObject && !activeObject.isEditing) {
+                    canvas.remove(activeObject);
+                }
+            }
+        });
+
+        // ডাউনলোড ফাংশন
+        function downloadBanner() {
+            // সিলেকশন বক্স হাইড করে ডাউনলোড করা
+            canvas.discardActiveObject();
+            canvas.requestRenderAll();
+            
+            const dataURL = canvas.toDataURL({ format: 'png', multiplier: 2 }); // multiplier: 2 for high quality
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'Professional-Banner.png';
+            link.click();
+        }
+    </script>
+</body>
+</html>
