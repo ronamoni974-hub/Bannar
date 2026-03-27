@@ -2,8 +2,8 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BannerPro | Advanced Canvas Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BannerPro | Mobile App</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -14,262 +14,175 @@
     <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;700&family=Baloo+Da+2:wght@500;700&family=Galada&family=Hind+Siliguri:wght@400;600;700&family=Mina:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&family=Tiro+Bangla:ital@0;1&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Poppins', 'Hind Siliguri', sans-serif; height: 100vh; display: flex; flex-direction: column; background-color: #f3f4f6; overflow: hidden; }
+        body { font-family: 'Poppins', 'Hind Siliguri', sans-serif; height: 100vh; display: flex; flex-direction: column; background-color: #f8fafc; overflow: hidden; overscroll-behavior-y: none; }
         
-        /* Custom Scrollbar for sleek look */
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-thumb { background: #a78bfa; border-radius: 10px; }
-        ::-webkit-scrollbar-track { background: transparent; }
+        /* Mobile scrollbar hiding for cleaner look */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
         
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
-        /* Font List Item Hover */
-        .font-item:hover { border-color: #6366f1; background-color: #fef8ff; }
-        .font-item.selected { border-color: #4f46e5; background-color: #e0e7ff; box-shadow: inset 0 0 0 1px #4f46e5; }
+        .font-item.selected { border-color: #4f46e5; background-color: #e0e7ff; }
 
-        /* Canvas Ruler Mockup Background */
-        .canvas-area {
-            background-image: 
-                linear-gradient(to right, #e5e7eb 1px, transparent 1px),
-                linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
-            background-size: 50px 50px;
-            background-position: center;
-        }
-        
-        .canvas-shadow {
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
+        /* Prevent zooming and scrolling while editing canvas on mobile */
+        .canvas-container { touch-action: none; margin: 0 auto; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-radius: 8px; overflow: hidden; }
     </style>
 </head>
-<body>
+<body class="text-gray-800">
 
-    <header class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center z-20 shrink-0">
-        <div class="flex items-center gap-3">
-            <div class="bg-indigo-600 text-white p-2 rounded-lg">
-                <i class="fa-solid fa-layer-group text-xl"></i>
-            </div>
-            <h1 class="text-2xl font-bold text-gray-800">ব্যানার<span class="text-indigo-600">প্রো</span></h1>
+    <header class="bg-white shadow-sm px-4 py-3 flex justify-between items-center z-20 shrink-0">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-layer-group text-indigo-600 text-xl"></i>
+            <h1 class="text-lg font-bold text-gray-800">ব্যানার<span class="text-indigo-600">প্রো</span></h1>
         </div>
-        <div>
-            <button onclick="downloadBanner()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-full font-semibold transition flex items-center gap-2 text-sm shadow-md">
-                <i class="fa-solid fa-cloud-download"></i> হাই-কোয়ালিটি ডাউনলোড
-            </button>
-        </div>
+        <button onclick="downloadBanner()" class="bg-indigo-600 active:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm flex items-center gap-1 shadow">
+            <i class="fa-solid fa-download"></i> সেভ
+        </button>
     </header>
 
-    <div class="flex flex-1 overflow-hidden">
+    <main class="flex-none bg-gray-200 flex items-center justify-center p-3 relative" style="height: 45vh;">
+        <div id="canvasWrapper" class="relative w-full h-full flex items-center justify-center">
+            <canvas id="bannerCanvas"></canvas>
+        </div>
+    </main>
+
+    <div class="flex-none bg-white border-b border-t shadow-sm z-10 flex">
+        <button id="templatesTabBtn" onclick="openTab('templatesTab')" class="flex-1 py-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600">টেমপ্লেট</button>
+        <button id="toolsTabBtn" onclick="openTab('toolsTab')" class="flex-1 py-3 text-sm font-semibold text-gray-500">এডিট টুলস</button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto bg-white relative pb-10">
         
-        <aside class="w-[380px] bg-white border-r flex flex-col overflow-hidden shrink-0 shadow-lg z-10">
+        <div id="templatesTab" class="tab-content active p-4">
+            <div id="templateList" class="grid grid-cols-2 gap-3">
+                </div>
+        </div>
+
+        <div id="toolsTab" class="tab-content p-4 space-y-5">
             
-            <div class="flex border-b text-sm font-semibold shrink-0">
-                <button id="templatesTabBtn" onclick="openTab('templatesTab')" class="flex-1 py-4 text-center text-indigo-600 border-b-2 border-indigo-600 transition">টেমপ্লেট</button>
-                <button id="toolsTabBtn" onclick="openTab('toolsTab')" class="flex-1 py-4 text-center text-gray-500 hover:text-indigo-600 transition">এডিট টুলস</button>
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="addText()" class="bg-indigo-50 active:bg-indigo-100 text-indigo-700 py-3 rounded-lg font-medium text-xs border border-indigo-100 flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-t text-base"></i> টেক্সট
+                </button>
+                <label class="bg-green-50 active:bg-green-100 text-green-700 py-3 rounded-lg font-medium text-xs border border-green-100 flex flex-col items-center gap-1 cursor-pointer">
+                    <i class="fa-solid fa-image text-base"></i> ছবি
+                    <input type="file" id="imageLoader" class="hidden" accept="image/*">
+                </label>
+                <button onclick="deleteObject()" class="bg-red-50 active:bg-red-100 text-red-600 py-3 rounded-lg font-medium text-xs border border-red-100 flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-trash text-base"></i> মুছুন
+                </button>
             </div>
 
-            <div class="flex-1 overflow-hidden relative">
+            <div id="textEditPanel" class="hidden space-y-4 border-t pt-4">
                 
-                <div id="templatesTab" class="tab-content active h-full overflow-y-auto p-4">
-                    <div id="templateList" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div class="flex justify-between items-center gap-4">
+                    <div class="flex-1">
+                        <label class="text-xs text-gray-500 mb-1 block">টেক্সট কালার</label>
+                        <input type="color" id="colorPicker" onchange="changeColor(this.value)" class="w-full h-10 rounded cursor-pointer border px-1">
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="changeAlignment('left')" class="p-2.5 bg-gray-50 rounded border text-gray-600"><i class="fa-solid fa-align-left"></i></button>
+                        <button onclick="changeAlignment('center')" class="p-2.5 bg-gray-50 rounded border text-gray-600"><i class="fa-solid fa-align-center"></i></button>
+                        <button onclick="changeAlignment('right')" class="p-2.5 bg-gray-50 rounded border text-gray-600"><i class="fa-solid fa-align-right"></i></button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs text-gray-500 mb-2 block">ফন্ট পরিবর্তন (ক্লিক করুন)</label>
+                    <div id="fontListContainer" class="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-1">
                         </div>
                 </div>
-
-                <div id="toolsTab" class="tab-content h-full overflow-y-auto p-5 space-y-6">
-                    
-                    <div>
-                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">যোগ করুন</h3>
-                        <div class="flex gap-2">
-                            <button onclick="addText()" class="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 py-2.5 rounded-lg font-medium text-sm border border-indigo-100 transition">
-                                <i class="fa-solid fa-t mr-1"></i> টেক্সট
-                            </button>
-                            <label class="flex-1 bg-green-50 hover:bg-green-100 text-green-700 py-2.5 rounded-lg font-medium text-sm border border-green-100 transition cursor-pointer text-center">
-                                <i class="fa-solid fa-image mr-1"></i> ছবি
-                                <input type="file" id="imageLoader" class="hidden" accept="image/*">
-                            </label>
-                            <button onclick="deleteObject()" class="w-10 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg border border-red-100 transition">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <hr class="border-gray-100">
-
-                    <div>
-                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">প্রপার্টিজ</h3>
-                        <div class="flex gap-4 items-center">
-                            <div class="flex-1">
-                                <span class="text-xs text-gray-500 block mb-1">রঙ</span>
-                                <div class="flex items-center gap-2 p-1 border rounded-lg">
-                                    <input type="color" id="colorPicker" onchange="changeColor(this.value)" class="w-8 h-8 rounded cursor-pointer border-none p-0">
-                                    <span id="colorHex" class="text-xs text-gray-600 font-mono">#000000</span>
-                                </div>
-                            </div>
-                            <div class="flex-1">
-                                <span class="text-xs text-gray-500 block mb-1">অচ্ছতা (Opacity)</span>
-                                <input type="range" min="0" max="1" step="0.1" value="1" oninput="changeOpacity(this.value)" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr class="border-gray-100">
-
-                    <div class="flex-1 flex flex-col pb-4 text-properties" style="display: none;">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">ফন্ট লিস্ট (ক্লিক করুন)</h3>
-                        <div id="fontListContainer" class="flex-1 overflow-y-auto space-y-2 pr-1">
-                            </div>
-                    </div>
-
-                </div>
-            </div>
-        </aside>
-
-        <main class="flex-1 bg-gray-200 canvas-area flex flex-col items-center justify-center p-4 relative">
-            
-            <div class="absolute top-0 left-0 right-0 h-6 bg-white border-b flex items-end text-[9px] text-gray-400 select-none px-12 overflow-hidden z-0">
-                <div class="flex-1 flex justify-between">
-                    <span>0</span><span>100</span><span>200</span><span>300</span><span>400</span><span>500</span><span>600</span><span>700</span><span>800</span><span>900</span><span>1000</span>
-                </div>
-            </div>
-            
-            <div class="absolute top-0 left-0 bottom-0 w-6 bg-white border-r flex flex-col justify-between items-center text-[9px] text-gray-400 select-none py-12 overflow-hidden z-0" style="writing-mode: vertical-rl; transform: rotate(180deg);">
-                <div class="flex-1 flex justify-between w-full">
-                    <span>1200</span><span>1000</span><span>800</span><span>600</span><span>400</span><span>200</span><span>0</span>
-                </div>
             </div>
 
-            <div id="canvasWrapper" class="relative z-10 canvas-shadow bg-white flex items-center justify-center">
-                <canvas id="bannerCanvas"></canvas>
+            <div id="noSelectionPanel" class="text-center text-sm text-gray-400 py-6 border-t mt-4">
+                এডিট করতে ক্যানভাসের কোনো টেক্সট বা ছবির ওপর ক্লিক করুন।
             </div>
 
-        </main>
+        </div>
     </div>
 
     <script>
-        // --- ১. ক্যানভাস সেটআপ (Portrait Mode for Posters) ---
+        // --- ১. ক্যানভাস সেটআপ (Portrait Standard 900x1200) ---
         const CANVAS_WIDTH = 900;
-        const CANVAS_HEIGHT = 1200; // Portrait/Poster aspect ratio
+        const CANVAS_HEIGHT = 1200;
 
         const canvas = new fabric.Canvas('bannerCanvas', {
             width: CANVAS_WIDTH,
             height: CANVAS_HEIGHT,
             backgroundColor: '#ffffff',
-            preserveObjectStacking: true
+            preserveObjectStacking: true,
+            selection: false // Disable group selection on mobile for easier tapping
         });
 
-        // Responsive Resizing logic
+        // Perfect Mobile Resizing
         function resizeCanvas() {
             const wrapper = document.getElementById('canvasWrapper');
-            const container = wrapper.parentNode;
-            
-            const containerWidth = container.clientWidth - 40; 
-            const containerHeight = container.clientHeight - 40;
+            const containerWidth = wrapper.clientWidth; 
+            const containerHeight = wrapper.clientHeight;
             
             const scaleX = containerWidth / CANVAS_WIDTH;
             const scaleY = containerHeight / CANVAS_HEIGHT;
-            const scale = Math.min(scaleX, scaleY, 0.95); 
+            const scale = Math.min(scaleX, scaleY); 
 
             canvas.setZoom(scale);
             canvas.setWidth(CANVAS_WIDTH * scale);
             canvas.setHeight(CANVAS_HEIGHT * scale);
         }
         window.addEventListener('resize', resizeCanvas);
-        setTimeout(resizeCanvas, 100);
+        setTimeout(resizeCanvas, 200);
 
-        // --- ২. ফন্ট লাইব্রেরি ও UI রেন্ডারিং ---
-        // Mapping custom names to Google Fonts loaded in the <head>
-        const fontLibrary = [
-            { id: 'f1', name: 'কাব্যলিপি (Kabyalipi)', family: 'Tiro Bangla' },
-            { id: 'f2', name: 'আধুনিক রেখা (Adhunik Rekha)', family: 'Anek Bangla' },
-            { id: 'f3', name: 'নব্যচিত্র (Nabyachitra)', family: 'Noto Sans Bengali' },
-            { id: 'f4', name: 'শিল্প লিপি (Shilpa Lipi)', family: 'Galada' },
-            { id: 'f5', name: 'সারল্য (Saralya)', family: 'Hind Siliguri' },
-            { id: 'f6', name: 'গল্প-পাঠক (Galpa-Pathak)', family: 'Mina' },
-            { id: 'f7', name: 'আলোড়ন লিপি (Aloron Lipi)', family: 'Baloo Da 2' },
-            { id: 'f8', name: 'ইংলিশ মডার্ন (English Modern)', family: 'Poppins' },
-            { id: 'f9', name: 'ঐতিহ্য-চিত্রক (Oitijja-Chitrak)', family: 'Tiro Bangla' },
-            { id: 'f10', name: 'ভবিষ্য-রেখা (Bhabishya-Rekha)', family: 'Anek Bangla' }
+        // --- ২. অরিজিনাল টেমপ্লেট ডেটাবেস (১০টি রিয়েলিস্টিক ডিজাইন) ---
+        const bannerTemplates = [
+            // ১. ছাত্র সমিতি (আপনার ছবি অনুযায়ী)
+            { id: 1, name: 'ছাত্র সমিতি', bgColor: '#064e3b', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#064e3b","selectable":false},{"type":"circle","left":150,"top":300,"radius":300,"fill":"#ffffff","stroke":"#4ade80","strokeWidth":10},{"type":"i-text","left":450,"top":100,"text":"পাবনা জেলা ছাত্র সমিতি","fontFamily":"Anek Bangla","fontSize":60,"fill":"#4ade80","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":180,"text":"চট্টগ্রাম বিশ্ববিদ্যালয়","fontFamily":"Hind Siliguri","fontSize":40,"fill":"#ffffff","originX":"center"},{"type":"rect","left":250,"top":250,"width":400,"height":50,"fill":"#166534","rx":10,"ry":10},{"type":"i-text","left":450,"top":255,"text":"কার্যকরী কমিটি ২০২৩","fontFamily":"Hind Siliguri","fontSize":30,"fill":"#ffffff","originX":"center"},{"type":"rect","left":250,"top":800,"width":400,"height":70,"fill":"#ffffff","stroke":"#4ade80","strokeWidth":4,"rx":35,"ry":35},{"type":"i-text","left":450,"top":815,"text":"সাঈদ আল সাহাব","fontFamily":"Anek Bangla","fontSize":35,"fill":"#166534","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":950,"text":"সাংগঠনিক সম্পাদক","fontFamily":"Baloo Da 2","fontSize":75,"fill":"#ffffff","fontWeight":"bold","originX":"center"}]} },
+            
+            // ২. স্বাধীনতা দিবস (আপনার ছবি অনুযায়ী)
+            { id: 2, name: 'স্বাধীনতা দিবস', bgColor: '#14532d', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#14532d","selectable":false},{"type":"circle","left":200,"top":200,"radius":250,"fill":"#ef4444"},{"type":"i-text","left":450,"top":300,"text":"২৬ শে মার্চ","fontFamily":"Tiro Bangla","fontSize":90,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":480,"text":"স্বাধীনতা দিবস","fontFamily":"Baloo Da 2","fontSize":110,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":800,"text":"THE INDEPENDENCE DAY OF BANGLADESH","fontFamily":"Poppins","fontSize":35,"fill":"#ffffff","fontWeight":"bold","originX":"center"}]} },
+            
+            // ৩. স্টুডেন্ট এসোসিয়েশন (আপনার ছবি অনুযায়ী)
+            { id: 3, name: 'এসোসিয়েশন', bgColor: '#1e3a8a', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#1e3a8a","selectable":false},{"type":"rect","left":0,"top":700,"width":900,"height":500,"fill":"#f3f4f6","selectable":false},{"type":"i-text","left":450,"top":80,"text":"চট্টগ্রাম বিশ্ববিদ্যালয় স্টুডেন্টস' এসোসিয়েশন","fontFamily":"Hind Siliguri","fontSize":35,"fill":"#ffffff","originX":"center"},{"type":"i-text","left":450,"top":160,"text":"কার্যনির্বাহী পরিষদ ২০২৩","fontFamily":"Anek Bangla","fontSize":55,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":250,"text":"Congratulations","fontFamily":"Galada","fontSize":80,"fill":"#fde047","originX":"center"},{"type":"circle","left":250,"top":400,"radius":200,"fill":"#ffffff","stroke":"#1e3a8a","strokeWidth":15},{"type":"rect","left":200,"top":800,"width":500,"height":80,"fill":"#ffffff","stroke":"#1e3a8a","strokeWidth":4,"rx":10,"ry":10},{"type":"i-text","left":450,"top":815,"text":"জয়নুল আবেদীন ফাহিম","fontFamily":"Anek Bangla","fontSize":40,"fill":"#1e3a8a","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":920,"text":"সাহিত্য ও সংস্কৃতি সম্পাদক","fontFamily":"Hind Siliguri","fontSize":45,"fill":"#1e3a8a","fontWeight":"bold","originX":"center"}]} },
+
+            // ৪. পলিটিক্যাল ব্যানার
+            { id: 4, name: 'পলিটিক্যাল শুভেচ্ছা', bgColor: '#831843', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#831843","selectable":false},{"type":"i-text","left":450,"top":150,"text":"পবিত্র ঈদুল ফিতর","fontFamily":"Galada","fontSize":90,"fill":"#fde047","originX":"center"},{"type":"i-text","left":450,"top":280,"text":"উপলক্ষে দেশবাসীকে জানাই","fontFamily":"Hind Siliguri","fontSize":40,"fill":"#ffffff","originX":"center"},{"type":"i-text","left":450,"top":360,"text":"ঈদের শুভেচ্ছা","fontFamily":"Anek Bangla","fontSize":80,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"circle","left":250,"top":500,"radius":200,"fill":"#e5e7eb"},{"type":"rect","left":0,"top":950,"width":900,"height":250,"fill":"#4c0519","selectable":false},{"type":"i-text","left":450,"top":1000,"text":"মোহাম্মদ আলী","fontFamily":"Anek Bangla","fontSize":55,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":1080,"text":"সভাপতি, ঢাকা মহানগর","fontFamily":"Hind Siliguri","fontSize":35,"fill":"#fde047","originX":"center"}]} },
+
+            // ৫. ইভেন্ট স্পিকার
+            { id: 5, name: 'টেক ইভেন্ট', bgColor: '#0f172a', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#0f172a","selectable":false},{"type":"rect","left":50,"top":50,"width":800,"height":1100,"fill":"transparent","stroke":"#3b82f6","strokeWidth":4},{"type":"i-text","left":100,"top":150,"text":"TECH MEETUP","fontFamily":"Poppins","fontSize":70,"fill":"#3b82f6","fontWeight":"bold"},{"type":"i-text","left":100,"top":250,"text":"2026","fontFamily":"Poppins","fontSize":120,"fill":"#ffffff","fontWeight":"bold"},{"type":"circle","left":400,"top":400,"radius":220,"fill":"#cbd5e1"},{"type":"i-text","left":100,"top":900,"text":"GUEST SPEAKER:","fontFamily":"Poppins","fontSize":30,"fill":"#94a3b8"},{"type":"i-text","left":100,"top":950,"text":"John Doe","fontFamily":"Poppins","fontSize":60,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","left":100,"top":1030,"text":"Lead Developer, Google","fontFamily":"Poppins","fontSize":35,"fill":"#3b82f6"}]} },
+
+            // ৬. এডুকেশনাল কোর্স
+            { id: 6, name: 'কোর্স ভর্তি', bgColor: '#ea580c', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#ea580c","selectable":false},{"type":"rect","left":0,"top":600,"width":900,"height":600,"fill":"#ffffff","selectable":false},{"type":"i-text","left":450,"top":150,"text":"প্রফেশনাল ডিজিটাল মার্কেটিং","fontFamily":"Anek Bangla","fontSize":65,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":250,"text":"কোর্সে ভর্তি চলছে","fontFamily":"Hind Siliguri","fontSize":50,"fill":"#fde047","originX":"center"},{"type":"circle","left":250,"top":400,"radius":200,"fill":"#e2e8f0","stroke":"#ffffff","strokeWidth":10},{"type":"rect","left":100,"top":850,"width":700,"height":120,"fill":"#ea580c","rx":20,"ry":20},{"type":"i-text","left":450,"top":885,"text":"আজই রেজিস্ট্রেশন করুন","fontFamily":"Anek Bangla","fontSize":45,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":1050,"text":"যোগাযোগ: ০১৭১২-৩৪৫৬৭৮","fontFamily":"Hind Siliguri","fontSize":35,"fill":"#1e293b","originX":"center"}]} },
+
+            // ৭. প্রডাক্ট সেল
+            { id: 7, name: 'ফ্ল্যাশ সেল', bgColor: '#dc2626', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#dc2626","selectable":false},{"type":"circle","left":-100,"top":-100,"radius":400,"fill":"#b91c1c"},{"type":"i-text","left":450,"top":200,"text":"MEGA SALE","fontFamily":"Poppins","fontSize":110,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":350,"text":"UP TO 50% OFF","fontFamily":"Poppins","fontSize":60,"fill":"#fde047","fontWeight":"bold","originX":"center"},{"type":"rect","left":150,"top":450,"width":600,"height":450,"fill":"#ffffff","rx":20,"ry":20},{"type":"i-text","left":450,"top":650,"text":"[এখানে ছবি দিন]","fontFamily":"Hind Siliguri","fontSize":40,"fill":"#94a3b8","originX":"center"},{"type":"rect","left":250,"top":950,"width":400,"height":80,"fill":"#000000"},{"type":"i-text","left":450,"top":970,"text":"SHOP NOW","fontFamily":"Poppins","fontSize":40,"fill":"#ffffff","fontWeight":"bold","originX":"center"}]} },
+
+            // ৮. জন্মদিন
+            { id: 8, name: 'শুভ জন্মদিন', bgColor: '#fdf4ff', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#fdf4ff","selectable":false},{"type":"i-text","left":450,"top":150,"text":"শুভ জন্মদিন","fontFamily":"Galada","fontSize":120,"fill":"#db2777","originX":"center"},{"type":"circle","left":250,"top":350,"radius":200,"fill":"#fbcfe8","stroke":"#db2777","strokeWidth":8},{"type":"i-text","left":450,"top":800,"text":"প্রিয় বন্ধু","fontFamily":"Hind Siliguri","fontSize":50,"fill":"#831843","originX":"center"},{"type":"i-text","left":450,"top":900,"text":"জীবনের প্রতিটি মুহূর্ত সুন্দর হোক!","fontFamily":"Mina","fontSize":35,"fill":"#db2777","originX":"center"}]} },
+
+            // ৯. ইসলামিক/দোয়া
+            { id: 9, name: 'পবিত্র রমজান', bgColor: '#064e3b', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#064e3b","selectable":false},{"type":"i-text","left":450,"top":200,"text":"পবিত্র মাহে রমজান","fontFamily":"Anek Bangla","fontSize":80,"fill":"#fde047","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":350,"text":"সবাইকে রমজানের শুভেচ্ছা","fontFamily":"Hind Siliguri","fontSize":45,"fill":"#ffffff","originX":"center"},{"type":"rect","left":100,"top":500,"width":700,"height":400,"fill":"transparent","stroke":"#fde047","strokeWidth":4,"rx":20,"ry":20},{"type":"i-text","left":450,"top":650,"text":"হে আল্লাহ, আমাদের","fontFamily":"Hind Siliguri","fontSize":50,"fill":"#ffffff","originX":"center"},{"type":"i-text","left":450,"top":730,"text":"রোজাগুলো কবুল করুন।","fontFamily":"Hind Siliguri","fontSize":50,"fill":"#ffffff","originX":"center"}]} },
+
+            // ১০. রেস্টুরেন্ট
+            { id: 10, name: 'ফুড মেনু', bgColor: '#111827', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#111827","selectable":false},{"type":"i-text","left":450,"top":100,"text":"DELICIOUS","fontFamily":"Galada","fontSize":100,"fill":"#fbbf24","originX":"center"},{"type":"i-text","left":450,"top":220,"text":"BURGER COMBO","fontFamily":"Poppins","fontSize":70,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"circle","left":200,"top":350,"radius":250,"fill":"#374151"},{"type":"circle","left":600,"top":400,"radius":100,"fill":"#ef4444"},{"type":"i-text","left":700,"top":460,"text":"$9.99","fontFamily":"Poppins","fontSize":50,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"rect","left":250,"top":950,"width":400,"height":80,"fill":"#fbbf24","rx":40,"ry":40},{"type":"i-text","left":450,"top":970,"text":"ORDER NOW","fontFamily":"Poppins","fontSize":35,"fill":"#111827","fontWeight":"bold","originX":"center"}]} }
         ];
 
-        function initFonts() {
-            const container = document.getElementById('fontListContainer');
-            fontLibrary.forEach(font => {
-                const div = document.createElement('div');
-                div.className = "font-item cursor-pointer border border-gray-200 rounded-lg p-3 transition";
-                div.onclick = () => applyFont(font.family, div);
-                
-                div.innerHTML = `
-                    <div class="text-xs text-gray-500 mb-1">${font.name}</div>
-                    <div class="text-xl text-gray-800 truncate" style="font-family: '${font.family}', sans-serif;">ফন্ট নমুনা (Sample)</div>
-                `;
-                container.appendChild(div);
-            });
-        }
-        initFonts();
-
-        function applyFont(fontFamily, element) {
-            // UI Selection update
-            document.querySelectorAll('.font-item').forEach(el => el.classList.remove('selected'));
-            if(element) element.classList.add('selected');
-
-            // Canvas Text update
-            const activeObject = canvas.getActiveObject();
-            if (activeObject && activeObject.type === 'i-text') {
-                activeObject.set("fontFamily", fontFamily);
-                canvas.requestRenderAll();
-            }
-        }
-
-        // --- ৩. টেমপ্লেট ডেটাবেস (৫০টি টেমপ্লেট লজিক) ---
-        const bannerTemplates = [];
-
-        // ১. স্পেশাল হ্যান্ডক্রাফটেড টেমপ্লেট (আপনার দেওয়া ছবির মতো)
-        bannerTemplates.push({
-            id: 1, name: 'ছাত্র সমিতি (ডিজাইন ১)', type: 'portrait', bgColor: '#0b4d44',
-            data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#0b4d44","selectable":false},{"type":"circle","left":150,"top":350,"radius":300,"fill":"transparent","stroke":"#4ade80","strokeWidth":10},{"type":"circle","left":170,"top":370,"radius":280,"fill":"#e5e7eb"},{"type":"i-text","left":450,"top":120,"text":"পাবনা জেলা ছাত্র সমিতি","fontFamily":"Anek Bangla","fontSize":65,"fill":"#4ade80","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":200,"text":"চট্টগ্রাম বিশ্ববিদ্যালয়","fontFamily":"Hind Siliguri","fontSize":45,"fill":"#ffffff","originX":"center"},{"type":"rect","left":250,"top":280,"width":400,"height":60,"fill":"#166534","rx":15,"ry":15},{"type":"i-text","left":450,"top":290,"text":"কার্যকরী কমিটি ২০২৩","fontFamily":"Hind Siliguri","fontSize":35,"fill":"#ffffff","originX":"center"},{"type":"rect","left":400,"top":850,"width":450,"height":80,"fill":"#ffffff","stroke":"#4ade80","strokeWidth":5,"rx":40,"ry":40},{"type":"i-text","left":625,"top":865,"text":"সাঈদ আল সাহাব","fontFamily":"Anek Bangla","fontSize":40,"fill":"#166534","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":1020,"text":"সাংগঠনিক সম্পাদক","fontFamily":"Baloo Da 2","fontSize":75,"fill":"#ffffff","fontWeight":"bold","originX":"center"}]}
-        });
-
-        // ২. স্পেশাল হ্যান্ডক্রাফটেড টেমপ্লেট (স্বাধীনতা দিবস)
-        bannerTemplates.push({
-            id: 2, name: 'স্বাধীনতা দিবস', type: 'portrait', bgColor: '#064e3b',
-            data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#064e3b","selectable":false},{"type":"circle","left":250,"top":250,"radius":200,"fill":"#ef4444"},{"type":"i-text","left":450,"top":300,"text":"২৬ শে মার্চ","fontFamily":"Tiro Bangla","fontSize":80,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":480,"text":"স্বাধীনতা দিবস","fontFamily":"Baloo Da 2","fontSize":110,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":800,"text":"মহান স্বাধীনতা দিবসে বিনম্র শ্রদ্ধা","fontFamily":"Hind Siliguri","fontSize":40,"fill":"#ffffff","originX":"center"}]}
-        });
-
-        // বাকি ৪৮টি টেমপ্লেট অটো-জেনারেট করা হচ্ছে লুপের মাধ্যমে
-        const colors = ['#1e3a8a', '#831843', '#14532d', '#701a75', '#0f172a', '#b45309', '#0f766e', '#be123c'];
-        const types = ['কমিটি ডিজাইন', 'অভিনন্দন', 'সেমিনার', 'বিজ্ঞপ্তি', 'শুভ জন্মদিন'];
-
-        for(let i = 3; i <= 50; i++) {
-            let color = colors[i % colors.length];
-            let typeName = types[i % types.length];
-            bannerTemplates.push({
-                id: i, 
-                name: `${typeName} ${i}`,
-                bgColor: color,
-                data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":color,"selectable":false},{"type":"i-text","left":450,"top":400,"text":"ডেমো টেমপ্লেট "+i,"fontFamily":"Hind Siliguri","fontSize":70,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":520,"text":typeName,"fontFamily":"Anek Bangla","fontSize":40,"fill":"#fcd34d","originX":"center"}]}
-            });
-        }
-
-        // রেন্ডার টেমপ্লেট লিস্ট (Grid View like the image)
+        // টেমপ্লেট লোড করা (Mobile Grid)
         function initTemplates() {
             const list = document.getElementById('templateList');
             bannerTemplates.forEach(template => {
-                const card = document.createElement('button');
-                card.className = "flex flex-col bg-gray-50 border rounded-lg overflow-hidden transition hover:shadow-md hover:border-indigo-300 group";
-                card.onclick = () => loadTemplate(template.id);
+                const btn = document.createElement('button');
+                btn.className = "flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden active:bg-gray-50 shadow-sm";
+                btn.onclick = () => loadTemplate(template.id);
                 
-                // Generating a small CSS visual placeholder based on data
-                card.innerHTML = `
-                    <div style="background-color: ${template.bgColor}" class="w-full aspect-[3/4] flex items-center justify-center p-2 relative overflow-hidden">
-                        <div class="absolute w-12 h-12 rounded-full border-2 border-white/30"></div>
-                        <div class="w-3/4 h-2 bg-white/50 rounded-full mt-16"></div>
+                btn.innerHTML = `
+                    <div style="background-color: ${template.bgColor}" class="w-full aspect-[3/4] flex items-center justify-center p-2 relative">
+                        <div class="w-8 h-8 rounded-full border border-white/40"></div>
+                        <div class="absolute bottom-4 w-1/2 h-1 bg-white/50 rounded"></div>
                     </div>
-                    <div class="p-2 w-full text-center bg-white border-t group-hover:bg-indigo-50">
-                        <span class="text-[10px] font-semibold text-gray-700 truncate block">${template.name}</span>
+                    <div class="p-2 text-center w-full">
+                        <span class="text-xs font-semibold text-gray-700">${template.name}</span>
                     </div>
                 `;
-                list.appendChild(card);
+                list.appendChild(btn);
             });
-            // Load the first specific template initially
             loadTemplate(1);
         }
         initTemplates();
@@ -279,44 +192,74 @@
             if (!template) return;
             canvas.loadFromJSON(JSON.stringify(template.data), () => {
                 canvas.requestRenderAll();
-                openTab('toolsTab');
+                openTab('toolsTab'); // Switch to tools tab after loading
+                onSelectionCleared(); // Reset panels
             });
         }
 
-        // --- ৪. এডিটিং ইভেন্ট লিসেনার্স ---
+        // --- ৩. ফন্ট ও এডিটিং লজিক ---
+        const fonts = [
+            { name: 'আনেক বাংলা (বোল্ড)', family: 'Anek Bangla' },
+            { name: 'বালু দা ২ (হেডিং)', family: 'Baloo Da 2' },
+            { name: 'গালাদা (স্টাইলিশ)', family: 'Galada' },
+            { name: 'হিন্দ শিলিগুড়ি (পঠনযোগ্য)', family: 'Hind Siliguri' },
+            { name: 'তীরো বাংলা (ক্লাসিক)', family: 'Tiro Bangla' },
+            { name: 'মিনা (সিম্পল)', family: 'Mina' },
+            { name: 'ইংলিশ (মডার্ন)', family: 'Poppins' }
+        ];
+
+        function initFonts() {
+            const container = document.getElementById('fontListContainer');
+            fonts.forEach(font => {
+                const div = document.createElement('div');
+                div.className = "font-item cursor-pointer border rounded p-2 text-center text-sm active:bg-gray-100";
+                div.style.fontFamily = `'${font.family}', sans-serif`;
+                div.innerText = font.name;
+                div.onclick = () => {
+                    document.querySelectorAll('.font-item').forEach(el => el.classList.remove('selected'));
+                    div.classList.add('selected');
+                    const activeObj = canvas.getActiveObject();
+                    if(activeObj && activeObj.type === 'i-text') {
+                        activeObj.set('fontFamily', font.family);
+                        canvas.requestRenderAll();
+                    }
+                };
+                container.appendChild(div);
+            });
+        }
+        initFonts();
+
+        // Canvas Events
         canvas.on('selection:created', onObjectSelected);
         canvas.on('selection:updated', onObjectSelected);
         canvas.on('selection:cleared', onSelectionCleared);
 
         function onObjectSelected(e) {
-            const selectedObject = e.target;
-            document.querySelectorAll('.text-properties').forEach(el => el.style.display = 'none');
+            const obj = e.target;
+            document.getElementById('noSelectionPanel').classList.add('hidden');
             
-            if (selectedObject.type === 'i-text') {
-                document.querySelectorAll('.text-properties').forEach(el => el.style.display = 'flex');
-                openTab('toolsTab');
-            }
-            
-            if(selectedObject.fill && typeof selectedObject.fill === 'string') {
-                document.getElementById('colorPicker').value = selectedObject.fill;
-                document.getElementById('colorHex').textContent = selectedObject.fill;
+            if (obj.type === 'i-text') {
+                document.getElementById('textEditPanel').classList.remove('hidden');
+                document.getElementById('colorPicker').value = obj.fill;
+            } else {
+                document.getElementById('textEditPanel').classList.add('hidden');
             }
         }
 
         function onSelectionCleared() {
-            document.querySelectorAll('.text-properties').forEach(el => el.style.display = 'none');
+            document.getElementById('textEditPanel').classList.add('hidden');
+            document.getElementById('noSelectionPanel').classList.remove('hidden');
             document.querySelectorAll('.font-item').forEach(el => el.classList.remove('selected'));
         }
 
-        // Tools Functions
+        // Tools
         function addText() {
-            const newText = new fabric.IText('নতুন টেক্সট', { 
-                left: CANVAS_WIDTH / 2, top: CANVAS_HEIGHT / 2, originX: 'center', originY: 'center',
+            const text = new fabric.IText('ডাবল ক্লিক করুন', { 
+                left: CANVAS_WIDTH/2, top: CANVAS_HEIGHT/2, originX: 'center', originY: 'center',
                 fontFamily: 'Hind Siliguri', fontSize: 60, fill: '#000000'
             });
-            canvas.add(newText);
-            canvas.setActiveObject(newText);
-            newText.enterEditing();
+            canvas.add(text);
+            canvas.setActiveObject(text);
         }
 
         document.getElementById('imageLoader').addEventListener('change', function (e) {
@@ -327,7 +270,7 @@
                 imgObj.onload = function () {
                     const img = new fabric.Image(imgObj);
                     const scale = (CANVAS_WIDTH * 0.4) / img.width; 
-                    img.set({ left: CANVAS_WIDTH / 2, top: CANVAS_HEIGHT / 2, originX: 'center', originY: 'center', scaleX: scale, scaleY: scale });
+                    img.set({ left: CANVAS_WIDTH/2, top: CANVAS_HEIGHT/2, originX: 'center', originY: 'center', scaleX: scale, scaleY: scale });
                     canvas.add(img);
                     canvas.setActiveObject(img);
                 }
@@ -336,49 +279,44 @@
         });
 
         function changeColor(color) {
-            const activeObject = canvas.getActiveObject();
-            if (activeObject) {
-                activeObject.set("fill", color);
-                document.getElementById('colorHex').textContent = color.toUpperCase();
-                canvas.requestRenderAll();
-            }
+            const obj = canvas.getActiveObject();
+            if (obj) { obj.set("fill", color); canvas.requestRenderAll(); }
         }
-        
-        function changeOpacity(value) {
-            const activeObject = canvas.getActiveObject();
-            if (activeObject) {
-                activeObject.set("opacity", parseFloat(value));
-                canvas.requestRenderAll();
-            }
+
+        function changeAlignment(align) {
+            const obj = canvas.getActiveObject();
+            if (obj && obj.type === 'i-text') { obj.set("textAlign", align); canvas.requestRenderAll(); }
         }
 
         function deleteObject() {
             const activeObjects = canvas.getActiveObjects();
-            if (activeObjects.length > 0) {
+            if (activeObjects.length) {
                 activeObjects.forEach(obj => canvas.remove(obj));
                 canvas.discardActiveObject();
+            } else {
+                alert('প্রথমে ক্যানভাস থেকে কিছু সিলেক্ট করুন');
             }
         }
 
         function downloadBanner() {
             canvas.discardActiveObject();
             canvas.requestRenderAll();
-            const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 }); // Multiplier 2 for HD output
+            const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 0.9, multiplier: 2 }); 
             const link = document.createElement('a');
             link.href = dataURL;
-            link.download = 'BannerPro-Export.png';
+            link.download = 'Mobile-Banner.jpg';
             link.click();
         }
 
-        // Tabs Logic
+        // Tabs
         function openTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             
-            document.getElementById('templatesTabBtn').className = "flex-1 py-4 text-center text-gray-500 hover:text-indigo-600 transition border-b-2 border-transparent";
-            document.getElementById('toolsTabBtn').className = "flex-1 py-4 text-center text-gray-500 hover:text-indigo-600 transition border-b-2 border-transparent";
+            document.getElementById('templatesTabBtn').className = "flex-1 py-3 text-sm font-semibold text-gray-500 border-b-2 border-transparent";
+            document.getElementById('toolsTabBtn').className = "flex-1 py-3 text-sm font-semibold text-gray-500 border-b-2 border-transparent";
 
-            document.getElementById(tabId + 'Btn').className = "flex-1 py-4 text-center text-indigo-600 border-b-2 border-indigo-600 transition";
+            document.getElementById(tabId + 'Btn').className = "flex-1 py-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600";
         }
     </script>
 </body>
