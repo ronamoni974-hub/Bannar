@@ -27,10 +27,11 @@
         .canvas-container { margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border-radius: 4px; overflow: hidden; touch-action: none; }
         .history-btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .bottom-panel { border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
-        
-        /* Text Editor Input Style */
         .custom-textarea { resize: none; border: 2px solid #e2e8f0; transition: border-color 0.2s; }
         .custom-textarea:focus { border-color: #6366f1; outline: none; }
+        
+        /* Gradient Button Hover */
+        .grad-btn:active { transform: scale(0.9); transition: transform 0.1s; }
     </style>
 </head>
 <body class="text-gray-800 flex flex-col h-screen">
@@ -75,59 +76,89 @@
         <div class="flex-1 overflow-y-auto pb-6">
             
             <div id="templatesTab" class="tab-content active p-4">
-                <div id="templateList" class="grid grid-cols-2 gap-4">
-                    </div>
+                <div id="templateList" class="grid grid-cols-2 gap-4"></div>
             </div>
 
-            <div id="toolsTab" class="tab-content p-4 space-y-5">
+            <div id="toolsTab" class="tab-content p-4 space-y-4">
                 
                 <div class="grid grid-cols-3 gap-3">
-                    <button onclick="addText()" class="bg-slate-50 active:bg-slate-100 text-slate-700 py-3 rounded-xl font-medium text-[11px] border border-slate-200 flex flex-col items-center gap-1 transition-colors">
-                        <i class="fa-solid fa-font text-lg text-indigo-500"></i> নতুন টেক্সট
+                    <button onclick="addText()" class="bg-slate-50 active:bg-slate-100 text-slate-700 py-2.5 rounded-xl font-medium text-[11px] border border-slate-200 flex flex-col items-center gap-1 transition-colors">
+                        <i class="fa-solid fa-font text-lg text-indigo-500"></i> টেক্সট
                     </button>
-                    <label class="bg-slate-50 active:bg-slate-100 text-slate-700 py-3 rounded-xl font-medium text-[11px] border border-slate-200 flex flex-col items-center gap-1 transition-colors cursor-pointer">
-                        <i class="fa-regular fa-image text-lg text-emerald-500"></i> ছবি আপলোড
+                    <label class="bg-slate-50 active:bg-slate-100 text-slate-700 py-2.5 rounded-xl font-medium text-[11px] border border-slate-200 flex flex-col items-center gap-1 transition-colors cursor-pointer">
+                        <i class="fa-regular fa-image text-lg text-emerald-500"></i> ছবি
                         <input type="file" id="imageLoader" class="hidden" accept="image/*">
                     </label>
-                    <button onclick="deleteObject()" class="bg-red-50 active:bg-red-100 text-red-600 py-3 rounded-xl font-medium text-[11px] border border-red-100 flex flex-col items-center gap-1 transition-colors">
-                        <i class="fa-regular fa-trash-can text-lg"></i> মুছে ফেলুন
+                    <button onclick="deleteObject()" class="bg-red-50 active:bg-red-100 text-red-600 py-2.5 rounded-xl font-medium text-[11px] border border-red-100 flex flex-col items-center gap-1 transition-colors">
+                        <i class="fa-regular fa-trash-can text-lg"></i> মুছুন
                     </button>
                 </div>
 
-                <div id="noSelectionPanel" class="flex flex-col items-center justify-center py-6 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    <div class="bg-white p-3 rounded-full shadow-sm mb-2"><i class="fa-solid fa-hand-pointer text-indigo-300 text-xl"></i></div>
-                    <p class="text-xs text-gray-400 max-w-[200px]">এডিট করতে ক্যানভাসের ওপরের যেকোনো লেখা বা ছবিতে ক্লিক করুন।</p>
+                <div>
+                    <label class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 block pl-1">শেইপ যোগ করুন</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="addShape('rect')" class="p-2 bg-white border border-gray-200 rounded-lg shadow-sm text-gray-500 active:bg-gray-50 flex justify-center"><i class="fa-solid fa-square"></i></button>
+                        <button onclick="addShape('circle')" class="p-2 bg-white border border-gray-200 rounded-lg shadow-sm text-gray-500 active:bg-gray-50 flex justify-center"><i class="fa-solid fa-circle"></i></button>
+                        <button onclick="addShape('triangle')" class="p-2 bg-white border border-gray-200 rounded-lg shadow-sm text-gray-500 active:bg-gray-50 flex justify-center"><i class="fa-solid fa-caret-up text-lg"></i></button>
+                    </div>
                 </div>
 
-                <div id="textEditPanel" class="hidden space-y-4">
+                <div id="noSelectionPanel" class="flex flex-col items-center justify-center py-4 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <div class="bg-white p-2 rounded-full shadow-sm mb-2"><i class="fa-solid fa-hand-pointer text-indigo-300"></i></div>
+                    <p class="text-[11px] text-gray-400 max-w-[200px]">এডিট করতে যেকোনো লেখা বা শেইপে ক্লিক করুন।</p>
+                </div>
+
+                <div id="editPanel" class="hidden space-y-4">
                     
-                    <div>
-                        <label class="text-[11px] font-semibold text-indigo-500 uppercase tracking-wider mb-1 block pl-1"><i class="fa-solid fa-keyboard"></i> এখানে লিখে এডিট করুন</label>
-                        <textarea id="externalTextInput" class="w-full custom-textarea rounded-xl p-3 text-sm bg-gray-50 text-gray-800" rows="2" placeholder="টেক্সট লিখুন..."></textarea>
+                    <div id="textOnlyFeatures" class="space-y-4">
+                        <div>
+                            <label class="text-[11px] font-semibold text-indigo-500 uppercase tracking-wider mb-1 block pl-1"><i class="fa-solid fa-keyboard"></i> লেখা এডিট করুন</label>
+                            <textarea id="externalTextInput" class="w-full custom-textarea rounded-xl p-3 text-sm bg-gray-50 text-gray-800" rows="2" placeholder="টেক্সট লিখুন..."></textarea>
+                        </div>
+                        
+                        <div class="px-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">টেক্সট সাইজ</label>
+                                <span id="fontSizeDisplay" class="text-[10px] text-gray-400 font-mono">60</span>
+                            </div>
+                            <input type="range" id="fontSizeSlider" min="20" max="250" value="60" oninput="changeFontSize(this.value)" onchange="saveHistory()" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                        </div>
                     </div>
 
                     <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <div class="flex justify-between items-center gap-4">
+                        <div class="flex justify-between items-center gap-4 mb-3">
                             <div class="flex-1">
-                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1 block">রঙ পরিবর্তন</label>
-                                <div class="relative w-full h-9 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1 block">সলিড কালার</label>
+                                <div class="relative w-full h-8 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
                                     <input type="color" id="colorPicker" onchange="changeColor(this.value)" class="absolute -top-2 -left-2 w-16 h-16 cursor-pointer">
                                 </div>
                             </div>
-                            <div class="text-properties flex-1">
+                            <div id="alignmentFeature" class="flex-1">
                                 <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1 block">এলাইনমেন্ট</label>
-                                <div class="flex gap-1 bg-white border border-gray-200 rounded-lg p-1 shadow-sm h-9">
-                                    <button onclick="changeAlignment('left')" class="flex-1 rounded bg-white text-gray-600 active:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-align-left text-xs"></i></button>
-                                    <button onclick="changeAlignment('center')" class="flex-1 rounded bg-white text-gray-600 active:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-align-center text-xs"></i></button>
-                                    <button onclick="changeAlignment('right')" class="flex-1 rounded bg-white text-gray-600 active:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-align-right text-xs"></i></button>
+                                <div class="flex gap-1 bg-white border border-gray-200 rounded-lg p-1 shadow-sm h-8">
+                                    <button onclick="changeAlignment('left')" class="flex-1 rounded bg-white text-gray-600 active:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-align-left text-[10px]"></i></button>
+                                    <button onclick="changeAlignment('center')" class="flex-1 rounded bg-white text-gray-600 active:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-align-center text-[10px]"></i></button>
+                                    <button onclick="changeAlignment('right')" class="flex-1 rounded bg-white text-gray-600 active:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-align-right text-[10px]"></i></button>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5 block">গ্রেডিয়েন্ট কালার</label>
+                            <div class="flex gap-2 overflow-x-auto pb-1" style="scrollbar-width: none;">
+                                <button onclick="applyGradient('#ff9a9e', '#fecfef')" class="grad-btn w-8 h-8 rounded-full shadow-sm border border-white flex-shrink-0" style="background: linear-gradient(135deg, #ff9a9e, #fecfef);"></button>
+                                <button onclick="applyGradient('#f6d365', '#fda085')" class="grad-btn w-8 h-8 rounded-full shadow-sm border border-white flex-shrink-0" style="background: linear-gradient(135deg, #f6d365, #fda085);"></button>
+                                <button onclick="applyGradient('#84fab0', '#8fd3f4')" class="grad-btn w-8 h-8 rounded-full shadow-sm border border-white flex-shrink-0" style="background: linear-gradient(135deg, #84fab0, #8fd3f4);"></button>
+                                <button onclick="applyGradient('#a18cd1', '#fbc2eb')" class="grad-btn w-8 h-8 rounded-full shadow-sm border border-white flex-shrink-0" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb);"></button>
+                                <button onclick="applyGradient('#ff0844', '#ffb199')" class="grad-btn w-8 h-8 rounded-full shadow-sm border border-white flex-shrink-0" style="background: linear-gradient(135deg, #ff0844, #ffb199);"></button>
+                                <button onclick="applyGradient('#30cfd0', '#330867')" class="grad-btn w-8 h-8 rounded-full shadow-sm border border-white flex-shrink-0" style="background: linear-gradient(135deg, #30cfd0, #330867);"></button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="text-properties">
+                    <div id="fontFeature">
                         <label class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2 block pl-1">ফন্ট স্টাইল পরিবর্তন করুন</label>
-                        <div id="fontListContainer" class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto px-1 pb-2">
+                        <div id="fontListContainer" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto px-1 pb-2">
                             </div>
                     </div>
                 </div>
@@ -154,7 +185,6 @@
             const scaleX = (wrapper.clientWidth - padding) / CANVAS_WIDTH;
             const scaleY = (wrapper.clientHeight - padding) / CANVAS_HEIGHT;
             const scale = Math.min(scaleX, scaleY); 
-
             canvas.setZoom(scale);
             canvas.setWidth(CANVAS_WIDTH * scale);
             canvas.setHeight(CANVAS_HEIGHT * scale);
@@ -209,15 +239,16 @@
         canvas.on('object:removed', saveHistory);
 
         // --- Prevent Default Keyboard on Canvas ---
-        // আমরা চাই না ক্যানভাসের ভেতরের কি-বোর্ড ওপেন হোক, আমরা চাই নিচের ইনপুট বক্স দিয়ে কাজ হোক।
         canvas.on('object:added', function(e) {
             if(e.target.type === 'i-text') {
-                e.target.set({ editable: false }); // Disable double-click editing
+                e.target.set({ editable: false });
             }
         });
 
-        // --- EXTERNAL TEXT EDITOR LOGIC ---
+        // --- EXTERNAL TEXT EDITOR & SIZE SLIDER ---
         const textInput = document.getElementById('externalTextInput');
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeDisplay = document.getElementById('fontSizeDisplay');
         
         textInput.addEventListener('input', function(e) {
             const obj = canvas.getActiveObject();
@@ -226,13 +257,60 @@
                 canvas.requestRenderAll();
             }
         });
+        textInput.addEventListener('change', saveHistory);
 
-        // Save history when user stops typing (loses focus or presses enter)
-        textInput.addEventListener('change', function() {
+        function changeFontSize(value) {
+            const obj = canvas.getActiveObject();
+            if (obj && obj.type === 'i-text') {
+                obj.set('fontSize', parseInt(value));
+                fontSizeDisplay.innerText = value;
+                canvas.requestRenderAll();
+            }
+        }
+
+        // --- Add Shapes Logic ---
+        function addShape(type) {
+            let shape;
+            const center = canvas.getCenter();
+            const commonProps = { left: center.left, top: center.top, originX: 'center', originY: 'center', fill: '#cbd5e1' };
+
+            if (type === 'rect') {
+                shape = new fabric.Rect({ ...commonProps, width: 200, height: 200, rx: 10, ry: 10 });
+            } else if (type === 'circle') {
+                shape = new fabric.Circle({ ...commonProps, radius: 100 });
+            } else if (type === 'triangle') {
+                shape = new fabric.Triangle({ ...commonProps, width: 200, height: 200 });
+            }
+
+            if (shape) {
+                canvas.add(shape);
+                canvas.setActiveObject(shape);
+                saveHistory();
+            }
+        }
+
+        // --- Apply Gradients Logic ---
+        function applyGradient(color1, color2) {
+            const obj = canvas.getActiveObject();
+            if (!obj) return;
+
+            // Fabric 5 percentage-based gradient (responsive to object scaling)
+            let grad = new fabric.Gradient({
+                type: 'linear',
+                gradientUnits: 'percentage',
+                coords: { x1: 0, y1: 0, x2: 1, y2: 1 }, // Diagonal gradient
+                colorStops: [
+                    { offset: 0, color: color1 },
+                    { offset: 1, color: color2 }
+                ]
+            });
+
+            obj.set('fill', grad);
+            canvas.requestRenderAll();
             saveHistory();
-        });
+        }
 
-        // --- Advanced Template Rendering (Fixing the blank templates issue) ---
+        // --- Advanced Template Rendering ---
         function initTemplates() {
             const list = document.getElementById('templateList');
             if (window.bannerTemplates) {
@@ -241,10 +319,8 @@
                     btn.className = "flex flex-col bg-white border border-slate-200 rounded-xl overflow-hidden active:scale-95 transition-transform shadow-sm hover:shadow-md text-left";
                     btn.onclick = () => loadTemplate(template.id);
                     
-                    // JSON থেকে টেক্সট বের করে আসল প্রিভিউ বানানো
                     let previewHTML = '';
                     let textCount = 0;
-                    
                     template.data.objects.forEach(obj => {
                         if (obj.type === 'circle') {
                             previewHTML += `<div style="width: 40px; height: 40px; border-radius: 50%; background-color: ${obj.fill === 'transparent' ? 'transparent' : '#ffffff'}; border: 2px solid ${obj.stroke || 'transparent'}; margin: 5px auto;"></div>`;
@@ -253,16 +329,10 @@
                             textCount++;
                         }
                     });
-
-                    // যদি টেমপ্লেটে কোনো কিছু না থাকে
-                    if(previewHTML === '') {
-                        previewHTML = `<div class="w-10 h-10 rounded-full bg-white/30 mb-2"></div><div class="w-2/3 h-1.5 bg-white/50 rounded-full"></div>`;
-                    }
+                    if(previewHTML === '') { previewHTML = `<div class="w-10 h-10 rounded-full bg-white/30 mb-2"></div><div class="w-2/3 h-1.5 bg-white/50 rounded-full"></div>`; }
 
                     btn.innerHTML = `
-                        <div style="background-color: ${template.bgColor}" class="w-full aspect-[3/4] flex flex-col items-center justify-center p-2 relative overflow-hidden">
-                            ${previewHTML}
-                        </div>
+                        <div style="background-color: ${template.bgColor}" class="w-full aspect-[3/4] flex flex-col items-center justify-center p-2 relative overflow-hidden">${previewHTML}</div>
                         <div class="p-2.5 w-full bg-white border-t border-slate-100">
                             <span class="text-[9px] font-bold text-indigo-500 uppercase tracking-wide">ID: ${template.id}</span>
                             <h3 class="text-[11px] font-semibold text-gray-800 mt-0.5 truncate">${template.name}</h3>
@@ -281,15 +351,10 @@
             
             isTrackingHistory = false;
             canvas.loadFromJSON(JSON.stringify(template.data), () => {
-                // ক্যানভাস লোড হওয়ার পর সবগুলো টেক্সটকে editable: false করে দেওয়া
-                canvas.getObjects().forEach(obj => {
-                    if(obj.type === 'i-text') obj.set({ editable: false });
-                });
-                
+                canvas.getObjects().forEach(obj => { if(obj.type === 'i-text') obj.set({ editable: false }); });
                 canvas.requestRenderAll();
                 openTab('toolsTab');
                 onSelectionCleared();
-                
                 historyData = [JSON.stringify(canvas.toJSON())];
                 historyIndex = 0;
                 isTrackingHistory = true;
@@ -297,40 +362,23 @@
             });
         }
 
-        // --- 50+ Beautiful Fonts ---
+        // --- 50+ Fonts Setup ---
         const fontCollection = [
-            // Bengali Fonts
-            { name: 'আনেক বাংলা', family: 'Anek Bangla' },
-            { name: 'বালু দা ২', family: 'Baloo Da 2' },
-            { name: 'গালাদা (স্টাইলিশ)', family: 'Galada' },
-            { name: 'হিন্দ শিলিগুড়ি', family: 'Hind Siliguri' },
-            { name: 'তীরো বাংলা', family: 'Tiro Bangla' },
-            { name: 'মিনা', family: 'Mina' },
-            { name: 'নোটো সান্স', family: 'Noto Sans Bengali' },
-            // English Fonts
-            { name: 'Poppins', family: 'Poppins' },
-            { name: 'Roboto', family: 'Roboto' },
-            { name: 'Open Sans', family: 'Open Sans' },
-            { name: 'Montserrat', family: 'Montserrat' },
-            { name: 'Lato', family: 'Lato' },
-            { name: 'Oswald', family: 'Oswald' },
-            { name: 'Raleway', family: 'Raleway' },
-            { name: 'Playfair Display', family: 'Playfair Display' },
-            { name: 'Merriweather', family: 'Merriweather' },
-            { name: 'Nunito', family: 'Nunito' },
-            { name: 'Ubuntu', family: 'Ubuntu' },
-            { name: 'Rubik', family: 'Rubik' },
-            { name: 'Work Sans', family: 'Work Sans' },
-            { name: 'Lora', family: 'Lora' },
-            { name: 'Fira Sans', family: 'Fira Sans' },
-            { name: 'Quicksand', family: 'Quicksand' },
-            { name: 'Pacifico', family: 'Pacifico' },
-            { name: 'Caveat', family: 'Caveat' },
-            { name: 'Dancing Script', family: 'Dancing Script' },
-            { name: 'Satisfy', family: 'Satisfy' },
-            { name: 'Courgette', family: 'Courgette' },
-            { name: 'Great Vibes', family: 'Great Vibes' },
-            { name: 'Lobster', family: 'Lobster' },
+            { name: 'আনেক বাংলা', family: 'Anek Bangla' }, { name: 'বালু দা ২', family: 'Baloo Da 2' },
+            { name: 'গালাদা', family: 'Galada' }, { name: 'হিন্দ শিলিগুড়ি', family: 'Hind Siliguri' },
+            { name: 'তীরো বাংলা', family: 'Tiro Bangla' }, { name: 'মিনা', family: 'Mina' },
+            { name: 'নোটো সান্স', family: 'Noto Sans Bengali' }, { name: 'Poppins', family: 'Poppins' },
+            { name: 'Roboto', family: 'Roboto' }, { name: 'Open Sans', family: 'Open Sans' },
+            { name: 'Montserrat', family: 'Montserrat' }, { name: 'Lato', family: 'Lato' },
+            { name: 'Oswald', family: 'Oswald' }, { name: 'Raleway', family: 'Raleway' },
+            { name: 'Playfair Display', family: 'Playfair Display' }, { name: 'Merriweather', family: 'Merriweather' },
+            { name: 'Nunito', family: 'Nunito' }, { name: 'Ubuntu', family: 'Ubuntu' },
+            { name: 'Rubik', family: 'Rubik' }, { name: 'Work Sans', family: 'Work Sans' },
+            { name: 'Lora', family: 'Lora' }, { name: 'Fira Sans', family: 'Fira Sans' },
+            { name: 'Quicksand', family: 'Quicksand' }, { name: 'Pacifico', family: 'Pacifico' },
+            { name: 'Caveat', family: 'Caveat' }, { name: 'Dancing Script', family: 'Dancing Script' },
+            { name: 'Satisfy', family: 'Satisfy' }, { name: 'Courgette', family: 'Courgette' },
+            { name: 'Great Vibes', family: 'Great Vibes' }, { name: 'Lobster', family: 'Lobster' },
             { name: 'Righteous', family: 'Righteous' }
         ];
 
@@ -356,41 +404,44 @@
         }
         initFonts();
 
-        // --- UI Events Based on Selection ---
+        // --- UI Events Based on Selection (Dynamic Panel) ---
         canvas.on('selection:created', onObjectSelected);
         canvas.on('selection:updated', onObjectSelected);
         canvas.on('selection:cleared', onSelectionCleared);
 
         function onObjectSelected(e) {
-            // যদি একসাথে একাধিক জিনিস সিলেক্ট করে (Group), তাহলে প্যানেল হাইড থাকবে
-            if (canvas.getActiveObjects().length > 1) {
-                onSelectionCleared();
-                return;
-            }
+            if (canvas.getActiveObjects().length > 1) { onSelectionCleared(); return; }
 
             const obj = canvas.getActiveObject();
             document.getElementById('noSelectionPanel').classList.add('hidden');
-            document.getElementById('textEditPanel').classList.remove('hidden');
+            document.getElementById('editPanel').classList.remove('hidden');
             
-            if (obj && obj.type === 'i-text') {
-                document.querySelectorAll('.text-properties').forEach(el => el.style.display = 'block');
+            // Set Color Picker Value if solid color
+            if (obj.fill && typeof obj.fill === 'string' && !obj.fill.startsWith('url')) {
                 document.getElementById('colorPicker').value = obj.fill;
+            }
+
+            if (obj && obj.type === 'i-text') {
+                // Show Text specific tools
+                document.getElementById('textOnlyFeatures').style.display = 'block';
+                document.getElementById('alignmentFeature').style.display = 'block';
+                document.getElementById('fontFeature').style.display = 'block';
                 
-                // টেক্সটবক্সে লেখা নিয়ে আসা
                 textInput.value = obj.text;
-                openTab('toolsTab'); // অটোমেটিক টুলস ট্যাব ওপেন হবে
-                
+                fontSizeSlider.value = obj.fontSize;
+                fontSizeDisplay.innerText = obj.fontSize;
+                openTab('toolsTab');
             } else {
-                document.querySelectorAll('.text-properties').forEach(el => el.style.display = 'none');
+                // Hide Text specific tools for Shapes/Images
+                document.getElementById('textOnlyFeatures').style.display = 'none';
+                document.getElementById('alignmentFeature').style.display = 'none';
+                document.getElementById('fontFeature').style.display = 'none';
                 textInput.value = '';
-                if (obj && obj.fill && typeof obj.fill === 'string' && !obj.fill.startsWith('url')) {
-                    document.getElementById('colorPicker').value = obj.fill;
-                }
             }
         }
 
         function onSelectionCleared() {
-            document.getElementById('textEditPanel').classList.add('hidden');
+            document.getElementById('editPanel').classList.add('hidden');
             document.getElementById('noSelectionPanel').classList.remove('hidden');
             document.querySelectorAll('.font-item').forEach(el => el.classList.remove('selected'));
             textInput.value = '';
@@ -399,62 +450,57 @@
         function addText() {
             const text = new fabric.IText('আপনার লেখা', { 
                 left: CANVAS_WIDTH/2, top: CANVAS_HEIGHT/2, originX: 'center', originY: 'center',
-                fontFamily: 'Hind Siliguri', fontSize: 60, fill: '#1e293b',
-                editable: false // Disable on-canvas typing
+                fontFamily: 'Hind Siliguri', fontSize: 60, fill: '#1e293b', editable: false
             });
             canvas.add(text);
             canvas.setActiveObject(text);
             saveHistory();
         }
 
-        // --- Advanced Image Upload (Absolute ClipPath) ---
+        // --- Advanced Image Upload ---
         document.getElementById('imageLoader').addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
             reader.onload = function (event) {
-                const targetCircle = canvas.getActiveObject();
+                const targetObj = canvas.getActiveObject();
                 
                 fabric.Image.fromURL(event.target.result, function(img) {
                     isTrackingHistory = false;
 
-                    if (targetCircle && targetCircle.type === 'circle') {
-                        let radius = targetCircle.radius * targetCircle.scaleX;
-                        let center = targetCircle.getCenterPoint();
+                    // Apply image to circle, rect, or triangle mask
+                    if (targetObj && (targetObj.type === 'circle' || targetObj.type === 'rect' || targetObj.type === 'triangle')) {
+                        let width = targetObj.width * targetObj.scaleX;
+                        let height = targetObj.height * targetObj.scaleY;
+                        if(targetObj.type === 'circle') {
+                            width = targetObj.radius * 2 * targetObj.scaleX;
+                            height = width;
+                        }
+                        let center = targetObj.getCenterPoint();
 
-                        let clipPath = new fabric.Circle({
-                            radius: radius,
-                            left: center.x,
-                            top: center.y,
-                            originX: 'center',
-                            originY: 'center',
-                            absolutePositioned: true 
-                        });
+                        let clipPath;
+                        if(targetObj.type === 'circle') {
+                            clipPath = new fabric.Circle({ radius: width/2, left: center.x, top: center.y, originX: 'center', originY: 'center', absolutePositioned: true });
+                        } else if(targetObj.type === 'rect') {
+                            clipPath = new fabric.Rect({ width: width, height: height, left: center.x, top: center.y, originX: 'center', originY: 'center', rx: targetObj.rx, ry: targetObj.ry, absolutePositioned: true });
+                        } else if(targetObj.type === 'triangle') {
+                            clipPath = new fabric.Triangle({ width: width, height: height, left: center.x, top: center.y, originX: 'center', originY: 'center', absolutePositioned: true });
+                        }
 
-                        let scale = Math.max((radius * 2) / img.width, (radius * 2) / img.height);
+                        let scale = Math.max(width / img.width, height / img.height);
                         
                         img.set({
-                            left: center.x,
-                            top: center.y,
-                            originX: 'center',
-                            originY: 'center',
-                            scaleX: scale,
-                            scaleY: scale,
-                            clipPath: clipPath
+                            left: center.x, top: center.y, originX: 'center', originY: 'center', scaleX: scale, scaleY: scale, clipPath: clipPath
                         });
 
-                        canvas.remove(targetCircle);
+                        canvas.remove(targetObj);
                         canvas.add(img);
                         canvas.setActiveObject(img);
                     } 
                     else {
                         const scale = (CANVAS_WIDTH * 0.4) / img.width; 
-                        img.set({ 
-                            left: CANVAS_WIDTH/2, top: CANVAS_HEIGHT/2, 
-                            originX: 'center', originY: 'center', 
-                            scaleX: scale, scaleY: scale
-                        });
+                        img.set({ left: CANVAS_WIDTH/2, top: CANVAS_HEIGHT/2, originX: 'center', originY: 'center', scaleX: scale, scaleY: scale });
                         canvas.add(img);
                         canvas.setActiveObject(img);
                     }
