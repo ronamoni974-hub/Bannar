@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BannerPro | Mobile App</title>
+    <title>BannerPro | Premium Canvas Editor</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -11,89 +11,126 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;700&family=Baloo+Da+2:wght@500;700&family=Galada&family=Hind+Siliguri:wght@400;600;700&family=Mina:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&family=Tiro+Bangla:ital@0;1&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;700&family=Baloo+Da+2:wght@500;700&family=Galada&family=Hind+Siliguri:wght@400;600;700&family=Mina:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&family=Tiro+Bangla:ital@0;1&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
     <script src="templates.js"></script>
 
     <style>
-        body { font-family: 'Poppins', 'Hind Siliguri', sans-serif; height: 100vh; display: flex; flex-direction: column; background-color: #f8fafc; overflow: hidden; overscroll-behavior-y: none; }
+        body { font-family: 'Poppins', 'Hind Siliguri', sans-serif; height: 100vh; display: flex; flex-direction: column; background-color: #f1f5f9; overflow: hidden; touch-action: manipulation; }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .font-item.selected { border-color: #4f46e5; background-color: #e0e7ff; }
-        .canvas-container { touch-action: none; margin: 0 auto; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-radius: 8px; overflow: hidden; }
-        .history-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        
+        /* Smooth UI Transitions */
+        .tab-content { display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .tab-content.active { display: block; opacity: 1; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .font-item.selected { border-color: #4f46e5; background-color: #eef2ff; color: #4338ca; font-weight: 600; }
+        
+        /* Premium Canvas Shadow */
+        .canvas-container { margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border-radius: 4px; overflow: hidden; touch-action: none; }
+        
+        /* Undo/Redo Disabled State */
+        .history-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        /* Bottom Sheet Feel */
+        .bottom-panel { border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
     </style>
 </head>
-<body class="text-gray-800">
+<body class="text-gray-800 flex flex-col h-screen">
 
-    <header class="bg-white shadow-sm px-4 py-3 flex justify-between items-center z-20 shrink-0">
+    <header class="bg-white px-4 py-3 flex justify-between items-center z-20 shrink-0 shadow-sm">
         <div class="flex items-center gap-2">
-            <h1 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-layer-group text-indigo-600 mr-1"></i>ব্যানার<span class="text-indigo-600">প্রো</span></h1>
+            <div class="bg-indigo-600 p-1.5 rounded-md flex items-center justify-center text-white">
+                <i class="fa-solid fa-layer-group text-sm"></i>
+            </div>
+            <h1 class="text-xl font-bold text-gray-800 tracking-tight">ব্যানার<span class="text-indigo-600">প্রো</span></h1>
         </div>
         
-        <div class="flex items-center gap-3">
-            <button id="undoBtn" onclick="undo()" class="history-btn text-gray-600 text-lg" disabled><i class="fa-solid fa-rotate-left"></i></button>
-            <button id="redoBtn" onclick="redo()" class="history-btn text-gray-600 text-lg" disabled><i class="fa-solid fa-rotate-right"></i></button>
-            <div class="w-px h-6 bg-gray-300 mx-1"></div>
-            <button onclick="downloadBanner()" class="bg-indigo-600 active:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm flex items-center gap-1 shadow">
-                <i class="fa-solid fa-download"></i> সেভ
+        <div class="flex items-center gap-4">
+            <div class="flex gap-3 bg-gray-100 px-3 py-1.5 rounded-full">
+                <button id="undoBtn" onclick="undo()" class="history-btn text-gray-700 text-lg active:scale-90 transition-transform" disabled><i class="fa-solid fa-arrow-rotate-left"></i></button>
+                <div class="w-px h-5 bg-gray-300 self-center"></div>
+                <button id="redoBtn" onclick="redo()" class="history-btn text-gray-700 text-lg active:scale-90 transition-transform" disabled><i class="fa-solid fa-arrow-rotate-right"></i></button>
+            </div>
+            <button onclick="downloadBanner()" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-4 py-2 rounded-full font-medium transition-all text-sm flex items-center gap-1.5 shadow-md shadow-indigo-200">
+                <i class="fa-solid fa-cloud-arrow-down"></i> সেভ
             </button>
         </div>
     </header>
 
-    <main class="flex-none bg-gray-200 flex items-center justify-center p-3 relative" style="height: 45vh;">
+    <main class="flex-none flex items-center justify-center p-3 relative bg-slate-200" style="height: 48vh;">
         <div id="canvasWrapper" class="relative w-full h-full flex items-center justify-center">
             <canvas id="bannerCanvas"></canvas>
         </div>
     </main>
 
-    <div class="flex-none bg-white border-b border-t shadow-sm z-10 flex">
-        <button id="templatesTabBtn" onclick="openTab('templatesTab')" class="flex-1 py-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600">টেমপ্লেট (১০০+)</button>
-        <button id="toolsTabBtn" onclick="openTab('toolsTab')" class="flex-1 py-3 text-sm font-semibold text-gray-500">এডিট টুলস</button>
-    </div>
-
-    <div class="flex-1 overflow-y-auto bg-white relative pb-10">
+    <div class="flex-1 flex flex-col bg-white bottom-panel z-10 overflow-hidden relative -mt-3 pt-2">
         
-        <div id="templatesTab" class="tab-content active p-4">
-            <div id="templateList" class="grid grid-cols-2 gap-3"></div>
+        <div class="flex px-4 pt-2 border-b border-gray-100">
+            <button id="templatesTabBtn" onclick="openTab('templatesTab')" class="flex-1 pb-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600 transition-colors">
+                <i class="fa-regular fa-clone mr-1"></i> টেমপ্লেট
+            </button>
+            <button id="toolsTabBtn" onclick="openTab('toolsTab')" class="flex-1 pb-3 text-sm font-semibold text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="fa-solid fa-pen-nib mr-1"></i> এডিট টুলস
+            </button>
         </div>
 
-        <div id="toolsTab" class="tab-content p-4 space-y-5">
-            <div class="grid grid-cols-3 gap-2">
-                <button onclick="addText()" class="bg-indigo-50 active:bg-indigo-100 text-indigo-700 py-3 rounded-lg font-medium text-xs border border-indigo-100 flex flex-col items-center gap-1">
-                    <i class="fa-solid fa-t text-base"></i> টেক্সট
-                </button>
-                <label class="bg-green-50 active:bg-green-100 text-green-700 py-3 rounded-lg font-medium text-xs border border-green-100 flex flex-col items-center gap-1 cursor-pointer">
-                    <i class="fa-solid fa-image text-base"></i> ছবি
-                    <input type="file" id="imageLoader" class="hidden" accept="image/*">
-                </label>
-                <button onclick="deleteObject()" class="bg-red-50 active:bg-red-100 text-red-600 py-3 rounded-lg font-medium text-xs border border-red-100 flex flex-col items-center gap-1">
-                    <i class="fa-solid fa-trash text-base"></i> মুছুন
-                </button>
+        <div class="flex-1 overflow-y-auto pb-6 custom-scroll">
+            
+            <div id="templatesTab" class="tab-content active p-4">
+                <div id="templateList" class="grid grid-cols-2 gap-4">
+                    </div>
             </div>
 
-            <div id="textEditPanel" class="hidden space-y-4 border-t pt-4">
-                <div class="flex justify-between items-center gap-4">
-                    <div class="flex-1">
-                        <label class="text-xs text-gray-500 mb-1 block">কালার পরিবর্তন</label>
-                        <input type="color" id="colorPicker" onchange="changeColor(this.value)" class="w-full h-10 rounded cursor-pointer border px-1">
+            <div id="toolsTab" class="tab-content p-4 space-y-6">
+                
+                <div class="grid grid-cols-3 gap-3">
+                    <button onclick="addText()" class="bg-slate-50 active:bg-slate-100 text-slate-700 py-3.5 rounded-xl font-medium text-xs border border-slate-200 flex flex-col items-center gap-1.5 transition-colors">
+                        <i class="fa-solid fa-font text-lg text-indigo-500"></i> টেক্সট যোগ
+                    </button>
+                    <label class="bg-slate-50 active:bg-slate-100 text-slate-700 py-3.5 rounded-xl font-medium text-xs border border-slate-200 flex flex-col items-center gap-1.5 transition-colors cursor-pointer">
+                        <i class="fa-regular fa-image text-lg text-emerald-500"></i> ছবি আপলোড
+                        <input type="file" id="imageLoader" class="hidden" accept="image/*">
+                    </label>
+                    <button onclick="deleteObject()" class="bg-red-50 active:bg-red-100 text-red-600 py-3.5 rounded-xl font-medium text-xs border border-red-100 flex flex-col items-center gap-1.5 transition-colors">
+                        <i class="fa-regular fa-trash-can text-lg"></i> মুছে ফেলুন
+                    </button>
+                </div>
+
+                <div id="noSelectionPanel" class="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <div class="bg-white p-3 rounded-full shadow-sm mb-2"><i class="fa-solid fa-hand-pointer text-indigo-300 text-xl"></i></div>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-1">কিছু সিলেক্ট করা নেই</h3>
+                    <p class="text-xs text-gray-400 max-w-[200px]">এডিট করতে ক্যানভাসের ওপরের যেকোনো লেখা বা ছবিতে ক্লিক করুন।</p>
+                </div>
+
+                <div id="textEditPanel" class="hidden space-y-5">
+                    
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-4">
+                        <div class="flex justify-between items-center gap-4">
+                            <div class="flex-1">
+                                <label class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5 block">রঙ পরিবর্তন</label>
+                                <div class="relative w-full h-10 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                                    <input type="color" id="colorPicker" onchange="changeColor(this.value)" class="absolute -top-2 -left-2 w-16 h-16 cursor-pointer">
+                                </div>
+                            </div>
+                            <div class="text-properties flex-1">
+                                <label class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5 block">এলাইনমেন্ট</label>
+                                <div class="flex gap-1 bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+                                    <button onclick="changeAlignment('left')" class="flex-1 py-1.5 rounded bg-white text-gray-600 active:bg-gray-100"><i class="fa-solid fa-align-left"></i></button>
+                                    <button onclick="changeAlignment('center')" class="flex-1 py-1.5 rounded bg-white text-gray-600 active:bg-gray-100"><i class="fa-solid fa-align-center"></i></button>
+                                    <button onclick="changeAlignment('right')" class="flex-1 py-1.5 rounded bg-white text-gray-600 active:bg-gray-100"><i class="fa-solid fa-align-right"></i></button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex gap-2 text-properties">
-                        <button onclick="changeAlignment('left')" class="p-2.5 bg-gray-50 rounded border text-gray-600"><i class="fa-solid fa-align-left"></i></button>
-                        <button onclick="changeAlignment('center')" class="p-2.5 bg-gray-50 rounded border text-gray-600"><i class="fa-solid fa-align-center"></i></button>
-                        <button onclick="changeAlignment('right')" class="p-2.5 bg-gray-50 rounded border text-gray-600"><i class="fa-solid fa-align-right"></i></button>
+
+                    <div class="text-properties">
+                        <label class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2 block pl-1">ফন্ট স্টাইল</label>
+                        <div id="fontListContainer" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto px-1 pb-2">
+                            </div>
                     </div>
                 </div>
 
-                <div class="text-properties">
-                    <label class="text-xs text-gray-500 mb-2 block">ফন্ট পরিবর্তন (ক্লিক করুন)</label>
-                    <div id="fontListContainer" class="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-1"></div>
-                </div>
-            </div>
-
-            <div id="noSelectionPanel" class="text-center text-sm text-gray-400 py-6 border-t mt-4">
-                এডিট করতে ক্যানভাসের কোনো টেক্সট বা ছবির ওপর ক্লিক করুন।
             </div>
         </div>
     </div>
@@ -102,6 +139,7 @@
         const CANVAS_WIDTH = 900;
         const CANVAS_HEIGHT = 1200;
 
+        // --- Fabric Initialization ---
         const canvas = new fabric.Canvas('bannerCanvas', {
             width: CANVAS_WIDTH,
             height: CANVAS_HEIGHT,
@@ -109,14 +147,29 @@
             preserveObjectStacking: true
         });
 
-        // --- Undo / Redo History Logic ---
+        // --- Responsive Resizing ---
+        function resizeCanvas() {
+            const wrapper = document.getElementById('canvasWrapper');
+            const padding = 20; 
+            const scaleX = (wrapper.clientWidth - padding) / CANVAS_WIDTH;
+            const scaleY = (wrapper.clientHeight - padding) / CANVAS_HEIGHT;
+            const scale = Math.min(scaleX, scaleY); 
+
+            canvas.setZoom(scale);
+            canvas.setWidth(CANVAS_WIDTH * scale);
+            canvas.setHeight(CANVAS_HEIGHT * scale);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        setTimeout(resizeCanvas, 100);
+
+        // --- Advanced Undo/Redo Engine ---
         let historyData = [];
         let historyIndex = -1;
-        let isHistoryUpdating = false;
+        let isTrackingHistory = false; // Lock flag to prevent loops
 
         function saveHistory() {
-            if (isHistoryUpdating) return;
-            // Clear future history if we make a new change after undoing
+            if (!isTrackingHistory) return;
+            // Remove future history if we modify after undoing
             historyData = historyData.slice(0, historyIndex + 1);
             historyData.push(JSON.stringify(canvas.toJSON()));
             historyIndex++;
@@ -130,11 +183,11 @@
 
         function undo() {
             if (historyIndex > 0) {
-                isHistoryUpdating = true;
+                isTrackingHistory = false; // Turn off tracking while loading
                 historyIndex--;
                 canvas.loadFromJSON(historyData[historyIndex], function() {
                     canvas.renderAll();
-                    isHistoryUpdating = false;
+                    isTrackingHistory = true;
                     updateHistoryButtons();
                 });
             }
@@ -142,106 +195,93 @@
 
         function redo() {
             if (historyIndex < historyData.length - 1) {
-                isHistoryUpdating = true;
+                isTrackingHistory = false;
                 historyIndex++;
                 canvas.loadFromJSON(historyData[historyIndex], function() {
                     canvas.renderAll();
-                    isHistoryUpdating = false;
+                    isTrackingHistory = true;
                     updateHistoryButtons();
                 });
             }
         }
 
-        // Save history on any canvas change
         canvas.on('object:modified', saveHistory);
         canvas.on('object:added', saveHistory);
         canvas.on('object:removed', saveHistory);
 
-        // --- Canvas Resizing ---
-        function resizeCanvas() {
-            const wrapper = document.getElementById('canvasWrapper');
-            const scale = Math.min(wrapper.clientWidth / CANVAS_WIDTH, wrapper.clientHeight / CANVAS_HEIGHT); 
-            canvas.setZoom(scale);
-            canvas.setWidth(CANVAS_WIDTH * scale);
-            canvas.setHeight(CANVAS_HEIGHT * scale);
-        }
-        window.addEventListener('resize', resizeCanvas);
-        setTimeout(resizeCanvas, 200);
-
-        // --- Single Click Text Edit ---
+        // --- Single Click Text Editing Fix for Mobile ---
         canvas.on('mouse:down', function(options) {
-            if (options.target && options.target.type === 'i-text') {
-                options.target.enterEditing();
-                // Select all text only on the first click to easily replace
-                if (options.target.selectionStart === options.target.selectionEnd) {
-                    options.target.selectAll();
-                }
+            const obj = options.target;
+            if (obj && obj.type === 'i-text') {
+                canvas.setActiveObject(obj);
+                obj.enterEditing();
+                obj.hiddenTextarea.focus(); // Force keyboard open
                 canvas.requestRenderAll();
             }
         });
 
-        // --- Load Templates from external templates.js ---
+        // --- Render Templates with Details ---
         function initTemplates() {
             const list = document.getElementById('templateList');
             if (window.bannerTemplates) {
                 window.bannerTemplates.forEach(template => {
                     const btn = document.createElement('button');
-                    btn.className = "flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden active:bg-gray-50 shadow-sm";
+                    btn.className = "flex flex-col bg-white border border-slate-200 rounded-xl overflow-hidden active:scale-95 transition-transform shadow-sm hover:shadow-md text-left";
                     btn.onclick = () => loadTemplate(template.id);
+                    
+                    // Detail-rich Template Card
                     btn.innerHTML = `
-                        <div style="background-color: ${template.bgColor}" class="w-full aspect-[3/4] flex items-center justify-center p-2 relative">
-                            <div class="w-8 h-8 rounded-full border border-white/40"></div>
-                            <div class="absolute bottom-4 w-1/2 h-1 bg-white/50 rounded"></div>
+                        <div style="background-color: ${template.bgColor}" class="w-full aspect-[3/4] flex flex-col items-center justify-center p-3 relative">
+                            <div class="w-12 h-12 rounded-full border-2 border-white/50 mb-4 shadow-sm"></div>
+                            <div class="w-3/4 h-2 bg-white/80 rounded-full mb-2"></div>
+                            <div class="w-1/2 h-1.5 bg-white/50 rounded-full"></div>
                         </div>
-                        <div class="p-2 text-center w-full">
-                            <span class="text-xs font-semibold text-gray-700">${template.name}</span>
+                        <div class="p-3 w-full bg-white">
+                            <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wide">ID: ${template.id}</span>
+                            <h3 class="text-sm font-semibold text-gray-800 mt-0.5 truncate">${template.name}</h3>
                         </div>
                     `;
                     list.appendChild(btn);
                 });
-                loadTemplate(1); // Load first template initially
+                loadTemplate(1); 
             }
         }
-        
-        // Ensure templates are loaded
-        window.onload = function() {
-            initTemplates();
-        };
+        window.onload = initTemplates;
 
         function loadTemplate(id) {
             const template = window.bannerTemplates.find(t => t.id === id);
             if (!template) return;
             
-            isHistoryUpdating = true; // Prevent saving half-loaded state
+            isTrackingHistory = false; // Stop tracking during template load
             canvas.loadFromJSON(JSON.stringify(template.data), () => {
                 canvas.requestRenderAll();
                 openTab('toolsTab');
                 onSelectionCleared();
                 
-                // Save initial state for this template
-                isHistoryUpdating = false;
-                historyData = [];
-                historyIndex = -1;
-                saveHistory(); 
+                // Reset history for new template
+                historyData = [JSON.stringify(canvas.toJSON())];
+                historyIndex = 0;
+                isTrackingHistory = true;
+                updateHistoryButtons();
             });
         }
 
-        // --- Fonts ---
+        // --- Fonts Setup ---
         const fonts = [
-            { name: 'আনেক বাংলা (বোল্ড)', family: 'Anek Bangla' },
-            { name: 'বালু দা ২ (হেডিং)', family: 'Baloo Da 2' },
-            { name: 'গালাদা (স্টাইলিশ)', family: 'Galada' },
-            { name: 'হিন্দ শিলিগুড়ি (পঠনযোগ্য)', family: 'Hind Siliguri' },
-            { name: 'তীরো বাংলা (ক্লাসিক)', family: 'Tiro Bangla' },
-            { name: 'মিনা (সিম্পল)', family: 'Mina' },
-            { name: 'ইংলিশ (মডার্ন)', family: 'Poppins' }
+            { name: 'আনেক বাংলা', family: 'Anek Bangla' },
+            { name: 'বালু দা ২', family: 'Baloo Da 2' },
+            { name: 'গালাদা', family: 'Galada' },
+            { name: 'হিন্দ শিলিগুড়ি', family: 'Hind Siliguri' },
+            { name: 'তীরো বাংলা', family: 'Tiro Bangla' },
+            { name: 'মিনা', family: 'Mina' },
+            { name: 'পপিন্স (Eng)', family: 'Poppins' }
         ];
 
         function initFonts() {
             const container = document.getElementById('fontListContainer');
             fonts.forEach(font => {
                 const div = document.createElement('div');
-                div.className = "font-item cursor-pointer border rounded p-2 text-center text-sm active:bg-gray-100";
+                div.className = "font-item cursor-pointer border border-slate-200 rounded-lg py-2.5 px-2 text-center text-sm transition-colors text-slate-600";
                 div.style.fontFamily = `'${font.family}', sans-serif`;
                 div.innerText = font.name;
                 div.onclick = () => {
@@ -251,7 +291,7 @@
                     if(activeObj && activeObj.type === 'i-text') {
                         activeObj.set('fontFamily', font.family);
                         canvas.requestRenderAll();
-                        saveHistory();
+                        saveHistory(); // Manual trigger
                     }
                 };
                 container.appendChild(div);
@@ -259,7 +299,7 @@
         }
         initFonts();
 
-        // Canvas UI Events
+        // --- UI Events Based on Selection ---
         canvas.on('selection:created', onObjectSelected);
         canvas.on('selection:updated', onObjectSelected);
         canvas.on('selection:cleared', onSelectionCleared);
@@ -270,7 +310,7 @@
             document.getElementById('textEditPanel').classList.remove('hidden');
             
             if (obj.type === 'i-text') {
-                document.querySelectorAll('.text-properties').forEach(el => el.style.display = 'flex');
+                document.querySelectorAll('.text-properties').forEach(el => el.style.display = 'block');
                 document.getElementById('colorPicker').value = obj.fill;
             } else {
                 document.querySelectorAll('.text-properties').forEach(el => el.style.display = 'none');
@@ -289,79 +329,74 @@
         function addText() {
             const text = new fabric.IText('আপনার লেখা', { 
                 left: CANVAS_WIDTH/2, top: CANVAS_HEIGHT/2, originX: 'center', originY: 'center',
-                fontFamily: 'Hind Siliguri', fontSize: 60, fill: '#000000'
+                fontFamily: 'Hind Siliguri', fontSize: 60, fill: '#1e293b'
             });
             canvas.add(text);
             canvas.setActiveObject(text);
         }
 
-        // --- আপডেটেড ইমেজ মাস্কিং লজিক (ইমেজ মুভ করার জন্য) ---
+        // --- Advanced Image Upload (Absolute ClipPath) ---
+        // এই লজিকের ফলে আপলোড করা ছবিকে বৃত্তের ভেতর ইচ্ছামতো সাইজ ও পজিশন করা যাবে
         document.getElementById('imageLoader').addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
             reader.onload = function (event) {
-                const imgObj = new Image();
-                imgObj.src = event.target.result;
-                imgObj.onload = function () {
-                    const activeObj = canvas.getActiveObject();
+                const targetCircle = canvas.getActiveObject();
+                
+                fabric.Image.fromURL(event.target.result, function(img) {
+                    isTrackingHistory = false; // Pause history to prevent multiple entries
 
-                    // যদি ইউজার গোল বৃত্ত সিলেক্ট করে থাকে
-                    if (activeObj && activeObj.type === 'circle') {
-                        const img = new fabric.Image(imgObj);
-                        
-                        // ছবিটিকে বৃত্তের সাইজে স্কেল করা
-                        const targetSize = activeObj.radius * 2 * activeObj.scaleX;
-                        const scale = Math.max(targetSize / img.width, targetSize / img.height);
+                    // ১. যদি ইউজার গোল বৃত্ত সিলেক্ট করে ছবি আপলোড করে
+                    if (targetCircle && targetCircle.type === 'circle') {
+                        let radius = targetCircle.radius * targetCircle.scaleX;
+                        let center = targetCircle.getCenterPoint();
+
+                        // বৃত্তাকার মাস্ক তৈরি করা (absolutePositioned: true হচ্ছে ম্যাজিক ট্রিক)
+                        let clipPath = new fabric.Circle({
+                            radius: radius,
+                            left: center.x,
+                            top: center.y,
+                            originX: 'center',
+                            originY: 'center',
+                            absolutePositioned: true 
+                        });
+
+                        // ছবিটিকে অন্তত বৃত্তের সাইজে স্কেল করা
+                        let scale = Math.max((radius * 2) / img.width, (radius * 2) / img.height);
                         
                         img.set({
-                            left: activeObj.left,
-                            top: activeObj.top,
-                            originX: activeObj.originX,
-                            originY: activeObj.originY,
-                            scaleX: scale,
-                            scaleY: scale
-                        });
-
-                        // ছবির ওপর ক্লিপ-পাথ (মাস্ক) বসানো যাতে গোল হয়ে থাকে
-                        const clipPath = new fabric.Circle({
-                            radius: img.width / 2, // Original unscaled width
+                            left: center.x,
+                            top: center.y,
                             originX: 'center',
-                            originY: 'center'
+                            originY: 'center',
+                            scaleX: scale,
+                            scaleY: scale,
+                            clipPath: clipPath
                         });
-                        img.set({ clipPath: clipPath });
 
-                        // আগের ডামি বৃত্ত মুছে নতুন গোল ছবি বসানো
+                        canvas.remove(targetCircle); // পুরোনো বৃত্ত মুছে ফেলা
                         canvas.add(img);
-                        canvas.remove(activeObj);
                         canvas.setActiveObject(img);
                     } 
-                    // যদি কিছু সিলেক্ট না করে ছবি আপলোড করে
+                    // ২. যদি কিছু সিলেক্ট না করে ছবি আপলোড করে (ফ্রি ইমেজ)
                     else {
-                        const img = new fabric.Image(imgObj);
-                        const minDim = Math.min(img.width, img.height);
-                        
-                        const circleClip = new fabric.Circle({
-                            radius: minDim / 2,
-                            originX: 'center',
-                            originY: 'center'
-                        });
-
-                        const scale = (CANVAS_WIDTH * 0.4) / minDim; 
-
+                        const scale = (CANVAS_WIDTH * 0.4) / img.width; 
                         img.set({ 
                             left: CANVAS_WIDTH/2, top: CANVAS_HEIGHT/2, 
                             originX: 'center', originY: 'center', 
-                            scaleX: scale, scaleY: scale,
-                            clipPath: circleClip 
+                            scaleX: scale, scaleY: scale
                         });
-                        
                         canvas.add(img);
                         canvas.setActiveObject(img);
                     }
-                    e.target.value = ''; // Reset input
-                }
+
+                    e.target.value = ''; // Input reset
+                    
+                    isTrackingHistory = true; // Resume tracking
+                    saveHistory(); // Save the final state
+                });
             }
             reader.readAsDataURL(file);
         });
@@ -390,19 +425,24 @@
         function downloadBanner() {
             canvas.discardActiveObject();
             canvas.requestRenderAll();
-            const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 0.9, multiplier: 2 }); 
+            // High Resolution Export
+            const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1, multiplier: 2 }); 
             const link = document.createElement('a');
             link.href = dataURL;
-            link.download = 'BannerPro-HD.jpg';
+            link.download = `BannerPro_${new Date().getTime()}.jpg`;
             link.click();
         }
 
         function openTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
-            document.getElementById('templatesTabBtn').className = "flex-1 py-3 text-sm font-semibold text-gray-500 border-b-2 border-transparent";
-            document.getElementById('toolsTabBtn').className = "flex-1 py-3 text-sm font-semibold text-gray-500 border-b-2 border-transparent";
-            document.getElementById(tabId + 'Btn').className = "flex-1 py-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600";
+            
+            const btnClassInactive = "flex-1 pb-3 text-sm font-semibold text-gray-400 hover:text-gray-600 transition-colors border-b-2 border-transparent";
+            const btnClassActive = "flex-1 pb-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600 transition-colors";
+            
+            document.getElementById('templatesTabBtn').className = btnClassInactive;
+            document.getElementById('toolsTabBtn').className = btnClassInactive;
+            document.getElementById(tabId + 'Btn').className = btnClassActive;
         }
     </script>
 </body>
