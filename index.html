@@ -13,6 +13,8 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;700&family=Baloo+Da+2:wght@500;700&family=Galada&family=Hind+Siliguri:wght@400;600;700&family=Mina:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&family=Tiro+Bangla:ital@0;1&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
+    <script src="templates.js"></script>
+
     <style>
         body { font-family: 'Poppins', 'Hind Siliguri', sans-serif; height: 100vh; display: flex; flex-direction: column; background-color: #f8fafc; overflow: hidden; overscroll-behavior-y: none; }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
@@ -20,18 +22,24 @@
         .tab-content.active { display: block; }
         .font-item.selected { border-color: #4f46e5; background-color: #e0e7ff; }
         .canvas-container { touch-action: none; margin: 0 auto; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-radius: 8px; overflow: hidden; }
+        .history-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     </style>
 </head>
 <body class="text-gray-800">
 
     <header class="bg-white shadow-sm px-4 py-3 flex justify-between items-center z-20 shrink-0">
         <div class="flex items-center gap-2">
-            <i class="fa-solid fa-layer-group text-indigo-600 text-xl"></i>
-            <h1 class="text-lg font-bold text-gray-800">ব্যানার<span class="text-indigo-600">প্রো</span></h1>
+            <h1 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-layer-group text-indigo-600 mr-1"></i>ব্যানার<span class="text-indigo-600">প্রো</span></h1>
         </div>
-        <button onclick="downloadBanner()" class="bg-indigo-600 active:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm flex items-center gap-1 shadow">
-            <i class="fa-solid fa-download"></i> সেভ
-        </button>
+        
+        <div class="flex items-center gap-3">
+            <button id="undoBtn" onclick="undo()" class="history-btn text-gray-600 text-lg" disabled><i class="fa-solid fa-rotate-left"></i></button>
+            <button id="redoBtn" onclick="redo()" class="history-btn text-gray-600 text-lg" disabled><i class="fa-solid fa-rotate-right"></i></button>
+            <div class="w-px h-6 bg-gray-300 mx-1"></div>
+            <button onclick="downloadBanner()" class="bg-indigo-600 active:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm flex items-center gap-1 shadow">
+                <i class="fa-solid fa-download"></i> সেভ
+            </button>
+        </div>
     </header>
 
     <main class="flex-none bg-gray-200 flex items-center justify-center p-3 relative" style="height: 45vh;">
@@ -41,7 +49,7 @@
     </main>
 
     <div class="flex-none bg-white border-b border-t shadow-sm z-10 flex">
-        <button id="templatesTabBtn" onclick="openTab('templatesTab')" class="flex-1 py-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600">টেমপ্লেট</button>
+        <button id="templatesTabBtn" onclick="openTab('templatesTab')" class="flex-1 py-3 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600">টেমপ্লেট (১০০+)</button>
         <button id="toolsTabBtn" onclick="openTab('toolsTab')" class="flex-1 py-3 text-sm font-semibold text-gray-500">এডিট টুলস</button>
     </div>
 
@@ -94,7 +102,6 @@
         const CANVAS_WIDTH = 900;
         const CANVAS_HEIGHT = 1200;
 
-        // ক্যানভাস ইনিশিয়ালাইজ (selection: false মুছে দেওয়া হয়েছে)
         const canvas = new fabric.Canvas('bannerCanvas', {
             width: CANVAS_WIDTH,
             height: CANVAS_HEIGHT,
@@ -102,15 +109,58 @@
             preserveObjectStacking: true
         });
 
+        // --- Undo / Redo History Logic ---
+        let historyData = [];
+        let historyIndex = -1;
+        let isHistoryUpdating = false;
+
+        function saveHistory() {
+            if (isHistoryUpdating) return;
+            // Clear future history if we make a new change after undoing
+            historyData = historyData.slice(0, historyIndex + 1);
+            historyData.push(JSON.stringify(canvas.toJSON()));
+            historyIndex++;
+            updateHistoryButtons();
+        }
+
+        function updateHistoryButtons() {
+            document.getElementById('undoBtn').disabled = historyIndex <= 0;
+            document.getElementById('redoBtn').disabled = historyIndex >= historyData.length - 1;
+        }
+
+        function undo() {
+            if (historyIndex > 0) {
+                isHistoryUpdating = true;
+                historyIndex--;
+                canvas.loadFromJSON(historyData[historyIndex], function() {
+                    canvas.renderAll();
+                    isHistoryUpdating = false;
+                    updateHistoryButtons();
+                });
+            }
+        }
+
+        function redo() {
+            if (historyIndex < historyData.length - 1) {
+                isHistoryUpdating = true;
+                historyIndex++;
+                canvas.loadFromJSON(historyData[historyIndex], function() {
+                    canvas.renderAll();
+                    isHistoryUpdating = false;
+                    updateHistoryButtons();
+                });
+            }
+        }
+
+        // Save history on any canvas change
+        canvas.on('object:modified', saveHistory);
+        canvas.on('object:added', saveHistory);
+        canvas.on('object:removed', saveHistory);
+
+        // --- Canvas Resizing ---
         function resizeCanvas() {
             const wrapper = document.getElementById('canvasWrapper');
-            const containerWidth = wrapper.clientWidth; 
-            const containerHeight = wrapper.clientHeight;
-            
-            const scaleX = containerWidth / CANVAS_WIDTH;
-            const scaleY = containerHeight / CANVAS_HEIGHT;
-            const scale = Math.min(scaleX, scaleY); 
-
+            const scale = Math.min(wrapper.clientWidth / CANVAS_WIDTH, wrapper.clientHeight / CANVAS_HEIGHT); 
             canvas.setZoom(scale);
             canvas.setWidth(CANVAS_WIDTH * scale);
             canvas.setHeight(CANVAS_HEIGHT * scale);
@@ -118,60 +168,65 @@
         window.addEventListener('resize', resizeCanvas);
         setTimeout(resizeCanvas, 200);
 
-        // --- কাস্টম ডাবল টাচ লজিক (মোবাইলে টেক্সট এডিটের জন্য) ---
-        let lastClickTime = 0;
+        // --- Single Click Text Edit ---
         canvas.on('mouse:down', function(options) {
-            let currentTime = new Date().getTime();
-            // ৩০০ মিলি-সেকেন্ডের মধ্যে দুইবার ক্লিক করলে ডাবল ট্যাপ হিসেবে ধরবে
-            if (currentTime - lastClickTime < 300) {
-                if (options.target && options.target.type === 'i-text') {
-                    options.target.enterEditing();
+            if (options.target && options.target.type === 'i-text') {
+                options.target.enterEditing();
+                // Select all text only on the first click to easily replace
+                if (options.target.selectionStart === options.target.selectionEnd) {
                     options.target.selectAll();
-                    canvas.requestRenderAll();
                 }
+                canvas.requestRenderAll();
             }
-            lastClickTime = currentTime;
         });
 
-        // --- অরিজিনাল টেমপ্লেট ডেটাবেস ---
-        const bannerTemplates = [
-            { id: 1, name: 'ছাত্র সমিতি', bgColor: '#064e3b', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#064e3b","selectable":false},{"type":"circle","left":150,"top":300,"radius":300,"fill":"#ffffff","stroke":"#4ade80","strokeWidth":10},{"type":"i-text","left":450,"top":100,"text":"পাবনা জেলা ছাত্র সমিতি","fontFamily":"Anek Bangla","fontSize":60,"fill":"#4ade80","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":180,"text":"চট্টগ্রাম বিশ্ববিদ্যালয়","fontFamily":"Hind Siliguri","fontSize":40,"fill":"#ffffff","originX":"center"},{"type":"rect","left":250,"top":250,"width":400,"height":50,"fill":"#166534","rx":10,"ry":10},{"type":"i-text","left":450,"top":255,"text":"কার্যকরী কমিটি ২০২৩","fontFamily":"Hind Siliguri","fontSize":30,"fill":"#ffffff","originX":"center"},{"type":"rect","left":250,"top":800,"width":400,"height":70,"fill":"#ffffff","stroke":"#4ade80","strokeWidth":4,"rx":35,"ry":35},{"type":"i-text","left":450,"top":815,"text":"সাঈদ আল সাহাব","fontFamily":"Anek Bangla","fontSize":35,"fill":"#166534","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":950,"text":"সাংগঠনিক সম্পাদক","fontFamily":"Baloo Da 2","fontSize":75,"fill":"#ffffff","fontWeight":"bold","originX":"center"}]} },
-            { id: 2, name: 'স্বাধীনতা দিবস', bgColor: '#14532d', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#14532d","selectable":false},{"type":"circle","left":200,"top":200,"radius":250,"fill":"#ef4444"},{"type":"i-text","left":450,"top":300,"text":"২৬ শে মার্চ","fontFamily":"Tiro Bangla","fontSize":90,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":480,"text":"স্বাধীনতা দিবস","fontFamily":"Baloo Da 2","fontSize":110,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":800,"text":"THE INDEPENDENCE DAY OF BANGLADESH","fontFamily":"Poppins","fontSize":35,"fill":"#ffffff","fontWeight":"bold","originX":"center"}]} },
-            { id: 3, name: 'এসোসিয়েশন', bgColor: '#1e3a8a', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#1e3a8a","selectable":false},{"type":"rect","left":0,"top":700,"width":900,"height":500,"fill":"#f3f4f6","selectable":false},{"type":"i-text","left":450,"top":80,"text":"চট্টগ্রাম বিশ্ববিদ্যালয় স্টুডেন্টস' এসোসিয়েশন","fontFamily":"Hind Siliguri","fontSize":35,"fill":"#ffffff","originX":"center"},{"type":"i-text","left":450,"top":160,"text":"কার্যনির্বাহী পরিষদ ২০২৩","fontFamily":"Anek Bangla","fontSize":55,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":250,"text":"Congratulations","fontFamily":"Galada","fontSize":80,"fill":"#fde047","originX":"center"},{"type":"circle","left":250,"top":400,"radius":200,"fill":"#ffffff","stroke":"#1e3a8a","strokeWidth":15},{"type":"rect","left":200,"top":800,"width":500,"height":80,"fill":"#ffffff","stroke":"#1e3a8a","strokeWidth":4,"rx":10,"ry":10},{"type":"i-text","left":450,"top":815,"text":"জয়নুল আবেদীন ফাহিম","fontFamily":"Anek Bangla","fontSize":40,"fill":"#1e3a8a","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":920,"text":"সাহিত্য ও সংস্কৃতি সম্পাদক","fontFamily":"Hind Siliguri","fontSize":45,"fill":"#1e3a8a","fontWeight":"bold","originX":"center"}]} },
-            { id: 4, name: 'পলিটিক্যাল শুভেচ্ছা', bgColor: '#831843', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":900,"height":1200,"fill":"#831843","selectable":false},{"type":"i-text","left":450,"top":150,"text":"পবিত্র ঈদুল ফিতর","fontFamily":"Galada","fontSize":90,"fill":"#fde047","originX":"center"},{"type":"i-text","left":450,"top":280,"text":"উপলক্ষে দেশবাসীকে জানাই","fontFamily":"Hind Siliguri","fontSize":40,"fill":"#ffffff","originX":"center"},{"type":"i-text","left":450,"top":360,"text":"ঈদের শুভেচ্ছা","fontFamily":"Anek Bangla","fontSize":80,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"circle","left":250,"top":500,"radius":200,"fill":"#e5e7eb"},{"type":"rect","left":0,"top":950,"width":900,"height":250,"fill":"#4c0519","selectable":false},{"type":"i-text","left":450,"top":1000,"text":"মোহাম্মদ আলী","fontFamily":"Anek Bangla","fontSize":55,"fill":"#ffffff","fontWeight":"bold","originX":"center"},{"type":"i-text","left":450,"top":1080,"text":"সভাপতি, ঢাকা মহানগর","fontFamily":"Hind Siliguri","fontSize":35,"fill":"#fde047","originX":"center"}]} }
-        ];
-
+        // --- Load Templates from external templates.js ---
         function initTemplates() {
             const list = document.getElementById('templateList');
-            bannerTemplates.forEach(template => {
-                const btn = document.createElement('button');
-                btn.className = "flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden active:bg-gray-50 shadow-sm";
-                btn.onclick = () => loadTemplate(template.id);
-                btn.innerHTML = `
-                    <div style="background-color: ${template.bgColor}" class="w-full aspect-[3/4] flex items-center justify-center p-2 relative">
-                        <div class="w-8 h-8 rounded-full border border-white/40"></div>
-                        <div class="absolute bottom-4 w-1/2 h-1 bg-white/50 rounded"></div>
-                    </div>
-                    <div class="p-2 text-center w-full">
-                        <span class="text-xs font-semibold text-gray-700">${template.name}</span>
-                    </div>
-                `;
-                list.appendChild(btn);
-            });
-            loadTemplate(1);
+            if (window.bannerTemplates) {
+                window.bannerTemplates.forEach(template => {
+                    const btn = document.createElement('button');
+                    btn.className = "flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden active:bg-gray-50 shadow-sm";
+                    btn.onclick = () => loadTemplate(template.id);
+                    btn.innerHTML = `
+                        <div style="background-color: ${template.bgColor}" class="w-full aspect-[3/4] flex items-center justify-center p-2 relative">
+                            <div class="w-8 h-8 rounded-full border border-white/40"></div>
+                            <div class="absolute bottom-4 w-1/2 h-1 bg-white/50 rounded"></div>
+                        </div>
+                        <div class="p-2 text-center w-full">
+                            <span class="text-xs font-semibold text-gray-700">${template.name}</span>
+                        </div>
+                    `;
+                    list.appendChild(btn);
+                });
+                loadTemplate(1); // Load first template initially
+            }
         }
-        initTemplates();
+        
+        // Ensure templates are loaded
+        window.onload = function() {
+            initTemplates();
+        };
 
         function loadTemplate(id) {
-            const template = bannerTemplates.find(t => t.id === id);
+            const template = window.bannerTemplates.find(t => t.id === id);
             if (!template) return;
+            
+            isHistoryUpdating = true; // Prevent saving half-loaded state
             canvas.loadFromJSON(JSON.stringify(template.data), () => {
                 canvas.requestRenderAll();
                 openTab('toolsTab');
                 onSelectionCleared();
+                
+                // Save initial state for this template
+                isHistoryUpdating = false;
+                historyData = [];
+                historyIndex = -1;
+                saveHistory(); 
             });
         }
 
+        // --- Fonts ---
         const fonts = [
             { name: 'আনেক বাংলা (বোল্ড)', family: 'Anek Bangla' },
             { name: 'বালু দা ২ (হেডিং)', family: 'Baloo Da 2' },
@@ -196,6 +251,7 @@
                     if(activeObj && activeObj.type === 'i-text') {
                         activeObj.set('fontFamily', font.family);
                         canvas.requestRenderAll();
+                        saveHistory();
                     }
                 };
                 container.appendChild(div);
@@ -203,7 +259,7 @@
         }
         initFonts();
 
-        // Canvas Events
+        // Canvas UI Events
         canvas.on('selection:created', onObjectSelected);
         canvas.on('selection:updated', onObjectSelected);
         canvas.on('selection:cleared', onSelectionCleared);
@@ -217,7 +273,6 @@
                 document.querySelectorAll('.text-properties').forEach(el => el.style.display = 'flex');
                 document.getElementById('colorPicker').value = obj.fill;
             } else {
-                // If circle or image selected, hide font controls
                 document.querySelectorAll('.text-properties').forEach(el => el.style.display = 'none');
                 if (obj.fill && typeof obj.fill === 'string' && !obj.fill.startsWith('url')) {
                     document.getElementById('colorPicker').value = obj.fill;
@@ -232,16 +287,15 @@
         }
 
         function addText() {
-            const text = new fabric.IText('ডাবল ক্লিক করুন', { 
+            const text = new fabric.IText('আপনার লেখা', { 
                 left: CANVAS_WIDTH/2, top: CANVAS_HEIGHT/2, originX: 'center', originY: 'center',
-                fontFamily: 'Hind Siliguri', fontSize: 60, fill: '#ffffff',
-                shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.5)', blur: 5 })
+                fontFamily: 'Hind Siliguri', fontSize: 60, fill: '#000000'
             });
             canvas.add(text);
             canvas.setActiveObject(text);
         }
 
-        // --- স্মার্ট ইমেজ মাস্কিং লজিক ---
+        // --- আপডেটেড ইমেজ মাস্কিং লজিক (ইমেজ মুভ করার জন্য) ---
         document.getElementById('imageLoader').addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -253,36 +307,41 @@
                 imgObj.onload = function () {
                     const activeObj = canvas.getActiveObject();
 
-                    // যদি ইউজার টেমপ্লেটের বৃত্ত সিলেক্ট করে ছবি আপলোড করে (Pattern Fill)
+                    // যদি ইউজার গোল বৃত্ত সিলেক্ট করে থাকে
                     if (activeObj && activeObj.type === 'circle') {
                         const img = new fabric.Image(imgObj);
                         
-                        // Scale image to cover the circle
-                        const scaleX = (activeObj.radius * 2) / img.width;
-                        const scaleY = (activeObj.radius * 2) / img.height;
-                        const scale = Math.max(scaleX, scaleY); 
+                        // ছবিটিকে বৃত্তের সাইজে স্কেল করা
+                        const targetSize = activeObj.radius * 2 * activeObj.scaleX;
+                        const scale = Math.max(targetSize / img.width, targetSize / img.height);
                         
-                        const pattern = new fabric.Pattern({
-                            source: img.getElement(),
-                            repeat: 'no-repeat'
+                        img.set({
+                            left: activeObj.left,
+                            top: activeObj.top,
+                            originX: activeObj.originX,
+                            originY: activeObj.originY,
+                            scaleX: scale,
+                            scaleY: scale
                         });
 
-                        // Center the image inside the circle
-                        pattern.offsetX = (activeObj.radius * 2 - img.width * scale) / 2;
-                        pattern.offsetY = (activeObj.radius * 2 - img.height * scale) / 2;
-                        
-                        // Apply transformation
-                        pattern.patternTransform = [scale, 0, 0, scale, pattern.offsetX, pattern.offsetY];
+                        // ছবির ওপর ক্লিপ-পাথ (মাস্ক) বসানো যাতে গোল হয়ে থাকে
+                        const clipPath = new fabric.Circle({
+                            radius: img.width / 2, // Original unscaled width
+                            originX: 'center',
+                            originY: 'center'
+                        });
+                        img.set({ clipPath: clipPath });
 
-                        activeObj.set('fill', pattern);
-                        canvas.requestRenderAll();
+                        // আগের ডামি বৃত্ত মুছে নতুন গোল ছবি বসানো
+                        canvas.add(img);
+                        canvas.remove(activeObj);
+                        canvas.setActiveObject(img);
                     } 
-                    // যদি কিছু সিলেক্ট না করে ছবি আপলোড করে (Default Round Mask)
+                    // যদি কিছু সিলেক্ট না করে ছবি আপলোড করে
                     else {
                         const img = new fabric.Image(imgObj);
                         const minDim = Math.min(img.width, img.height);
                         
-                        // Circular Mask
                         const circleClip = new fabric.Circle({
                             radius: minDim / 2,
                             originX: 'center',
@@ -301,9 +360,7 @@
                         canvas.add(img);
                         canvas.setActiveObject(img);
                     }
-                    
-                    // ইনপুট ক্লিয়ার করা যাতে একই ছবি আবার সিলেক্ট করা যায়
-                    e.target.value = '';
+                    e.target.value = ''; // Reset input
                 }
             }
             reader.readAsDataURL(file);
@@ -311,12 +368,12 @@
 
         function changeColor(color) {
             const obj = canvas.getActiveObject();
-            if (obj) { obj.set("fill", color); canvas.requestRenderAll(); }
+            if (obj) { obj.set("fill", color); canvas.requestRenderAll(); saveHistory(); }
         }
 
         function changeAlignment(align) {
             const obj = canvas.getActiveObject();
-            if (obj && obj.type === 'i-text') { obj.set("textAlign", align); canvas.requestRenderAll(); }
+            if (obj && obj.type === 'i-text') { obj.set("textAlign", align); canvas.requestRenderAll(); saveHistory(); }
         }
 
         function deleteObject() {
@@ -324,6 +381,7 @@
             if (activeObjects.length) {
                 activeObjects.forEach(obj => canvas.remove(obj));
                 canvas.discardActiveObject();
+                saveHistory();
             } else {
                 alert('প্রথমে ক্যানভাস থেকে কিছু সিলেক্ট করুন');
             }
@@ -335,7 +393,7 @@
             const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 0.9, multiplier: 2 }); 
             const link = document.createElement('a');
             link.href = dataURL;
-            link.download = 'Mobile-Banner.jpg';
+            link.download = 'BannerPro-HD.jpg';
             link.click();
         }
 
