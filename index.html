@@ -26,28 +26,28 @@
 </head>
 <body>
 
-    <header class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center z-10">
+    <header class="bg-white shadow-sm border-b px-4 md:px-6 py-3 flex justify-between items-center z-10 shrink-0">
         <div class="flex items-center gap-2">
-            <i class="fa-solid fa-layer-group text-indigo-600 text-3xl"></i>
-            <h1 class="text-2xl font-bold text-gray-900">ব্যানার<span class="text-indigo-600">প্রো</span></h1>
+            <i class="fa-solid fa-layer-group text-indigo-600 text-2xl md:text-3xl"></i>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-900">ব্যানার<span class="text-indigo-600">প্রো</span></h1>
         </div>
-        <div class="flex items-center gap-3">
-            <button onclick="downloadBanner()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-full font-semibold transition flex items-center gap-2 text-sm shadow">
-                <i class="fa-solid fa-cloud-download"></i> হাই-কোয়ালিটি ডাউনলোড
+        <div class="flex items-center">
+            <button onclick="downloadBanner()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 md:px-5 md:py-2.5 rounded-full font-semibold transition flex items-center gap-2 text-xs md:text-sm shadow">
+                <i class="fa-solid fa-cloud-download"></i> <span class="hidden md:inline">হাই-কোয়ালিটি</span> ডাউনলোড
             </button>
         </div>
     </header>
 
-    <div class="flex flex-1 overflow-hidden">
+    <div class="flex flex-col-reverse md:flex-row flex-1 overflow-hidden">
         
-        <aside class="w-80 bg-white border-r flex flex-col overflow-hidden">
+        <aside class="w-full md:w-80 h-1/2 md:h-full bg-white border-t md:border-t-0 md:border-r flex flex-col overflow-hidden shrink-0">
             
-            <div class="flex border-b text-sm font-medium">
+            <div class="flex border-b text-sm font-medium shrink-0">
                 <button id="templatesTabBtn" onclick="openTab('templatesTab')" class="flex-1 py-3 text-center text-indigo-600 border-b-2 border-indigo-600 active-tab">টেমপ্লেট</button>
                 <button id="toolsTabBtn" onclick="openTab('toolsTab')" class="flex-1 py-3 text-center text-gray-500 hover:text-indigo-600">এডিট টুলস</button>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-5">
+            <div class="flex-1 overflow-y-auto p-4 md:p-5">
                 
                 <div id="templatesTab" class="tab-content active">
                     <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">জনপ্রিয় টেমপ্লেটসমূহ</h2>
@@ -56,7 +56,6 @@
                 </div>
 
                 <div id="toolsTab" class="tab-content space-y-5">
-                    
                     <section>
                         <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">যোগ করুন</h2>
                         <div class="grid grid-cols-2 gap-3">
@@ -105,12 +104,11 @@
                             <button onclick="changeAlignment('left')" class="p-2.5 bg-gray-50 rounded-lg border text-gray-600 hover:bg-gray-100"><i class="fa-solid fa-align-left"></i></button>
                             <button onclick="changeAlignment('center')" class="p-2.5 bg-gray-50 rounded-lg border text-gray-600 hover:bg-gray-100"><i class="fa-solid fa-align-center"></i></button>
                         </div>
-
                     </section>
 
                     <hr class="border-gray-100">
 
-                    <section class="mt-auto">
+                    <section class="mt-auto pb-4">
                         <button onclick="deleteObject()" class="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 px-4 py-3 rounded-xl font-medium transition text-sm border border-red-100">
                             <i class="fa-solid fa-trash-can"></i> সিলেক্টেড অবজেক্ট মুছুন
                         </button>
@@ -119,10 +117,9 @@
             </div>
         </aside>
 
-        <main class="flex-1 flex flex-col items-center justify-center p-8 overflow-auto">
-            <div id="canvasWrapper" class="relative">
+        <main class="flex-1 w-full h-1/2 md:h-full bg-gray-100 flex flex-col items-center justify-center p-2 md:p-8 overflow-hidden relative">
+            <div id="canvasWrapper" class="relative max-w-full max-h-full flex items-center justify-center">
                 <canvas id="bannerCanvas"></canvas>
-                <div class="absolute -bottom-6 right-0 text-xs text-gray-400">মুল মাপ: ১২০০ x ৬২৮ পিগজেল (Facebook post)</div>
             </div>
         </main>
     </div>
@@ -132,7 +129,6 @@
         const CANVAS_WIDTH = 1200;
         const CANVAS_HEIGHT = 628;
 
-        // ক্যানভাস ইনিশিয়ালাইজ করা
         const canvas = new fabric.Canvas('bannerCanvas', {
             width: CANVAS_WIDTH,
             height: CANVAS_HEIGHT,
@@ -140,23 +136,32 @@
             preserveObjectStacking: true
         });
 
-        // ক্যানভাসকে রেসপন্সিভ করা
+        // ক্যানভাসকে রেসপন্সিভ করার উন্নত ফাংশন
         function resizeCanvas() {
             const wrapper = document.getElementById('canvasWrapper');
             const container = wrapper.parentNode;
-            const containerWidth = container.clientWidth - 64; // 64px padding
-            const containerHeight = container.clientHeight - 64;
             
+            // Container এর আসল প্যানিং ও মার্জিন বাদ দিয়ে সাইজ নেওয়া
+            const style = window.getComputedStyle(container);
+            const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+            const paddingY = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+            
+            const containerWidth = container.clientWidth - paddingX;
+            const containerHeight = container.clientHeight - paddingY;
+            
+            // স্কেলিং রেশিও বের করা
             const scaleX = containerWidth / CANVAS_WIDTH;
             const scaleY = containerHeight / CANVAS_HEIGHT;
-            const scale = Math.min(scaleX, scaleY, 1); // 1 = Don't scale up
+            const scale = Math.min(scaleX, scaleY, 1); 
 
             canvas.setZoom(scale);
             canvas.setWidth(CANVAS_WIDTH * scale);
             canvas.setHeight(CANVAS_HEIGHT * scale);
         }
+        
         window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        // ক্যানভাস লোড হওয়ার পর রি-সাইজ নিশ্চিত করা
+        setTimeout(resizeCanvas, 100);
 
         // Object Selection Listener
         canvas.on('selection:created', onObjectSelected);
@@ -173,7 +178,6 @@
                 openTab('toolsTab');
             }
             
-            // Update color picker
             document.getElementById('colorPicker').value = selectedObject.fill;
             document.getElementById('colorHex').textContent = selectedObject.fill;
             canvas.requestRenderAll();
@@ -183,65 +187,16 @@
             document.querySelectorAll('.text-properties').forEach(el => el.style.display = 'none');
         }
 
-        // --- টেমপ্লেট লাইব্রেরি (TEMPLATE LIBRARY) ---
+        // --- টেমপ্লেট লাইব্রেরি ---
         const bannerTemplates = [
-            // ১. মহান বিজয় দিবস
-            { 
-                id: 1, 
-                name: 'বিজয় দিবস শুভেচ্ছা',
-                data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#880e4f","selectable":false,"evented":false},{"type":"rect","version":"5.3.0","left":300,"top":20,"width":600,"height":588,"fill":"#004d40","rx":10,"ry":10},{"type":"i-text","version":"5.3.0","left":400,"top":180,"width":400,"height":60,"fill":"#ffffff","text":"মহান বিজয় দিবস","fontFamily":"Hind Siliguri","fontSize":60,"fontWeight":"bold","textAlign":"center"},{"type":"i-text","version":"5.3.0","left":450,"top":270,"width":300,"height":30,"fill":"#ffeb3b","text":"সবাইকে লাল সবুজ শুভেচ্ছা","fontFamily":"AdorshoLipi","fontSize":30,"textAlign":"center"}]}
-            },
-            // ২. ই-কমার্স সেল
-            { 
-                id: 2, 
-                name: 'ফ্ল্যাশ সেল',
-                data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#311b92","selectable":false,"evented":false},{"type":"i-text","version":"5.3.0","left":100,"top":150,"text":"ফ্ল্যাশ সেল!","fontFamily":"Poppins","fontSize":90,"fontWeight":"bold","fill":"#ffeb3b"},{"type":"i-text","version":"5.3.0","left":100,"top":280,"text":"সব পণ্যে ৫০% পর্যন্ত ছাড়","fontFamily":"Galada","fontSize":50,"fill":"#ffffff"}]}
-            },
-            // ৩. অনলাইন কোর্স
-            { 
-                id: 3, 
-                name: 'কোর্স ভর্তি',
-                data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#0d47a1","selectable":false,"evented":false},{"type":"i-text","version":"5.3.0","left":80,"top":120,"text":"প্রফেশনাল গ্রাফিক্স ডিজাইন","fontFamily":"Hind Siliguri","fontSize":60,"fontWeight":"bold","fill":"#ffffff"},{"type":"i-text","version":"5.3.0","left":80,"top":210,"text":"ভর্তি চলছে! আজই জয়েন করুন।","fontFamily":"Hind Siliguri","fontSize":35,"fill":"#bbdefb"},{"type":"rect","version":"5.3.0","left":80,"top":300,"width":200,"height":60,"fill":"#ff9800","rx":30,"ry":30},{"type":"i-text","version":"5.3.0","left":120,"top":312,"text":"ভর্তি হোন","fontFamily":"Hind Siliguri","fontSize":28,"fill":"#ffffff","fontWeight":"bold"}]}
-            },
-             // ৪. নতুন রেস্তোরাঁ
-            { 
-                id: 4, 
-                name: 'ফুড রেস্তোরাঁ',
-                data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#f44336","selectable":false,"evented":false},{"type":"i-text","version":"5.3.0","left":450,"top":180,"text":"টেস্টি স্বর্গ","fontFamily":"Galada","fontSize":75,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","version":"5.3.0","left":450,"top":280,"text":"নিউ ইয়র্ক স্টাইল পিৎজা","fontFamily":"Poppins","fontSize":40,"fill":"#ffeb3b"}]}
-            },
-             // ৫. রিয়েল এস্টেট
-            { 
-                id: 5, 
-                name: 'স্বপ্নের বাড়ি',
-                data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#212121","selectable":false,"evented":false},{"type":"i-text","version":"5.3.0","left":70,"top":150,"text":"আপনার স্বপ্নের বাড়ি কিনুন","fontFamily":"Hind Siliguri","fontSize":60,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","version":"5.3.0","left":70,"top":250,"text":"মাত্র ২ কিমিতে মেট্রো স্টেশন","fontFamily":"Hind Siliguri","fontSize":35,"fill":"#8bc34a"},{"type":"i-text","version":"5.3.0","left":70,"top":320,"text":"কল করুন: +880123...","fontFamily":"Poppins","fontSize":30,"fill":"#ffffff"}]}
-            },
-             // ৬. ডিজিটাল মার্কেটিং
-            { 
-                id: 6, 
-                name: 'এজেন্সি সার্ভিস',
-                data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#ff9800","selectable":false,"evented":false},{"type":"i-text","version":"5.3.0","left":650,"top":100,"text":"আপনার ব্যবসা বৃদ্ধি করুন","fontFamily":"Hind Siliguri","fontSize":55,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","version":"5.3.0","left":650,"top":190,"text":"ডিজিটাল মার্কেটিং সলিউশন","fontFamily":"Galada","fontSize":40,"fill":"#212121"}]}
-            },
-            // ৭. শুভ জন্মদিন
-            { id: 7, name: 'শুভ জন্মদিন', data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#e91e63","selectable":false,"evented":false},{"type":"i-text","version":"5.3.0","left":450,"top":200,"text":"শুভ জন্মদিন!","fontFamily":"Galada","fontSize":75,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","version":"5.3.0","left":450,"top":300,"text":"অনেক অনেক শুভকামনা।","fontFamily":"Hind Siliguri","fontSize":35,"fill":"#f8bbd0"}]} },
-            // ৮. নিয়োগ বিজ্ঞপ্তি
-            { id: 8, name: 'নিয়োগ বিজ্ঞপ্তি', data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#ffeb3b","selectable":false,"evented":false},{"type":"i-text","version":"5.3.0","left":70,"top":150,"text":"জরুরী নিয়োগ!","fontFamily":"Hind Siliguri","fontSize":70,"fill":"#b71c1c","fontWeight":"bold"},{"type":"i-text","version":"5.3.0","left":70,"top":250,"text":"গ্রাফিক্স ডিজাইনার আবশ্যক।","fontFamily":"Hind Siliguri","fontSize":40,"fill":"#212121"},{"type":"i-text","version":"5.3.0","left":70,"top":310,"text":"সিভি পাঠান: hr@company.com","fontFamily":"Poppins","fontSize":30,"fill":"#212121"}]} },
-            // ৯. ট্রাভেল প্যাকেজ
-            { id: 9, name: 'সাজেক ট্যুর', data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#4fc3f7","selectable":false,"evented":false},{"type":"i-text","version":"5.3.0","left":70,"top":150,"text":"ঘুরে আসুন সাজেক!","fontFamily":"Hind Siliguri","fontSize":65,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","version":"5.3.0","left":70,"top":250,"text":"মাত্র ৫০০০/- (৩ দিন ২ রাত)","fontFamily":"Hind Siliguri","fontSize":45,"fill":"#bf360c"}]} },
-            // ১০. ফিটনেস জিম
-            { id: 10, name: 'ফিটনেস জিম', data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#000000","selectable":false,"evented":false},{"type":"i-text","version":"5.3.0","left":70,"top":120,"text":"সুস্থ থাকুন, ফিট থাকুন!","fontFamily":"Hind Siliguri","fontSize":55,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","version":"5.3.0","left":70,"top":200,"text":"৫০% ছাড় প্রথম ২০ জনের জন্য।","fontFamily":"Hind Siliguri","fontSize":35,"fill":"#ffeb3b"}]} },
-            // ১১. টেক্সটাইল বুটিক
-            { id: 11, name: 'বুটিক কালেকশন', data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#8e24aa","selectable":false,"evented":false},{"type":"i-text","version":"5.3.0","left":650,"top":180,"text":"বুটিক কালেকশন","fontFamily":"Galada","fontSize":70,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","version":"5.3.0","left":650,"top":280,"text":"সারা বাংলাদেশে ক্যাশ অন ডেলিভারি","fontFamily":"Hind Siliguri","fontSize":30,"fill":"#ea80fc"}]} },
-            // ১২. শিক্ষা কোচিং
-            { id: 12, name: 'কোচিং সেন্টার', data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#00695c","selectable":false,"evented":false},{"type":"i-text","version":"5.3.0","left":70,"top":130,"text":"স্বপ্নের বিশ্ববিদ্যালয়ে ভর্তি","fontFamily":"Hind Siliguri","fontSize":55,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","version":"5.3.0","left":70,"top":210,"text":"ভর্তি চলছে (HSC '২৪ ব্যাচ)","fontFamily":"Hind Siliguri","fontSize":35,"fill":"#ffeb3b"}]} },
-            // ১৩. গ্রিটিং কার্ড
-            { id: 13, name: 'ঈদ মোবারক', data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#01579b","selectable":false,"evented":false},{"type":"i-text","version":"5.3.0","left":450,"top":200,"text":"ঈদ মোবারক","fontFamily":"Galada","fontSize":80,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","version":"5.3.0","left":450,"top":310,"text":"সবাইকে জানাই ঈদের শুভেচ্ছা।","fontFamily":"Hind Siliguri","fontSize":30,"fill":"#b3e5fc"}]} },
-            // ১৪. মোবাইল শপ
-            { id: 14, name: 'স্মার্টফোন ডিল', data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#1a237e","selectable":false,"evented":false},{"type":"i-text","version":"5.3.0","left":100,"top":150,"text":"নতুন স্মার্টফোন অফার!","fontFamily":"Hind Siliguri","fontSize":60,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","version":"5.3.0","left":100,"top":250,"text":"এক্সচেঞ্জ অফারে ১০০০/- ছাড়","fontFamily":"Hind Siliguri","fontSize":35,"fill":"#ffeb3b"}]} },
-            // ১৫. কার সার্ভিস
-            { id: 15, name: 'কার রিপেয়ার', data: {"version":"5.3.0","objects":[{"type":"rect","version":"5.3.0","left":0,"top":0,"width":1200,"height":628,"fill":"#f57f17","selectable":false,"evented":false},{"type":"i-text","version":"5.3.0","left":650,"top":180,"text":"আপনার গাড়ি সচল রাখুন","fontFamily":"Hind Siliguri","fontSize":50,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","version":"5.3.0","left":650,"top":260,"text":"সার্ভিসিং ফি ৫৯৯/-","fontFamily":"Poppins","fontSize":35,"fill":"#212121"}]} }
+            { id: 1, name: 'বিজয় দিবস শুভেচ্ছা', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":1200,"height":628,"fill":"#880e4f","selectable":false,"evented":false},{"type":"rect","left":300,"top":20,"width":600,"height":588,"fill":"#004d40","rx":10,"ry":10},{"type":"i-text","left":400,"top":180,"width":400,"height":60,"fill":"#ffffff","text":"মহান বিজয় দিবস","fontFamily":"Hind Siliguri","fontSize":60,"fontWeight":"bold","textAlign":"center"},{"type":"i-text","left":450,"top":270,"width":300,"height":30,"fill":"#ffeb3b","text":"সবাইকে লাল সবুজ শুভেচ্ছা","fontFamily":"AdorshoLipi","fontSize":30,"textAlign":"center"}]} },
+            { id: 2, name: 'ফ্ল্যাশ সেল', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":1200,"height":628,"fill":"#311b92","selectable":false,"evented":false},{"type":"i-text","left":100,"top":150,"text":"ফ্ল্যাশ সেল!","fontFamily":"Poppins","fontSize":90,"fontWeight":"bold","fill":"#ffeb3b"},{"type":"i-text","left":100,"top":280,"text":"সব পণ্যে ৫০% পর্যন্ত ছাড়","fontFamily":"Galada","fontSize":50,"fill":"#ffffff"}]} },
+            { id: 3, name: 'কোর্স ভর্তি', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":1200,"height":628,"fill":"#0d47a1","selectable":false,"evented":false},{"type":"i-text","left":80,"top":120,"text":"প্রফেশনাল গ্রাফিক্স ডিজাইন","fontFamily":"Hind Siliguri","fontSize":60,"fontWeight":"bold","fill":"#ffffff"},{"type":"i-text","left":80,"top":210,"text":"ভর্তি চলছে! আজই জয়েন করুন।","fontFamily":"Hind Siliguri","fontSize":35,"fill":"#bbdefb"}]} },
+            { id: 4, name: 'ফুড রেস্তোরাঁ', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":1200,"height":628,"fill":"#f44336","selectable":false,"evented":false},{"type":"i-text","left":450,"top":180,"text":"টেস্টি স্বর্গ","fontFamily":"Galada","fontSize":75,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","left":450,"top":280,"text":"নিউ ইয়র্ক স্টাইল পিৎজা","fontFamily":"Poppins","fontSize":40,"fill":"#ffeb3b"}]} },
+            { id: 5, name: 'স্বপ্নের বাড়ি', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":1200,"height":628,"fill":"#212121","selectable":false,"evented":false},{"type":"i-text","left":70,"top":150,"text":"আপনার স্বপ্নের বাড়ি কিনুন","fontFamily":"Hind Siliguri","fontSize":60,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","left":70,"top":250,"text":"মাত্র ২ কিমিতে মেট্রো স্টেশন","fontFamily":"Hind Siliguri","fontSize":35,"fill":"#8bc34a"}]} },
+            { id: 6, name: 'এজেন্সি সার্ভিস', data: {"version":"5.3.0","objects":[{"type":"rect","left":0,"top":0,"width":1200,"height":628,"fill":"#ff9800","selectable":false,"evented":false},{"type":"i-text","left":650,"top":100,"text":"আপনার ব্যবসা বৃদ্ধি করুন","fontFamily":"Hind Siliguri","fontSize":55,"fill":"#ffffff","fontWeight":"bold"},{"type":"i-text","left":650,"top":190,"text":"ডিজিটাল মার্কেটিং সলিউশন","fontFamily":"Galada","fontSize":40,"fill":"#212121"}]} }
         ];
 
-        // টেমপ্লেট লাইব্রেরি রেন্ডার করা
         function initTemplates() {
             const list = document.getElementById('templateList');
             bannerTemplates.forEach(template => {
@@ -249,7 +204,6 @@
                 card.className = "template-card bg-gray-50 border rounded-xl overflow-hidden text-left transition";
                 card.onclick = () => loadTemplate(template.id);
                 
-                // SVG placeholder based on template colors
                 const bgColor = template.data.objects[0].fill || '#cccccc';
                 const mainTextColor = (template.data.objects[1] && template.data.objects[1].fill) ? template.data.objects[1].fill : '#ffffff';
 
@@ -257,7 +211,6 @@
                     <div style="background-color: ${bgColor}" class="w-full aspect-[1.91/1] flex flex-col p-2 space-y-1">
                         <div style="background-color: ${mainTextColor}" class="w-2/3 h-2 rounded-sm opacity-60"></div>
                         <div style="background-color: ${mainTextColor}" class="w-full h-1.5 rounded-sm opacity-40"></div>
-                        <div style="background-color: ${mainTextColor}" class="w-1/2 h-1 rounded-sm opacity-30"></div>
                     </div>
                     <div class="p-2.5">
                         <span class="text-sm font-semibold text-gray-800">${template.name}</span>
@@ -265,42 +218,30 @@
                 `;
                 list.appendChild(card);
             });
-            // Load first template by default
             loadTemplate(bannerTemplates[0].id);
         }
         initTemplates();
 
-        // টেমপ্লেট লোড করার ফাংশন
         function loadTemplate(id) {
             const template = bannerTemplates.find(t => t.id === id);
             if (!template) return;
-            
             canvas.loadFromJSON(JSON.stringify(template.data), () => {
                 canvas.requestRenderAll();
                 openTab('toolsTab');
             });
         }
 
-        // --- এডিটিং টুলস (EDITING TOOLS) ---
-
-        // টেক্সট অ্যাড ফাংশন
+        // --- এডিটিং টুলস ---
         function addText() {
             const newText = new fabric.IText('আপনার টেক্সট লিখুন', { 
-                left: CANVAS_WIDTH / 2, 
-                top: CANVAS_HEIGHT / 2, 
-                originX: 'center', 
-                originY: 'center',
-                fontFamily: 'Hind Siliguri',
-                fontSize: 45,
-                fill: '#000000',
-                padding: 10
+                left: CANVAS_WIDTH / 2, top: CANVAS_HEIGHT / 2, originX: 'center', originY: 'center',
+                fontFamily: 'Hind Siliguri', fontSize: 45, fill: '#000000', padding: 10
             });
             canvas.add(newText);
             canvas.setActiveObject(newText);
             newText.enterEditing();
         }
 
-        // ছবি আপলোড ফাংশন
         document.getElementById('imageLoader').addEventListener('change', function (e) {
             const reader = new FileReader();
             reader.onload = function (event) {
@@ -308,15 +249,8 @@
                 imgObj.src = event.target.result;
                 imgObj.onload = function () {
                     const img = new fabric.Image(imgObj);
-                    const scale = (CANVAS_HEIGHT * 0.5) / img.height; // Scale to 50% height
-                    img.set({ 
-                        left: CANVAS_WIDTH / 2, 
-                        top: CANVAS_HEIGHT / 2, 
-                        originX: 'center', 
-                        originY: 'center',
-                        scaleX: scale,
-                        scaleY: scale
-                    });
+                    const scale = (CANVAS_HEIGHT * 0.5) / img.height; 
+                    img.set({ left: CANVAS_WIDTH / 2, top: CANVAS_HEIGHT / 2, originX: 'center', originY: 'center', scaleX: scale, scaleY: scale });
                     canvas.add(img);
                     canvas.setActiveObject(img);
                 }
@@ -324,7 +258,6 @@
             reader.readAsDataURL(e.target.files[0]);
         });
 
-        // ফন্ট পরিবর্তন ফাংশন
         function changeFont(fontName) {
             const activeObject = canvas.getActiveObject();
             if (activeObject && activeObject.type === 'i-text') {
@@ -333,7 +266,6 @@
             }
         }
 
-        // রঙ পরিবর্তন ফাংশন
         function changeColor(color) {
             const activeObject = canvas.getActiveObject();
             if (activeObject) {
@@ -343,7 +275,6 @@
             }
         }
         
-        // অপাসিটি পরিবর্তন ফাংশন
         function changeOpacity(value) {
             const activeObject = canvas.getActiveObject();
             if (activeObject) {
@@ -352,7 +283,6 @@
             }
         }
         
-        // টেক্সট এলাইনমেন্ট ফাংশন
         function changeAlignment(align) {
             const activeObject = canvas.getActiveObject();
             if (activeObject && activeObject.type === 'i-text') {
@@ -361,7 +291,6 @@
             }
         }
 
-        // অবজেক্ট ডিলিট ফাংশন
         function deleteObject() {
             const activeObjects = canvas.getActiveObjects();
             if (activeObjects.length > 0) {
@@ -372,35 +301,25 @@
             }
         }
 
-        // ডাউনলোড ফাংশন (হাই কোয়ালিটি)
         function downloadBanner() {
-            // ১. সিলেকশন বক্স হাইড করা
             canvas.discardActiveObject();
             canvas.requestRenderAll();
-            
-            // ২. ডাউনলোড করা (Multiplier: 2 enhances quality)
-            const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 1 }); // multiplier 1 based on actual 1200x628 size
+            const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 1 }); 
             const link = document.createElement('a');
             link.href = dataURL;
             link.download = 'প্রফেশনাল-ব্যানার-pro.png';
             link.click();
         }
 
-        // --- UI ট্যাবস কন্ট্রোল (UI TABS CONTROL) ---
         function openTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             
-            // Update buttons style
-            document.getElementById('templatesTabBtn').classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600');
-            document.getElementById('templatesTabBtn').classList.add('text-gray-500');
-            document.getElementById('toolsTabBtn').classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600');
-            document.getElementById('toolsTabBtn').classList.add('text-gray-500');
+            document.getElementById('templatesTabBtn').className = "flex-1 py-3 text-center text-gray-500 hover:text-indigo-600";
+            document.getElementById('toolsTabBtn').className = "flex-1 py-3 text-center text-gray-500 hover:text-indigo-600";
 
-            document.getElementById(tabId + 'Btn').classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600');
-            document.getElementById(tabId + 'Btn').classList.remove('text-gray-500');
+            document.getElementById(tabId + 'Btn').className = "flex-1 py-3 text-center text-indigo-600 border-b-2 border-indigo-600 active-tab";
         }
-
     </script>
 </body>
 </html>
