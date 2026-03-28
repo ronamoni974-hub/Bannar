@@ -3,203 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ProBanner - Banner Maker</title>
+    <title>ProBanner - Professional Editor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; touch-action: manipulation; }
-        .canvas-container { margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        body { font-family: 'Inter', sans-serif; touch-action: manipulation; background-color: #f8fafc; }
+        .canvas-container { margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 4px; overflow: hidden; }
+        /* Hide scrollbar for a clean look but allow scrolling */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     </style>
 </head>
-<body class="bg-gray-100 h-[100dvh] w-full overflow-hidden text-gray-800 flex flex-col">
+<body class="h-[100dvh] w-full overflow-hidden text-gray-800 flex flex-col selection:bg-blue-100">
 
-    <div id="homeScreen" class="absolute inset-0 flex flex-col bg-white overflow-y-auto z-10">
-        <header class="p-4 md:p-6 flex justify-between items-center shadow-sm">
-            <h1 class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">ProBanner</h1>
-            <button onclick="openEditor()" class="bg-blue-600 text-white px-4 md:px-6 py-2 rounded-full font-medium hover:bg-blue-700 transition text-sm md:text-base">Create Blank</button>
-        </header>
-
-        <div class="flex flex-col items-center justify-center mt-8 px-4">
-            <h2 class="text-2xl md:text-4xl font-bold mb-6 text-center">What will you design today?</h2>
-            <div class="relative w-full max-w-2xl">
-                <input type="text" placeholder="Search for templates..." class="w-full pl-12 pr-4 py-3 md:py-4 rounded-full border-2 border-gray-200 focus:border-blue-500 focus:outline-none shadow-sm text-base md:text-lg">
-                <i class="fas fa-search absolute left-5 top-4 md:top-5 text-gray-400 text-xl"></i>
-            </div>
-        </div>
-
-        <div class="max-w-6xl mx-auto w-full px-4 mt-10 pb-10">
-            <h3 class="text-lg font-semibold mb-3">Categories</h3>
-            <div class="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
-                <button class="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 whitespace-nowrap text-sm"><i class="fas fa-laptop mr-2 text-blue-500"></i>Web Banner</button>
-                <button class="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 whitespace-nowrap text-sm"><i class="fab fa-youtube mr-2 text-red-500"></i>Thumbnail</button>
-                <button class="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 whitespace-nowrap text-sm"><i class="fab fa-facebook mr-2 text-blue-700"></i>FB Cover</button>
-            </div>
-
-            <h3 class="text-lg font-semibold mt-8 mb-3">Trending Templates</h3>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div class="bg-gray-200 h-32 md:h-48 rounded-xl cursor-pointer hover:shadow-lg transition flex items-center justify-center" onclick="openEditor()"><span class="text-gray-500 text-sm">Tech Banner</span></div>
-                <div class="bg-gray-200 h-32 md:h-48 rounded-xl cursor-pointer hover:shadow-lg transition flex items-center justify-center" onclick="openEditor()"><span class="text-gray-500 text-sm">Sale Promo</span></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="editorScreen" class="absolute inset-0 flex flex-col hidden bg-gray-100 z-20">
-        <div class="h-14 md:h-16 flex-none bg-white border-b flex items-center justify-between px-3 md:px-6 shadow-sm z-30">
-            <div class="flex items-center gap-2 md:gap-4">
-                <button onclick="closeEditor()" class="text-gray-500 hover:text-gray-800 p-2"><i class="fas fa-arrow-left text-lg"></i></button>
-                <h1 class="text-base md:text-xl font-bold text-gray-800 hidden md:block">Untitled Banner</h1>
+    <div id="editorScreen" class="absolute inset-0 flex flex-col bg-gray-50 z-20">
+        
+        <header class="h-14 bg-white border-b flex items-center justify-between px-4 shadow-sm shrink-0 z-30">
+            <div class="flex items-center gap-3">
+                <button class="text-gray-500 hover:text-gray-800"><i class="fas fa-home"></i></button>
+                <h1 class="text-sm font-bold text-gray-700">ProBanner</h1>
             </div>
             
-            <div class="flex items-center gap-2 md:gap-4">
-                <button onclick="undo()" class="text-gray-600 hover:text-blue-600 p-2" title="Undo"><i class="fas fa-undo"></i></button>
-                <button onclick="redo()" class="text-gray-600 hover:text-blue-600 p-2" title="Redo"><i class="fas fa-redo"></i></button>
-                <button onclick="saveProject()" class="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-200 font-medium text-sm">Save</button>
-                <button onclick="exportBanner()" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 md:px-5 py-1.5 md:py-2 rounded-md hover:opacity-90 font-medium shadow-md text-sm">
-                    <i class="fas fa-download md:mr-2"></i><span class="hidden md:inline">Export</span>
+            <div class="flex items-center gap-1 sm:gap-3">
+                <button onclick="undo()" class="text-gray-600 hover:text-blue-600 w-8 h-8 flex items-center justify-center rounded-full active:bg-gray-100" title="Undo"><i class="fas fa-undo text-sm"></i></button>
+                <button onclick="redo()" class="text-gray-600 hover:text-blue-600 w-8 h-8 flex items-center justify-center rounded-full active:bg-gray-100" title="Redo"><i class="fas fa-redo text-sm"></i></button>
+                <div class="w-px h-5 bg-gray-300 mx-1"></div>
+                <button onclick="exportBanner()" class="bg-blue-600 text-white px-4 py-1.5 rounded-md hover:bg-blue-700 font-medium shadow-sm text-sm transition">
+                    Export
+                </button>
+            </div>
+        </header>
+
+        <main id="workspace" class="flex-1 relative flex justify-center items-center overflow-hidden w-full p-2">
+            <canvas id="bannerCanvas"></canvas>
+            
+            <div id="floatingAction" class="absolute hidden bg-white rounded-full shadow-lg p-1.5 flex gap-2 border border-gray-100 z-50 transition-all">
+                <button onclick="confirmChanges()" class="w-9 h-9 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition shadow-sm" title="Save & Deselect">
+                    <i class="fas fa-check text-lg"></i>
+                </button>
+                <button onclick="discardChanges()" class="w-9 h-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 transition shadow-sm" title="Discard & Deselect">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+        </main>
+
+        <div id="propertiesPanel" class="h-16 bg-white border-t flex items-center px-4 gap-6 overflow-x-auto hide-scroll shrink-0 shadow-[0_-4px_15px_rgba(0,0,0,0.02)] transition-transform translate-y-full hidden z-20">
+            
+            <div class="flex flex-col items-center shrink-0">
+                <span class="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-wider">Color</span>
+                <input type="color" id="itemColor" onchange="changeColor(this.value)" class="w-7 h-7 cursor-pointer bg-transparent">
+            </div>
+
+            <div class="w-px h-8 bg-gray-200 shrink-0"></div>
+
+            <div class="flex flex-col items-center shrink-0">
+                <span class="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-wider">Gradient</span>
+                <div class="flex items-center gap-1">
+                    <input type="color" id="gradColor1" value="#00c6ff" class="w-6 h-6 cursor-pointer bg-transparent">
+                    <input type="color" id="gradColor2" value="#0072ff" class="w-6 h-6 cursor-pointer bg-transparent">
+                    <button onclick="applyGradient()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs font-medium ml-1">Apply</button>
+                </div>
+            </div>
+
+            <div class="w-px h-8 bg-gray-200 shrink-0"></div>
+
+            <div class="flex flex-col shrink-0 min-w-[100px]">
+                <div class="flex justify-between w-full mb-1">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Opacity</span>
+                    <span id="opVal" class="text-[10px] font-bold text-blue-600">100%</span>
+                </div>
+                <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" onchange="changeOpacity(this.value)" oninput="document.getElementById('opVal').innerText=Math.round(this.value*100)+'%'" class="w-full accent-blue-600 h-1 mt-1">
+            </div>
+
+            <div class="w-px h-8 bg-gray-200 shrink-0"></div>
+
+            <div class="flex flex-col shrink-0">
+                <span class="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-wider">Stroke</span>
+                <div class="flex items-center gap-2">
+                    <input type="color" id="strokeColor" onchange="changeStroke(this.value, null)" class="w-6 h-6 cursor-pointer bg-transparent">
+                    <input type="number" id="strokeWidth" value="0" min="0" max="20" onchange="changeStroke(null, this.value)" class="w-12 border bg-gray-50 rounded px-1 py-0.5 text-xs outline-none focus:border-blue-400 text-center">
+                </div>
+            </div>
+
+            <div class="w-px h-8 bg-gray-200 shrink-0"></div>
+
+            <div class="flex flex-col items-center shrink-0 pr-4">
+                <span class="text-[10px] font-bold text-red-400 mb-1 uppercase tracking-wider">Delete</span>
+                <button onclick="deleteObject()" class="text-red-500 hover:bg-red-50 w-7 h-7 rounded flex items-center justify-center transition">
+                    <i class="fas fa-trash-alt text-sm"></i>
                 </button>
             </div>
         </div>
 
-        <div class="flex-1 min-h-0 flex overflow-hidden relative w-full">
-            
-            <div class="flex-1 h-full flex justify-center items-center bg-gray-200 overflow-auto relative p-4" id="canvas-wrapper">
-                <canvas id="bannerCanvas"></canvas>
-                
-                <div id="floatingAction" class="absolute hidden bg-white rounded-full shadow-lg px-2 py-1 flex gap-2 border border-gray-200 z-40 transform -translate-x-1/2 -translate-y-full mb-2">
-                    <button onclick="confirmChanges()" class="text-green-500 hover:bg-green-50 rounded-full w-8 h-8 flex items-center justify-center transition" title="Save & Deselect">
-                        <i class="fas fa-check"></i>
-                    </button>
-                    <button onclick="discardChanges()" class="text-red-500 hover:bg-red-50 rounded-full w-8 h-8 flex items-center justify-center transition" title="Discard & Deselect">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div id="propertiesPanel" class="absolute bottom-0 left-0 w-full md:top-0 md:right-0 md:bottom-auto md:left-auto md:w-72 md:h-full bg-white rounded-t-3xl md:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.15)] md:shadow-2xl hidden flex-col z-50 transition-transform">
-                <div class="p-4 md:p-5 flex flex-col h-full max-h-[50vh] md:max-h-full">
-                    <div class="flex justify-between items-center mb-4 border-b pb-3 shrink-0">
-                        <h4 class="text-sm font-semibold text-gray-500 uppercase">Properties</h4>
-                        <button onclick="hideProperties()" class="text-gray-400 hover:text-red-500 p-1 bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center"><i class="fas fa-times"></i></button>
-                    </div>
-                    
-                    <div class="flex-1 overflow-y-auto pr-2 pb-4">
-                        <div class="mb-4">
-                            <label class="text-sm font-medium block mb-1">Color</label>
-                            <input type="color" id="itemColor" onchange="changeColor(this.value)" class="w-full h-10 rounded cursor-pointer border-0 p-0">
-                        </div>
-
-                        <div class="mb-4 p-3 bg-gray-50 rounded-xl border">
-                            <label class="text-sm font-medium block mb-2">Apply Gradient</label>
-                            <div class="flex gap-2 mb-2">
-                                <input type="color" id="gradColor1" value="#ff0000" class="w-full h-8 cursor-pointer rounded border-0 p-0">
-                                <input type="color" id="gradColor2" value="#0000ff" class="w-full h-8 cursor-pointer rounded border-0 p-0">
-                            </div>
-                            <button onclick="applyGradient()" class="w-full bg-gray-200 text-sm py-2 rounded-lg hover:bg-gray-300 font-medium transition">Set Gradient</button>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="text-sm font-medium flex justify-between">Opacity <span id="opVal" class="text-blue-600">100%</span></label>
-                            <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" onchange="changeOpacity(this.value)" oninput="document.getElementById('opVal').innerText=Math.round(this.value*100)+'%'" class="w-full mt-2 accent-blue-600">
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="text-sm font-medium block mb-2">Stroke (Color & Width)</label>
-                            <div class="flex gap-3 items-center">
-                                <input type="color" id="strokeColor" onchange="changeStroke(this.value, null)" class="w-12 h-10 cursor-pointer rounded border-0 p-0">
-                                <input type="number" id="strokeWidth" value="0" min="0" max="20" onchange="changeStroke(null, this.value)" class="w-full h-10 border rounded-lg px-3 text-sm focus:outline-blue-500">
-                            </div>
-                        </div>
-
-                        <div class="mb-6">
-                            <label class="text-sm font-medium block mb-2">Size (Scale)</label>
-                            <input type="range" id="itemScale" min="0.1" max="5" step="0.1" value="1" onchange="changeScale(this.value)" class="w-full accent-blue-600">
-                        </div>
-
-                        <button onclick="deleteObject()" class="w-full bg-red-50 text-red-600 py-3 rounded-lg hover:bg-red-100 transition flex justify-center items-center gap-2 font-medium text-sm border border-red-100">
-                            <i class="fas fa-trash"></i> Delete Selected
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="h-16 md:h-20 flex-none bg-white border-t flex items-center justify-start md:justify-center gap-4 md:gap-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-30 px-4 overflow-x-auto pb-safe">
-            <button onclick="addText()" class="flex flex-col items-center text-gray-600 hover:text-blue-600 p-2 transition min-w-[50px]">
-                <i class="fas fa-font text-xl md:text-2xl mb-1"></i>
-                <span class="text-[10px] md:text-xs font-medium">Text</span>
+        <nav id="mainBottomNav" class="h-16 bg-white border-t flex items-center justify-around px-2 shrink-0 z-30 pb-safe">
+            <button onclick="addText()" class="flex flex-col items-center text-gray-500 hover:text-blue-600 p-2 w-16 transition">
+                <i class="fas fa-font text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Text</span>
             </button>
             
             <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="addImage(event)">
-            <button onclick="document.getElementById('imageInput').click()" class="flex flex-col items-center text-gray-600 hover:text-blue-600 p-2 transition min-w-[50px]">
-                <i class="fas fa-image text-xl md:text-2xl mb-1"></i>
-                <span class="text-[10px] md:text-xs font-medium">Image</span>
+            <button onclick="document.getElementById('imageInput').click()" class="flex flex-col items-center text-gray-500 hover:text-blue-600 p-2 w-16 transition">
+                <i class="fas fa-image text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Image</span>
             </button>
             
-            <button onclick="addShape('rect')" class="flex flex-col items-center text-gray-600 hover:text-blue-600 p-2 transition min-w-[50px]">
-                <i class="fas fa-square text-xl md:text-2xl mb-1"></i>
-                <span class="text-[10px] md:text-xs font-medium">Square</span>
+            <button onclick="addShape('rect')" class="flex flex-col items-center text-gray-500 hover:text-blue-600 p-2 w-16 transition">
+                <i class="fas fa-square text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Square</span>
             </button>
 
-            <button onclick="addShape('circle')" class="flex flex-col items-center text-gray-600 hover:text-blue-600 p-2 transition min-w-[50px]">
-                <i class="fas fa-circle text-xl md:text-2xl mb-1"></i>
-                <span class="text-[10px] md:text-xs font-medium">Circle</span>
+            <button onclick="addShape('circle')" class="flex flex-col items-center text-gray-500 hover:text-blue-600 p-2 w-16 transition">
+                <i class="fas fa-circle text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Circle</span>
             </button>
 
-            <div class="w-px h-8 bg-gray-300 mx-1"></div>
-
-            <div class="flex flex-col items-center justify-center min-w-[50px]">
-                <input type="color" onchange="changeBgColor(this.value)" value="#ffffff" class="w-6 h-6 md:w-8 md:h-8 rounded cursor-pointer border-0 p-0 shadow-sm">
-                <span class="text-[10px] md:text-xs font-medium text-gray-600 mt-1">BG</span>
+            <div class="flex flex-col items-center text-gray-500 p-2 w-16 relative">
+                <input type="color" onchange="changeBgColor(this.value)" value="#ffffff" class="w-6 h-6 rounded-full cursor-pointer border-0 p-0 absolute top-1 opacity-0 z-10">
+                <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-pink-500 to-yellow-400 mb-1 shadow-sm border border-gray-200"></div>
+                <span class="text-[10px] font-medium">Canvas BG</span>
             </div>
-        </div>
+        </nav>
     </div>
 
     <script>
-        const homeScreen = document.getElementById('homeScreen');
-        const editorScreen = document.getElementById('editorScreen');
-        
-        function openEditor() {
-            homeScreen.classList.add('hidden');
-            editorScreen.classList.remove('hidden');
-            initCanvas();
-        }
-
-        function closeEditor() {
-            editorScreen.classList.add('hidden');
-            homeScreen.classList.remove('hidden');
-        }
-
         let canvas;
         let undoStack = [];
         let redoStack = [];
         let objectInitialState = null;
         let isProgrammaticSelection = false;
 
-        function initCanvas() {
-            if(!canvas) {
-                let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 40;
-                let canvasHeight = canvasWidth * 0.5625; 
+        // Elements
+        const workspace = document.getElementById('workspace');
+        const floatingAction = document.getElementById('floatingAction');
+        const propertiesPanel = document.getElementById('propertiesPanel');
 
-                canvas = new fabric.Canvas('bannerCanvas', {
-                    width: canvasWidth, height: canvasHeight, backgroundColor: '#ffffff',
-                    preserveObjectStacking: true
-                });
+        // Initialize Canvas
+        window.onload = function() {
+            // Responsive Canvas Setup (Fits within mobile perfectly)
+            let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 32;
+            let canvasHeight = canvasWidth * 0.5625; // 16:9 Aspect Ratio
 
-                canvas.on('selection:created', onObjectSelected);
-                canvas.on('selection:updated', onObjectSelected);
-                canvas.on('object:moving', updateFloatingPosition);
-                canvas.on('object:scaling', updateFloatingPosition);
-                canvas.on('object:rotating', updateFloatingPosition);
-                canvas.on('selection:cleared', onSelectionCleared);
+            canvas = new fabric.Canvas('bannerCanvas', {
+                width: canvasWidth, 
+                height: canvasHeight, 
+                backgroundColor: '#ffffff',
+                preserveObjectStacking: true
+            });
 
-                saveHistory();
-            }
-        }
+            // Event Listeners
+            canvas.on('selection:created', handleSelection);
+            canvas.on('selection:updated', handleSelection);
+            canvas.on('object:moving', updateFloatingPosition);
+            canvas.on('object:scaling', updateFloatingPosition);
+            canvas.on('object:rotating', updateFloatingPosition);
+            canvas.on('selection:cleared', handleDeselection);
 
+            saveHistory(); // Initial state
+        };
+
+        // --- Undo / Redo ---
         function saveHistory() {
             if(redoStack.length > 0) redoStack = [];
             undoStack.push(JSON.stringify(canvas));
@@ -228,64 +195,76 @@
             });
         }
 
-        const floatingAction = document.getElementById('floatingAction');
-
-        function onObjectSelected(e) {
+        // --- Selection & Floating Menu Logic ---
+        function handleSelection(e) {
             if(isProgrammaticSelection) return;
             const obj = canvas.getActiveObject();
             if(!obj) return;
             
-            if(e.type === 'selection:created') {
-                objectInitialState = JSON.stringify(obj.toObject());
-            }
+            // Backup initial state for "Cross" functionality
+            objectInitialState = JSON.stringify(obj.toObject());
 
-            showProperties(obj);
-            updateFloatingPosition();
+            // Show dynamic properties bar at bottom
+            propertiesPanel.classList.remove('hidden');
+            setTimeout(() => propertiesPanel.classList.remove('translate-y-full'), 10);
+            
+            updatePropertiesUI(obj);
+            
+            // Show & Position Tick/Cross
             floatingAction.classList.remove('hidden');
+            updateFloatingPosition();
+        }
+
+        function handleDeselection() {
+            floatingAction.classList.add('hidden');
+            propertiesPanel.classList.add('translate-y-full');
+            setTimeout(() => propertiesPanel.classList.add('hidden'), 300);
+            objectInitialState = null;
         }
 
         function updateFloatingPosition() {
             const obj = canvas.getActiveObject();
             if(!obj) return;
             
-            const objBound = obj.getBoundingRect();
-            const wrapperOffset = document.getElementById('canvas-wrapper').getBoundingClientRect();
+            const bound = obj.getBoundingRect();
             const canvasOffset = document.querySelector('.canvas-container').getBoundingClientRect();
+            const workspaceOffset = workspace.getBoundingClientRect();
             
-            let topPos = (canvasOffset.top - wrapperOffset.top) + objBound.top - 15;
-            let leftPos = (canvasOffset.left - wrapperOffset.left) + objBound.left + (objBound.width / 2);
+            // Position exactly above the object
+            let topPos = (canvasOffset.top - workspaceOffset.top) + bound.top - 55;
+            let leftPos = (canvasOffset.left - workspaceOffset.left) + bound.left + (bound.width / 2);
+
+            // Prevent going out of screen bounds top
+            if (topPos < 10) topPos = 10;
 
             floatingAction.style.top = `${topPos}px`;
             floatingAction.style.left = `${leftPos}px`;
+            floatingAction.style.transform = `translateX(-50%)`;
         }
 
-        function onSelectionCleared() {
-            floatingAction.classList.add('hidden');
-            objectInitialState = null;
-        }
-
+        // --- ✅ Tick & ❌ Cross Actions ---
         function confirmChanges() {
-            saveHistory();
+            saveHistory(); // Save the final state
             canvas.discardActiveObject();
             canvas.renderAll();
-            hideProperties();
         }
 
         function discardChanges() {
             const obj = canvas.getActiveObject();
             if(obj && objectInitialState) {
+                // Revert to the state when it was first clicked
                 const prevData = JSON.parse(objectInitialState);
                 obj.set(prevData);
-                canvas.renderAll();
             }
             canvas.discardActiveObject();
             canvas.renderAll();
-            hideProperties();
         }
 
+        // --- Tools ---
         function addText() {
-            const text = new fabric.IText('Your Text', {
-                left: canvas.width/2 - 50, top: canvas.height/2 - 20, fontFamily: 'Inter', fill: '#333333', fontSize: 30
+            const text = new fabric.IText('Edit Text', {
+                left: canvas.width/2 - 60, top: canvas.height/2 - 20, 
+                fontFamily: 'Inter', fill: '#1f2937', fontSize: 32, fontWeight: 'bold'
             });
             canvas.add(text);
             canvas.setActiveObject(text);
@@ -301,11 +280,13 @@
 
         function addImage(e) {
             const file = e.target.files[0];
+            if (!file) return;
+            
             const reader = new FileReader();
             reader.onload = function(f) {
-                const data = f.target.result;
-                fabric.Image.fromURL(data, function(img) {
-                    img.scaleToWidth(canvas.width / 2);
+                fabric.Image.fromURL(f.target.result, function(img) {
+                    img.scaleToWidth(canvas.width / 2.5);
+                    // IMPORTANT: Ensuring selection lock doesn't happen
                     img.set({ selectable: true, evented: true }); 
                     canvas.add(img);
                     canvas.centerObject(img);
@@ -313,8 +294,8 @@
                     saveHistory();
                 });
             };
-            if(file) reader.readAsDataURL(file);
-            e.target.value = ''; 
+            reader.readAsDataURL(file);
+            e.target.value = ''; // Reset input
         }
 
         function changeBgColor(color) {
@@ -323,23 +304,13 @@
             saveHistory();
         }
 
-        const propPanel = document.getElementById('propertiesPanel');
-
-        function showProperties(activeObj) {
-            propPanel.classList.remove('hidden');
-            propPanel.classList.add('flex');
-            
-            if(typeof activeObj.fill === 'string') document.getElementById('itemColor').value = activeObj.fill;
-            document.getElementById('itemOpacity').value = activeObj.opacity || 1;
-            document.getElementById('opVal').innerText = Math.round((activeObj.opacity || 1)*100)+'%';
-            document.getElementById('strokeWidth').value = activeObj.strokeWidth || 0;
-            if(activeObj.stroke) document.getElementById('strokeColor').value = activeObj.stroke;
-            document.getElementById('itemScale').value = activeObj.scaleX || 1;
-        }
-
-        function hideProperties() {
-            propPanel.classList.add('hidden');
-            propPanel.classList.remove('flex');
+        // --- Properties Updates ---
+        function updatePropertiesUI(obj) {
+            if(typeof obj.fill === 'string') document.getElementById('itemColor').value = obj.fill;
+            document.getElementById('itemOpacity').value = obj.opacity || 1;
+            document.getElementById('opVal').innerText = Math.round((obj.opacity || 1)*100)+'%';
+            document.getElementById('strokeWidth').value = obj.strokeWidth || 0;
+            if(obj.stroke) document.getElementById('strokeColor').value = obj.stroke;
         }
 
         function changeColor(color) {
@@ -354,16 +325,12 @@
             
             if(activeObj) {
                 const grad = new fabric.Gradient({
-                    type: 'linear', gradientUnits: 'pixels', coords: { x1: 0, y1: 0, x2: activeObj.width, y2: activeObj.height },
+                    type: 'linear', gradientUnits: 'pixels', 
+                    coords: { x1: 0, y1: 0, x2: activeObj.width, y2: activeObj.height },
                     colorStops:[ { offset: 0, color: color1 }, { offset: 1, color: color2 } ]
                 });
-                activeObj.set('fill', grad); canvas.renderAll();
-            } else {
-                const grad = new fabric.Gradient({
-                    type: 'linear', gradientUnits: 'pixels', coords: { x1: 0, y1: 0, x2: canvas.width, y2: canvas.height },
-                    colorStops:[ { offset: 0, color: color1 }, { offset: 1, color: color2 } ]
-                });
-                canvas.backgroundColor = grad; canvas.renderAll(); saveHistory();
+                activeObj.set('fill', grad); 
+                canvas.renderAll();
             }
         }
 
@@ -381,32 +348,19 @@
             }
         }
 
-        function changeScale(val) {
-            const activeObj = canvas.getActiveObject();
-            if(activeObj) {
-                activeObj.scale(parseFloat(val)); canvas.renderAll(); updateFloatingPosition();
-            }
-        }
-
         function deleteObject() {
             const activeObjects = canvas.getActiveObjects();
             if (activeObjects.length) {
                 canvas.discardActiveObject();
                 activeObjects.forEach(function(object) { canvas.remove(object); });
                 saveHistory();
-                hideProperties();
             }
-        }
-
-        function saveProject() {
-            alert("Project saved logically!");
-            saveHistory();
         }
 
         function exportBanner() {
             canvas.discardActiveObject(); 
             canvas.renderAll();
-            const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 }); 
+            const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 3 }); // High resolution
             const link = document.createElement('a');
             link.download = 'ProBanner-Design.png';
             link.href = dataURL;
