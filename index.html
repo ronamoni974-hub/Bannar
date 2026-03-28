@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BannerPro | Premium Advanced Editor</title>
+    <title>BannerPro | Ultimate Mobile Editor</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -27,7 +27,7 @@
         .canvas-container { margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border-radius: 4px; overflow: hidden; touch-action: none; }
         .history-btn:disabled { opacity: 0.3; cursor: not-allowed; }
         
-        .custom-textarea { resize: none; border: 2px solid #e2e8f0; transition: border-color 0.2s; }
+        .custom-textarea { resize: none; transition: border-color 0.2s; }
         .custom-textarea:focus { border-color: #6366f1; outline: none; }
         
         .grad-btn:active { transform: scale(0.9); transition: transform 0.1s; }
@@ -55,7 +55,7 @@
         </div>
     </header>
 
-    <main class="flex-none flex items-center justify-center p-3 relative bg-slate-200" style="height: 48vh;">
+    <main class="flex-none flex items-center justify-center p-3 relative bg-slate-200" style="height: 45vh;">
         <div id="canvasWrapper" class="relative w-full h-full flex items-center justify-center">
             <canvas id="bannerCanvas"></canvas>
         </div>
@@ -72,7 +72,9 @@
             </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto pb-32"> <div id="templatesTab" class="tab-content active p-4">
+        <div class="flex-1 overflow-y-auto pb-32">
+            
+            <div id="templatesTab" class="tab-content active p-4">
                 <div id="templateList" class="grid grid-cols-2 gap-4"></div>
             </div>
 
@@ -118,14 +120,22 @@
                     <p class="text-[10px] text-gray-400 max-w-[200px]">বিস্তারিত এডিট করতে যেকোনো লেখা বা শেইপে ক্লিক করুন।</p>
                 </div>
 
-                <div id="editPanel" class="hidden space-y-5">
-                    
-                    <div id="textOnlyFeatures" class="space-y-4">
-                        <div>
-                            <label class="text-[11px] font-semibold text-indigo-600 uppercase tracking-wider mb-1 block pl-1"><i class="fa-solid fa-keyboard"></i> লেখা এডিট করুন</label>
-                            <textarea id="externalTextInput" class="w-full custom-textarea rounded-xl p-3 text-sm bg-gray-50 text-gray-800" rows="2" placeholder="টেক্সট লিখুন..."></textarea>
-                        </div>
+                <div id="editPanel" class="hidden space-y-4">
 
+                    <div id="textEditBoxContainer" style="display: none;" class="w-full bg-indigo-50 p-3.5 rounded-xl border border-indigo-200 shadow-sm">
+                        <label class="text-[12px] font-bold text-indigo-700 block mb-2"><i class="fa-solid fa-keyboard"></i> এখানে লেখা এডিট করুন:</label>
+                        <textarea id="externalTextInput" class="w-full custom-textarea rounded-lg p-3 text-sm bg-white text-gray-800 border border-gray-300" rows="2" placeholder="টেক্সট টাইপ করুন..."></textarea>
+                    </div>
+
+                    <div id="imageZoomContainer" style="display: none;" class="w-full bg-emerald-50 p-3.5 rounded-xl border border-emerald-200 shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-[12px] font-bold text-emerald-700 block"><i class="fa-solid fa-magnifying-glass"></i> ফ্রেমের ভেতরের ছবির সাইজ</label>
+                            <span id="imageZoomDisplay" class="text-[10px] text-emerald-600 font-mono font-bold px-2 py-1 bg-white rounded">100%</span>
+                        </div>
+                        <input type="range" id="imageZoomSlider" min="0.5" max="3" step="0.05" value="1" oninput="changeImageZoom(this.value)" class="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+                    </div>
+
+                    <div id="textOnlyFeatures" class="space-y-4">
                         <div class="px-1">
                             <div class="flex justify-between items-center mb-1">
                                 <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">টেক্সট সাইজ</label>
@@ -143,7 +153,7 @@
                     <div id="sharedProperties" class="p-3.5 bg-slate-50 rounded-xl border border-slate-100 space-y-4">
                         
                         <div>
-                            <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2 block">গ্রেডিয়েন্ট কালার (স্টাইলিশ ফিল)</label>
+                            <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2 block">গ্রেডিয়েন্ট ফিল কালার</label>
                             <div class="flex gap-2 overflow-x-auto pb-1" style="scrollbar-width: none;">
                                 <button onclick="applyGradient('#ff9a9e', '#fecfef')" class="grad-btn w-8 h-8 rounded-full shadow-sm border border-white flex-shrink-0" style="background: linear-gradient(135deg, #ff9a9e, #fecfef);"></button>
                                 <button onclick="applyGradient('#f6d365', '#fda085')" class="grad-btn w-8 h-8 rounded-full shadow-sm border border-white flex-shrink-0" style="background: linear-gradient(135deg, #f6d365, #fda085);"></button>
@@ -156,34 +166,46 @@
 
                         <div class="flex justify-between items-center gap-3">
                             <div class="flex-1">
-                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1 block">সলিড কালার</label>
+                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1 block">সলিড ফিল কালার</label>
                                 <div class="relative w-full h-8 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
                                     <input type="color" id="colorPicker" onchange="changeColor(this.value)" class="absolute -top-2 -left-2 w-16 h-16 cursor-pointer">
                                 </div>
                             </div>
+                            <div id="alignmentFeature" class="flex-1">
+                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1 block">এলাইনমেন্ট</label>
+                                <div class="flex gap-1 bg-white border border-gray-200 rounded-lg p-1 shadow-sm h-8">
+                                    <button onclick="changeAlignment('left')" class="flex-1 rounded bg-white text-gray-600 active:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-align-left text-[10px]"></i></button>
+                                    <button onclick="changeAlignment('center')" class="flex-1 rounded bg-white text-gray-600 active:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-align-center text-[10px]"></i></button>
+                                    <button onclick="changeAlignment('right')" class="flex-1 rounded bg-white text-gray-600 active:bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-align-right text-[10px]"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="px-1 pt-1 border-t border-gray-200">
+                            <div class="flex justify-between items-center mb-1 mt-2">
+                                <label class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">ভেতরের রঙের অপাসিটি (Fill Transparency)</label>
+                                <span id="fillOpacityDisplay" class="text-[10px] text-gray-400 font-mono">100%</span>
+                            </div>
+                            <input type="range" id="fillOpacitySlider" min="0" max="1" step="0.05" value="1" oninput="changeFillOpacity(this.value)" onchange="saveHistory()" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                            <p class="text-[9px] text-gray-400 mt-1">* এটি কমালে স্ট্রোক/বর্ডার স্বচ্ছ হবে না, শুধু ভেতরের রং স্বচ্ছ হবে।</p>
+                        </div>
+                        
+                        <div class="flex justify-between items-center gap-3 pt-2">
                             <div class="flex-1">
-                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1 block">বর্ডার কালার</label>
+                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1 block">বর্ডার কালার (স্ট্রোক)</label>
                                 <div class="relative w-full h-8 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
                                     <input type="color" id="strokeColorPicker" onchange="changeStrokeColor(this.value)" class="absolute -top-2 -left-2 w-16 h-16 cursor-pointer">
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="px-1">
-                            <div class="flex justify-between items-center mb-1">
-                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">বর্ডার মোটা/চিকন</label>
-                                <span id="strokeWidthDisplay" class="text-[10px] text-gray-400 font-mono">0 px</span>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">বর্ডার সাইজ</label>
+                                    <span id="strokeWidthDisplay" class="text-[10px] text-gray-400 font-mono">0 px</span>
+                                </div>
+                                <input type="range" id="strokeWidthSlider" min="0" max="20" value="0" oninput="changeStrokeWidth(this.value)" onchange="saveHistory()" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
                             </div>
-                            <input type="range" id="strokeWidthSlider" min="0" max="20" value="0" oninput="changeStrokeWidth(this.value)" onchange="saveHistory()" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
                         </div>
 
-                        <div class="px-1 pb-2">
-                            <div class="flex justify-between items-center mb-1">
-                                <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">ট্রান্সপারেন্সি</label>
-                                <span id="opacityDisplay" class="text-[10px] text-gray-400 font-mono">100%</span>
-                            </div>
-                            <input type="range" id="opacitySlider" min="0" max="1" step="0.05" value="1" oninput="changeOpacity(this.value)" onchange="saveHistory()" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
-                        </div>
                     </div>
                 </div>
 
@@ -195,8 +217,6 @@
         const CANVAS_WIDTH = 900;
         const CANVAS_HEIGHT = 1200;
 
-        // --- Fabric Initialization ---
-        // Changed to perPixelTargetFind: false for easier selection on mobile
         const canvas = new fabric.Canvas('bannerCanvas', {
             width: CANVAS_WIDTH,
             height: CANVAS_HEIGHT,
@@ -205,7 +225,6 @@
             selection: false
         });
 
-        // Layering: Bring to front on click
         canvas.on('mouse:down', function(options) {
             const obj = options.target;
             if (obj && obj.selectable) {
@@ -224,7 +243,7 @@
         function saveHistory() {
             if (!isTrackingHistory) return;
             historyData = historyData.slice(0, historyIndex + 1);
-            historyData.push(JSON.stringify(canvas.toJSON()));
+            historyData.push(JSON.stringify(canvas.toJSON(['customImage', 'baseScale', 'currentZoom'])));
             historyIndex++;
             updateHistoryButtons();
         }
@@ -242,6 +261,7 @@
                     canvas.renderAll();
                     isTrackingHistory = true;
                     updateHistoryButtons();
+                    onSelectionCleared();
                 });
             }
         }
@@ -254,6 +274,7 @@
                     canvas.renderAll();
                     isTrackingHistory = true;
                     updateHistoryButtons();
+                    onSelectionCleared();
                 });
             }
         }
@@ -262,7 +283,7 @@
         canvas.on('object:added', saveHistory);
         canvas.on('object:removed', saveHistory);
 
-        // --- Text Editor & Resizing ---
+        // --- Text Editor Binding ---
         const textInput = document.getElementById('externalTextInput');
         const fontSizeSlider = document.getElementById('fontSizeSlider');
         const fontSizeDisplay = document.getElementById('fontSizeDisplay');
@@ -302,26 +323,21 @@
         window.addEventListener('resize', resizeCanvas);
         setTimeout(resizeCanvas, 100);
 
-        // --- Change Background Color Function ---
         function changeBgColor(color) {
             isTrackingHistory = false;
             canvas.backgroundColor = color;
-            
-            // Also update the base rectangle if it exists (Template background)
             const objects = canvas.getObjects();
             if (objects.length > 0 && objects[0].type === 'rect' && !objects[0].selectable) {
                 objects[0].set('fill', color);
             }
-            
             canvas.requestRenderAll();
             isTrackingHistory = true;
             saveHistory();
         }
 
-        // --- Shapes Library ---
         function addShape(type) {
             const center = canvas.getCenter();
-            const commonProps = { left: center.left, top: center.top, originX: 'center', originY: 'center', fill: '#cbd5e1', stroke: '#111827', strokeWidth: 0, opacity: 1 };
+            const commonProps = { left: center.left, top: center.top, originX: 'center', originY: 'center', fill: '#cbd5e1', stroke: '#111827', strokeWidth: 0 };
             let shape;
             if (type === 'rect') shape = new fabric.Rect({ ...commonProps, width: 200, height: 200, rx: 15, ry: 15 });
             else if (type === 'circle') shape = new fabric.Circle({ ...commonProps, radius: 100 });
@@ -338,11 +354,35 @@
             }
         }
 
-        // --- Advanced Styling Functions ---
-        function changeColor(color) {
+        // --- NEW: Fill Opacity Separate from Stroke ---
+        function changeFillOpacity(val) {
             const obj = canvas.getActiveObject();
-            if (obj) { obj.set("fill", color); canvas.requestRenderAll(); saveHistory(); }
+            if(obj && typeof obj.fill === 'string' && !obj.fill.startsWith('url')) {
+                let color = new fabric.Color(obj.fill);
+                color.setAlpha(parseFloat(val));
+                obj.set('fill', color.toRgba());
+                document.getElementById('fillOpacityDisplay').innerText = Math.round(val * 100) + '%';
+                canvas.requestRenderAll();
+            }
         }
+
+        function changeColor(hex) {
+            const obj = canvas.getActiveObject();
+            if(obj) {
+                let currentAlpha = 1;
+                if(typeof obj.fill === 'string' && obj.fill.startsWith('rgba')) {
+                    currentAlpha = new fabric.Color(obj.fill).getAlpha();
+                } else {
+                    currentAlpha = parseFloat(document.getElementById('fillOpacitySlider').value);
+                }
+                let color = new fabric.Color(hex);
+                color.setAlpha(currentAlpha);
+                obj.set('fill', color.toRgba());
+                canvas.requestRenderAll();
+                saveHistory();
+            }
+        }
+
         function changeStrokeColor(color) {
             const obj = canvas.getActiveObject();
             if (obj) { obj.set("stroke", color); canvas.requestRenderAll(); saveHistory(); }
@@ -352,14 +392,6 @@
             if (obj) { 
                 obj.set("strokeWidth", parseInt(value)); 
                 document.getElementById('strokeWidthDisplay').innerText = value + ' px';
-                canvas.requestRenderAll(); 
-            }
-        }
-        function changeOpacity(value) {
-            const obj = canvas.getActiveObject();
-            if (obj) { 
-                obj.set("opacity", parseFloat(value)); 
-                document.getElementById('opacityDisplay').innerText = Math.round(value * 100) + '%';
                 canvas.requestRenderAll(); 
             }
         }
@@ -376,7 +408,7 @@
             saveHistory();
         }
 
-        // --- FIX: Advanced Relative Image Upload ---
+        // --- ULTIMATE PATTERN FILL LOGIC FOR IMAGES (Fixes Selection & Frames) ---
         document.getElementById('imageLoader').addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -387,48 +419,50 @@
                 fabric.Image.fromURL(event.target.result, function(img) {
                     isTrackingHistory = false;
 
-                    // If a valid mask shape is selected (Circle, Rect, Triangle)
-                    if (targetObj && targetObj.selectable && (targetObj.type === 'circle' || targetObj.type === 'rect' || targetObj.type === 'triangle' || targetObj.type === 'polygon')) {
+                    // If a Shape is selected
+                    if (targetObj && targetObj.selectable && targetObj.type !== 'i-text' && targetObj.type !== 'image') {
                         
-                        // Calculate bounding dimensions based on scale
-                        let boundWidth = targetObj.width * targetObj.scaleX;
-                        let boundHeight = targetObj.height * targetObj.scaleY;
-                        if(targetObj.type === 'circle') boundWidth = boundHeight = targetObj.radius * 2 * targetObj.scaleX;
+                        // Calculate scale to perfectly cover the shape
+                        let scaleX = (targetObj.width * targetObj.scaleX) / img.width;
+                        let scaleY = (targetObj.height * targetObj.scaleY) / img.height;
+                        if(targetObj.type === 'circle') {
+                            scaleX = scaleY = (targetObj.radius * 2 * targetObj.scaleX) / img.width;
+                        }
+                        let baseScale = Math.max(scaleX, scaleY);
                         
-                        // Set Image base scale to fit the shape bounds
-                        let imgScale = Math.max(boundWidth / img.width, boundHeight / img.height);
-                        
-                        img.set({
-                            left: targetObj.left, top: targetObj.top,
-                            originX: targetObj.originX, originY: targetObj.originY,
-                            scaleX: imgScale, scaleY: imgScale,
-                            selectable: true, evented: true // Force selection availability
+                        // Convert image to a Pattern Source Canvas to make it work natively
+                        let pCanvas = new fabric.StaticCanvas();
+                        pCanvas.add(img);
+                        pCanvas.setDimensions({ width: img.width, height: img.height });
+                        pCanvas.renderAll();
+
+                        let pattern = new fabric.Pattern({
+                            source: function() { return pCanvas.getElement(); },
+                            repeat: 'no-repeat'
                         });
 
-                        // Create RELATIVE ClipPath (Solves selection bug)
-                        let clipShape;
-                        let invScaleX = 1 / imgScale;
-                        let invScaleY = 1 / imgScale;
+                        // Center the image inside the shape
+                        let objWidth = targetObj.width;
+                        let objHeight = targetObj.height;
+                        if(targetObj.type === 'circle') { objWidth = objHeight = targetObj.radius * 2; }
+                        
+                        let offsetX = (objWidth - (img.width * baseScale / targetObj.scaleX)) / 2;
+                        let offsetY = (objHeight - (img.height * baseScale / targetObj.scaleY)) / 2;
 
-                        if(targetObj.type === 'circle') {
-                            clipShape = new fabric.Circle({ radius: (boundWidth/2) * invScaleX, originX: 'center', originY: 'center' });
-                        } else if(targetObj.type === 'rect') {
-                            clipShape = new fabric.Rect({ width: boundWidth * invScaleX, height: boundHeight * invScaleY, rx: targetObj.rx * invScaleX, ry: targetObj.ry * invScaleY, originX: 'center', originY: 'center' });
-                        } else if(targetObj.type === 'triangle') {
-                            clipShape = new fabric.Triangle({ width: boundWidth * invScaleX, height: boundHeight * invScaleY, originX: 'center', originY: 'center' });
-                        }
+                        pattern.patternTransform = [baseScale / targetObj.scaleX, 0, 0, baseScale / targetObj.scaleY, offsetX, offsetY];
 
-                        if(clipShape) {
-                            img.set({ clipPath: clipShape });
-                        }
+                        targetObj.set('fill', pattern);
+                        targetObj.customImage = img; // store original image for zooming
+                        targetObj.baseScale = baseScale;
+                        targetObj.currentZoom = 1;
 
-                        canvas.remove(targetObj);
-                        canvas.add(img);
-                        img.bringToFront();
-                        canvas.setActiveObject(img);
-
+                        canvas.requestRenderAll();
+                        
+                        // Show Zoom UI immediately
+                        onObjectSelected({ target: targetObj });
+                        
                     } else {
-                        // Regular image insert
+                        // Regular image drop
                         const scale = (CANVAS_WIDTH * 0.4) / img.width; 
                         img.set({ left: CANVAS_WIDTH/2, top: CANVAS_HEIGHT/2, originX: 'center', originY: 'center', scaleX: scale, scaleY: scale });
                         canvas.add(img);
@@ -443,6 +477,28 @@
             }
             reader.readAsDataURL(file);
         });
+
+        // --- IMAGE ZOOM LOGIC ---
+        function changeImageZoom(zoomValue) {
+            const targetObj = canvas.getActiveObject();
+            if(targetObj && targetObj.fill && targetObj.fill.source && targetObj.customImage) {
+                let img = targetObj.customImage;
+                let newScale = targetObj.baseScale * parseFloat(zoomValue);
+                
+                let objWidth = targetObj.width;
+                let objHeight = targetObj.height;
+                if(targetObj.type === 'circle') { objWidth = objHeight = targetObj.radius * 2; }
+                
+                let offsetX = (objWidth - (img.width * newScale / targetObj.scaleX)) / 2;
+                let offsetY = (objHeight - (img.height * newScale / targetObj.scaleY)) / 2;
+
+                targetObj.fill.patternTransform = [newScale / targetObj.scaleX, 0, 0, newScale / targetObj.scaleY, offsetX, offsetY];
+                targetObj.currentZoom = parseFloat(zoomValue);
+                
+                document.getElementById('imageZoomDisplay').innerText = Math.round(zoomValue * 100) + '%';
+                canvas.requestRenderAll();
+            }
+        }
 
         // --- Templates Logic ---
         function initTemplates() {
@@ -478,14 +534,11 @@
             isTrackingHistory = false;
             canvas.loadFromJSON(JSON.stringify(template.data), () => {
                 canvas.getObjects().forEach(obj => { if(obj.type === 'i-text') obj.set({ editable: false }); });
-                
-                // Set external BG color picker to template background
                 document.getElementById('bgColorPicker').value = template.bgColor || '#ffffff';
-                
                 canvas.requestRenderAll();
                 openTab('toolsTab');
                 onSelectionCleared();
-                historyData = [JSON.stringify(canvas.toJSON())]; historyIndex = 0; isTrackingHistory = true; updateHistoryButtons();
+                historyData = [JSON.stringify(canvas.toJSON(['customImage', 'baseScale', 'currentZoom']))]; historyIndex = 0; isTrackingHistory = true; updateHistoryButtons();
             });
         }
 
@@ -536,19 +589,41 @@
             document.getElementById('noSelectionPanel').classList.add('hidden');
             document.getElementById('editPanel').classList.remove('hidden');
             
-            // Set Sliders
-            document.getElementById('opacitySlider').value = obj.opacity !== undefined ? obj.opacity : 1;
-            document.getElementById('opacityDisplay').innerText = Math.round((obj.opacity !== undefined ? obj.opacity : 1) * 100) + '%';
+            // Set Stroke Properties
             document.getElementById('strokeWidthSlider').value = obj.strokeWidth || 0;
             document.getElementById('strokeWidthDisplay').innerText = (obj.strokeWidth || 0) + ' px';
-            
             if (obj.stroke && typeof obj.stroke === 'string' && !obj.stroke.startsWith('url')) {
                 document.getElementById('strokeColorPicker').value = obj.stroke;
             } else { document.getElementById('strokeColorPicker').value = '#111827'; }
             
+            // Extract Alpha from Fill for Fill Opacity
+            let fillAlpha = 1;
+            if(obj.fill && typeof obj.fill === 'string' && obj.fill.startsWith('rgba')) {
+                fillAlpha = new fabric.Color(obj.fill).getAlpha();
+            }
+            document.getElementById('fillOpacitySlider').value = fillAlpha;
+            document.getElementById('fillOpacityDisplay').innerText = Math.round(fillAlpha * 100) + '%';
+            
+            // Check if Pattern Image (Show Zoom)
+            const imgZoomBox = document.getElementById('imageZoomContainer');
+            if (obj.fill && obj.fill.source && obj.customImage) {
+                imgZoomBox.style.display = 'block';
+                document.getElementById('imageZoomSlider').value = obj.currentZoom || 1;
+                document.getElementById('imageZoomDisplay').innerText = Math.round((obj.currentZoom || 1)*100) + '%';
+            } else {
+                imgZoomBox.style.display = 'none';
+            }
+
             // Text vs Shape logic
+            const textBox = document.getElementById('textEditBoxContainer');
+            const textFeatures = document.getElementById('textOnlyFeatures');
+            const alignFeat = document.getElementById('alignmentFeature');
+
             if (obj.type === 'i-text') {
-                document.getElementById('textOnlyFeatures').classList.remove('hidden');
+                textBox.style.display = 'block';
+                textFeatures.classList.remove('hidden');
+                alignFeat.style.display = 'block';
+                
                 textInput.value = obj.text;
                 fontSizeSlider.value = obj.fontSize;
                 fontSizeDisplay.innerText = obj.fontSize;
@@ -556,7 +631,10 @@
                     document.getElementById('colorPicker').value = obj.fill;
                 }
             } else {
-                document.getElementById('textOnlyFeatures').classList.add('hidden');
+                textBox.style.display = 'none';
+                textFeatures.classList.add('hidden');
+                alignFeat.style.display = 'none';
+                
                 if (obj.fill && typeof obj.fill === 'string' && !obj.fill.startsWith('url')) {
                     document.getElementById('colorPicker').value = obj.fill;
                 }
@@ -564,6 +642,8 @@
         }
         function onSelectionCleared() {
             document.getElementById('editPanel').classList.add('hidden');
+            document.getElementById('textEditBoxContainer').style.display = 'none';
+            document.getElementById('imageZoomContainer').style.display = 'none';
             document.getElementById('noSelectionPanel').classList.remove('hidden');
         }
         function addText() {
