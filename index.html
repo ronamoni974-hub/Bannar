@@ -79,50 +79,50 @@
                 </div>
             </div>
 
-            <div id="propertiesPanel" class="absolute right-0 top-0 h-full w-64 bg-white border-l shadow-2xl hidden flex-col z-50 overflow-y-auto transform transition-transform">
-                <div class="p-4 flex flex-col h-full">
-                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+            <div id="propertiesPanel" class="absolute bottom-0 left-0 w-full md:top-0 md:right-0 md:bottom-auto md:left-auto md:w-72 md:h-full bg-white rounded-t-3xl md:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.15)] md:shadow-2xl hidden flex-col z-50 transition-transform">
+                <div class="p-4 md:p-5 flex flex-col h-full max-h-[50vh] md:max-h-full">
+                    <div class="flex justify-between items-center mb-4 border-b pb-3 shrink-0">
                         <h4 class="text-sm font-semibold text-gray-500 uppercase">Properties</h4>
-                        <button onclick="hideProperties()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+                        <button onclick="hideProperties()" class="text-gray-400 hover:text-red-500 p-1 bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center"><i class="fas fa-times"></i></button>
                     </div>
                     
-                    <div class="flex-1 overflow-y-auto pr-1">
+                    <div class="flex-1 overflow-y-auto pr-2 pb-4">
                         <div class="mb-4">
                             <label class="text-sm font-medium block mb-1">Color</label>
-                            <input type="color" id="itemColor" onchange="changeColor(this.value)" class="w-full h-8 rounded cursor-pointer">
+                            <input type="color" id="itemColor" onchange="changeColor(this.value)" class="w-full h-10 rounded cursor-pointer border-0 p-0">
                         </div>
 
-                        <div class="mb-4 p-3 bg-gray-50 rounded border">
+                        <div class="mb-4 p-3 bg-gray-50 rounded-xl border">
                             <label class="text-sm font-medium block mb-2">Apply Gradient</label>
                             <div class="flex gap-2 mb-2">
-                                <input type="color" id="gradColor1" value="#ff0000" class="w-full h-8 cursor-pointer">
-                                <input type="color" id="gradColor2" value="#0000ff" class="w-full h-8 cursor-pointer">
+                                <input type="color" id="gradColor1" value="#ff0000" class="w-full h-8 cursor-pointer rounded border-0 p-0">
+                                <input type="color" id="gradColor2" value="#0000ff" class="w-full h-8 cursor-pointer rounded border-0 p-0">
                             </div>
-                            <button onclick="applyGradient()" class="w-full bg-gray-200 text-xs py-1.5 rounded hover:bg-gray-300 font-medium">Set Gradient</button>
+                            <button onclick="applyGradient()" class="w-full bg-gray-200 text-sm py-2 rounded-lg hover:bg-gray-300 font-medium transition">Set Gradient</button>
                         </div>
 
                         <div class="mb-4">
-                            <label class="text-sm font-medium flex justify-between">Opacity <span id="opVal">100%</span></label>
-                            <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" onchange="changeOpacity(this.value)" oninput="document.getElementById('opVal').innerText=Math.round(this.value*100)+'%'" class="w-full">
+                            <label class="text-sm font-medium flex justify-between">Opacity <span id="opVal" class="text-blue-600">100%</span></label>
+                            <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" onchange="changeOpacity(this.value)" oninput="document.getElementById('opVal').innerText=Math.round(this.value*100)+'%'" class="w-full mt-2 accent-blue-600">
                         </div>
 
                         <div class="mb-4">
-                            <label class="text-sm font-medium block mb-1">Stroke (Color & Width)</label>
-                            <div class="flex gap-2">
-                                <input type="color" id="strokeColor" onchange="changeStroke(this.value, null)" class="w-10 h-8 cursor-pointer">
-                                <input type="number" id="strokeWidth" value="0" min="0" max="20" onchange="changeStroke(null, this.value)" class="w-full border rounded px-2 text-sm">
+                            <label class="text-sm font-medium block mb-2">Stroke (Color & Width)</label>
+                            <div class="flex gap-3 items-center">
+                                <input type="color" id="strokeColor" onchange="changeStroke(this.value, null)" class="w-12 h-10 cursor-pointer rounded border-0 p-0">
+                                <input type="number" id="strokeWidth" value="0" min="0" max="20" onchange="changeStroke(null, this.value)" class="w-full h-10 border rounded-lg px-3 text-sm focus:outline-blue-500">
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="text-sm font-medium block mb-1">Size (Scale)</label>
-                            <input type="range" id="itemScale" min="0.1" max="5" step="0.1" value="1" onchange="changeScale(this.value)" class="w-full">
+                        <div class="mb-6">
+                            <label class="text-sm font-medium block mb-2">Size (Scale)</label>
+                            <input type="range" id="itemScale" min="0.1" max="5" step="0.1" value="1" onchange="changeScale(this.value)" class="w-full accent-blue-600">
                         </div>
+
+                        <button onclick="deleteObject()" class="w-full bg-red-50 text-red-600 py-3 rounded-lg hover:bg-red-100 transition flex justify-center items-center gap-2 font-medium text-sm border border-red-100">
+                            <i class="fas fa-trash"></i> Delete Selected
+                        </button>
                     </div>
-
-                    <button onclick="deleteObject()" class="w-full mt-2 bg-red-50 text-red-600 py-2 rounded-md hover:bg-red-100 transition flex justify-center items-center gap-2 font-medium text-sm">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
                 </div>
             </div>
         </div>
@@ -152,7 +152,7 @@
             <div class="w-px h-8 bg-gray-300 mx-1"></div>
 
             <div class="flex flex-col items-center justify-center min-w-[50px]">
-                <input type="color" onchange="changeBgColor(this.value)" value="#ffffff" class="w-6 h-6 md:w-8 md:h-8 rounded cursor-pointer border-0 p-0">
+                <input type="color" onchange="changeBgColor(this.value)" value="#ffffff" class="w-6 h-6 md:w-8 md:h-8 rounded cursor-pointer border-0 p-0 shadow-sm">
                 <span class="text-[10px] md:text-xs font-medium text-gray-600 mt-1">BG</span>
             </div>
         </div>
@@ -181,9 +181,8 @@
 
         function initCanvas() {
             if(!canvas) {
-                // Responsive width for mobile
                 let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 40;
-                let canvasHeight = canvasWidth * 0.5625; // 16:9 ratio
+                let canvasHeight = canvasWidth * 0.5625; 
 
                 canvas = new fabric.Canvas('bannerCanvas', {
                     width: canvasWidth, height: canvasHeight, backgroundColor: '#ffffff',
@@ -261,7 +260,6 @@
         }
 
         function onSelectionCleared() {
-            // Only hide floating menu, keep properties open if they want, or close it
             floatingAction.classList.add('hidden');
             objectInitialState = null;
         }
