@@ -9,124 +9,159 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; touch-action: manipulation; background-color: #f8fafc; }
-        .canvas-container { margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 4px; overflow: hidden; }
-        /* Hide scrollbar for a clean look but allow scrolling */
+        body { font-family: 'Inter', sans-serif; touch-action: manipulation; background-color: #f0f4f8; }
+        .canvas-container { margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; }
+        
+        /* Smooth Scrollbar */
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         
+        /* Custom Color Picker Styling */
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        input[type="color"]::-webkit-color-swatch { border: 2px solid #e5e7eb; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); }
+        
+        /* Custom Range Slider */
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #2563eb; cursor: pointer; margin-top: -6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #cbd5e1; border-radius: 2px; }
     </style>
 </head>
 <body class="h-[100dvh] w-full overflow-hidden text-gray-800 flex flex-col selection:bg-blue-100">
 
-    <div id="editorScreen" class="absolute inset-0 flex flex-col bg-gray-50 z-20">
+    <header class="h-14 bg-white/90 backdrop-blur-md border-b flex items-center justify-between px-4 shadow-sm shrink-0 z-30">
+        <div class="flex items-center gap-3">
+            <h1 class="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">ProBanner</h1>
+        </div>
         
-        <header class="h-14 bg-white border-b flex items-center justify-between px-4 shadow-sm shrink-0 z-30">
-            <div class="flex items-center gap-3">
-                <button class="text-gray-500 hover:text-gray-800"><i class="fas fa-home"></i></button>
-                <h1 class="text-sm font-bold text-gray-700">ProBanner</h1>
-            </div>
-            
-            <div class="flex items-center gap-1 sm:gap-3">
-                <button onclick="undo()" class="text-gray-600 hover:text-blue-600 w-8 h-8 flex items-center justify-center rounded-full active:bg-gray-100" title="Undo"><i class="fas fa-undo text-sm"></i></button>
-                <button onclick="redo()" class="text-gray-600 hover:text-blue-600 w-8 h-8 flex items-center justify-center rounded-full active:bg-gray-100" title="Redo"><i class="fas fa-redo text-sm"></i></button>
-                <div class="w-px h-5 bg-gray-300 mx-1"></div>
-                <button onclick="exportBanner()" class="bg-blue-600 text-white px-4 py-1.5 rounded-md hover:bg-blue-700 font-medium shadow-sm text-sm transition">
-                    Export
-                </button>
-            </div>
-        </header>
+        <div class="flex items-center gap-2 sm:gap-4">
+            <button onclick="undo()" class="text-gray-500 hover:text-blue-600 w-8 h-8 flex items-center justify-center rounded-full active:bg-gray-100 transition" title="Undo"><i class="fas fa-undo text-sm"></i></button>
+            <button onclick="redo()" class="text-gray-500 hover:text-blue-600 w-8 h-8 flex items-center justify-center rounded-full active:bg-gray-100 transition" title="Redo"><i class="fas fa-redo text-sm"></i></button>
+            <div class="w-px h-5 bg-gray-200 mx-1"></div>
+            <button onclick="exportBanner()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-full hover:bg-indigo-700 font-medium shadow-md shadow-indigo-200 text-sm transition-all transform hover:scale-105">
+                Export
+            </button>
+        </div>
+    </header>
 
-        <main id="workspace" class="flex-1 relative flex justify-center items-center overflow-hidden w-full p-2">
-            <canvas id="bannerCanvas"></canvas>
-            
-            <div id="floatingAction" class="absolute hidden bg-white rounded-full shadow-lg p-1.5 flex gap-2 border border-gray-100 z-50 transition-all">
-                <button onclick="confirmChanges()" class="w-9 h-9 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition shadow-sm" title="Save & Deselect">
-                    <i class="fas fa-check text-lg"></i>
-                </button>
-                <button onclick="discardChanges()" class="w-9 h-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 transition shadow-sm" title="Discard & Deselect">
-                    <i class="fas fa-times text-lg"></i>
-                </button>
-            </div>
-        </main>
+    <main id="workspace" class="flex-1 relative flex justify-center items-center overflow-hidden w-full p-3 bg-[#eef2f6]">
+        <canvas id="bannerCanvas"></canvas>
+        
+        <div id="floatingAction" class="absolute hidden bg-white rounded-full shadow-xl p-1.5 flex gap-2 border border-gray-100 z-50 transition-all transform">
+            <button onclick="confirmChanges()" class="w-9 h-9 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-500 hover:text-white transition-all shadow-sm" title="Save & Deselect">
+                <i class="fas fa-check"></i>
+            </button>
+            <button onclick="discardChanges()" class="w-9 h-9 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Discard & Deselect">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </main>
 
-        <div id="propertiesPanel" class="h-16 bg-white border-t flex items-center px-4 gap-6 overflow-x-auto hide-scroll shrink-0 shadow-[0_-4px_15px_rgba(0,0,0,0.02)] transition-transform translate-y-full hidden z-20">
-            
-            <div class="flex flex-col items-center shrink-0">
-                <span class="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-wider">Color</span>
-                <input type="color" id="itemColor" onchange="changeColor(this.value)" class="w-7 h-7 cursor-pointer bg-transparent">
-            </div>
+    <div id="propertiesPanel" class="h-auto py-3 bg-white border-t flex items-center px-4 gap-6 overflow-x-auto hide-scroll shrink-0 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] transition-transform duration-300 translate-y-full absolute bottom-[72px] w-full z-20">
+        
+        <div id="propColor" class="flex-col items-center shrink-0 hidden">
+            <span class="text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wider">Color</span>
+            <input type="color" id="itemColor" onchange="changeColor(this.value)" class="w-8 h-8 cursor-pointer bg-transparent">
+        </div>
 
-            <div class="w-px h-8 bg-gray-200 shrink-0"></div>
+        <div id="divColor" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
 
-            <div class="flex flex-col items-center shrink-0">
-                <span class="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-wider">Gradient</span>
-                <div class="flex items-center gap-1">
-                    <input type="color" id="gradColor1" value="#00c6ff" class="w-6 h-6 cursor-pointer bg-transparent">
-                    <input type="color" id="gradColor2" value="#0072ff" class="w-6 h-6 cursor-pointer bg-transparent">
-                    <button onclick="applyGradient()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs font-medium ml-1">Apply</button>
-                </div>
-            </div>
-
-            <div class="w-px h-8 bg-gray-200 shrink-0"></div>
-
-            <div class="flex flex-col shrink-0 min-w-[100px]">
-                <div class="flex justify-between w-full mb-1">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Opacity</span>
-                    <span id="opVal" class="text-[10px] font-bold text-blue-600">100%</span>
-                </div>
-                <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" onchange="changeOpacity(this.value)" oninput="document.getElementById('opVal').innerText=Math.round(this.value*100)+'%'" class="w-full accent-blue-600 h-1 mt-1">
-            </div>
-
-            <div class="w-px h-8 bg-gray-200 shrink-0"></div>
-
-            <div class="flex flex-col shrink-0">
-                <span class="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-wider">Stroke</span>
-                <div class="flex items-center gap-2">
-                    <input type="color" id="strokeColor" onchange="changeStroke(this.value, null)" class="w-6 h-6 cursor-pointer bg-transparent">
-                    <input type="number" id="strokeWidth" value="0" min="0" max="20" onchange="changeStroke(null, this.value)" class="w-12 border bg-gray-50 rounded px-1 py-0.5 text-xs outline-none focus:border-blue-400 text-center">
-                </div>
-            </div>
-
-            <div class="w-px h-8 bg-gray-200 shrink-0"></div>
-
-            <div class="flex flex-col items-center shrink-0 pr-4">
-                <span class="text-[10px] font-bold text-red-400 mb-1 uppercase tracking-wider">Delete</span>
-                <button onclick="deleteObject()" class="text-red-500 hover:bg-red-50 w-7 h-7 rounded flex items-center justify-center transition">
-                    <i class="fas fa-trash-alt text-sm"></i>
-                </button>
+        <div id="propGradient" class="flex-col items-center shrink-0 hidden">
+            <span class="text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wider">Gradient</span>
+            <div class="flex items-center gap-1.5 bg-gray-50 p-1 rounded-lg border border-gray-100">
+                <input type="color" id="gradColor1" value="#ff00cc" class="w-6 h-6 cursor-pointer bg-transparent">
+                <input type="color" id="gradColor2" value="#333399" class="w-6 h-6 cursor-pointer bg-transparent">
+                <button onclick="applyGradient()" class="bg-white hover:bg-gray-100 text-gray-700 px-2 py-0.5 rounded shadow-sm text-[10px] font-bold border border-gray-200">Apply</button>
             </div>
         </div>
 
-        <nav id="mainBottomNav" class="h-16 bg-white border-t flex items-center justify-around px-2 shrink-0 z-30 pb-safe">
-            <button onclick="addText()" class="flex flex-col items-center text-gray-500 hover:text-blue-600 p-2 w-16 transition">
-                <i class="fas fa-font text-xl mb-1"></i>
-                <span class="text-[10px] font-medium">Text</span>
+        <div id="divGradient" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
+
+        <div id="propOpacity" class="flex-col shrink-0 min-w-[120px] hidden">
+            <div class="flex justify-between w-full mb-1">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Opacity</span>
+                <span id="opVal" class="text-[10px] font-bold text-indigo-600">100%</span>
+            </div>
+            <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" onchange="changeOpacity(this.value)" oninput="document.getElementById('opVal').innerText=Math.round(this.value*100)+'%'" class="w-full mt-1.5">
+        </div>
+
+        <div id="divOpacity" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
+
+        <div id="propStroke" class="flex-col shrink-0 hidden">
+            <span class="text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wider">Stroke</span>
+            <div class="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-gray-100">
+                <input type="color" id="strokeColor" onchange="changeStroke(this.value, null)" class="w-6 h-6 cursor-pointer bg-transparent">
+                <input type="number" id="strokeWidth" value="0" min="0" max="20" onchange="changeStroke(null, this.value)" class="w-10 h-6 border bg-white rounded text-xs outline-none focus:border-indigo-400 text-center font-medium">
+            </div>
+        </div>
+
+        <div id="divStroke" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
+
+        <div id="propDelete" class="flex-col items-center shrink-0 pr-2 hidden">
+            <span class="text-[10px] font-bold text-red-400 mb-1.5 uppercase tracking-wider">Delete</span>
+            <button onclick="deleteObject()" class="text-red-500 bg-red-50 hover:bg-red-500 hover:text-white w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-sm border border-red-100">
+                <i class="fas fa-trash-alt text-xs"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="h-[72px] bg-white border-t shrink-0 z-30 pb-safe relative overflow-hidden shadow-[0_-4px_20px_rgba(0,0,0,0.04)]">
+        
+        <nav id="mainMenu" class="absolute inset-0 flex items-center justify-around px-2 transition-transform duration-300 transform translate-x-0">
+            <button onclick="addText()" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-2 w-16 transition group">
+                <div class="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition">
+                    <i class="fas fa-font text-lg"></i>
+                </div>
+                <span class="text-[10px] font-semibold">Text</span>
             </button>
             
             <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="addImage(event)">
-            <button onclick="document.getElementById('imageInput').click()" class="flex flex-col items-center text-gray-500 hover:text-blue-600 p-2 w-16 transition">
-                <i class="fas fa-image text-xl mb-1"></i>
-                <span class="text-[10px] font-medium">Image</span>
+            <button onclick="document.getElementById('imageInput').click()" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-2 w-16 transition group">
+                <div class="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition">
+                    <i class="fas fa-image text-lg"></i>
+                </div>
+                <span class="text-[10px] font-semibold">Image</span>
             </button>
             
-            <button onclick="addShape('rect')" class="flex flex-col items-center text-gray-500 hover:text-blue-600 p-2 w-16 transition">
-                <i class="fas fa-square text-xl mb-1"></i>
-                <span class="text-[10px] font-medium">Square</span>
+            <button onclick="toggleShapeMenu(true)" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-2 w-16 transition group">
+                <div class="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition">
+                    <i class="fas fa-shapes text-lg"></i>
+                </div>
+                <span class="text-[10px] font-semibold">Shapes</span>
             </button>
 
-            <button onclick="addShape('circle')" class="flex flex-col items-center text-gray-500 hover:text-blue-600 p-2 w-16 transition">
-                <i class="fas fa-circle text-xl mb-1"></i>
-                <span class="text-[10px] font-medium">Circle</span>
-            </button>
-
-            <div class="flex flex-col items-center text-gray-500 p-2 w-16 relative">
-                <input type="color" onchange="changeBgColor(this.value)" value="#ffffff" class="w-6 h-6 rounded-full cursor-pointer border-0 p-0 absolute top-1 opacity-0 z-10">
-                <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-pink-500 to-yellow-400 mb-1 shadow-sm border border-gray-200"></div>
-                <span class="text-[10px] font-medium">Canvas BG</span>
+            <div class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-2 w-16 relative group">
+                <input type="color" onchange="changeBgColor(this.value)" value="#ffffff" class="w-10 h-10 rounded-full cursor-pointer border-0 p-0 absolute top-2 opacity-0 z-10">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-500 mb-1 shadow-sm flex items-center justify-center text-white transition group-hover:scale-105">
+                    <i class="fas fa-fill-drip text-sm"></i>
+                </div>
+                <span class="text-[10px] font-semibold">Background</span>
             </div>
+        </nav>
+
+        <nav id="shapeMenu" class="absolute inset-0 flex items-center justify-start gap-2 px-4 transition-transform duration-300 transform translate-x-full bg-white">
+            <button onclick="toggleShapeMenu(false)" class="flex flex-col items-center text-gray-400 hover:text-gray-800 p-2 mr-2 transition">
+                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-1">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </div>
+                <span class="text-[10px] font-semibold">Back</span>
+            </button>
+            
+            <div class="w-px h-8 bg-gray-200 mx-1"></div>
+
+            <button onclick="addShape('rect')" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 p-2 transition">
+                <i class="fas fa-square text-2xl mb-1 text-blue-500"></i>
+                <span class="text-[10px] font-semibold">Square</span>
+            </button>
+
+            <button onclick="addShape('circle')" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 p-2 transition">
+                <i class="fas fa-circle text-2xl mb-1 text-pink-500"></i>
+                <span class="text-[10px] font-semibold">Circle</span>
+            </button>
+
+            <button onclick="addShape('triangle')" class="flex flex-col items-center text-gray-600 hover:text-indigo-600 p-2 transition">
+                <i class="fas fa-caret-up text-3xl mb-0 text-yellow-500"></i>
+                <span class="text-[10px] font-semibold mt-[-2px]">Triangle</span>
+            </button>
         </nav>
     </div>
 
@@ -137,16 +172,17 @@
         let objectInitialState = null;
         let isProgrammaticSelection = false;
 
-        // Elements
         const workspace = document.getElementById('workspace');
         const floatingAction = document.getElementById('floatingAction');
         const propertiesPanel = document.getElementById('propertiesPanel');
+        
+        // Menus
+        const mainMenu = document.getElementById('mainMenu');
+        const shapeMenu = document.getElementById('shapeMenu');
 
-        // Initialize Canvas
         window.onload = function() {
-            // Responsive Canvas Setup (Fits within mobile perfectly)
             let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 32;
-            let canvasHeight = canvasWidth * 0.5625; // 16:9 Aspect Ratio
+            let canvasHeight = canvasWidth * 0.5625;
 
             canvas = new fabric.Canvas('bannerCanvas', {
                 width: canvasWidth, 
@@ -155,7 +191,6 @@
                 preserveObjectStacking: true
             });
 
-            // Event Listeners
             canvas.on('selection:created', handleSelection);
             canvas.on('selection:updated', handleSelection);
             canvas.on('object:moving', updateFloatingPosition);
@@ -163,8 +198,19 @@
             canvas.on('object:rotating', updateFloatingPosition);
             canvas.on('selection:cleared', handleDeselection);
 
-            saveHistory(); // Initial state
+            saveHistory();
         };
+
+        // --- Menu Toggles ---
+        function toggleShapeMenu(show) {
+            if(show) {
+                mainMenu.classList.replace('translate-x-0', '-translate-x-full');
+                shapeMenu.classList.replace('translate-x-full', 'translate-x-0');
+            } else {
+                shapeMenu.classList.replace('translate-x-0', 'translate-x-full');
+                mainMenu.classList.replace('-translate-x-full', 'translate-x-0');
+            }
+        }
 
         // --- Undo / Redo ---
         function saveHistory() {
@@ -201,16 +247,12 @@
             const obj = canvas.getActiveObject();
             if(!obj) return;
             
-            // Backup initial state for "Cross" functionality
             objectInitialState = JSON.stringify(obj.toObject());
 
-            // Show dynamic properties bar at bottom
-            propertiesPanel.classList.remove('hidden');
-            setTimeout(() => propertiesPanel.classList.remove('translate-y-full'), 10);
+            configureSmartProperties(obj);
             
-            updatePropertiesUI(obj);
+            propertiesPanel.classList.remove('translate-y-full');
             
-            // Show & Position Tick/Cross
             floatingAction.classList.remove('hidden');
             updateFloatingPosition();
         }
@@ -218,7 +260,6 @@
         function handleDeselection() {
             floatingAction.classList.add('hidden');
             propertiesPanel.classList.add('translate-y-full');
-            setTimeout(() => propertiesPanel.classList.add('hidden'), 300);
             objectInitialState = null;
         }
 
@@ -230,11 +271,9 @@
             const canvasOffset = document.querySelector('.canvas-container').getBoundingClientRect();
             const workspaceOffset = workspace.getBoundingClientRect();
             
-            // Position exactly above the object
             let topPos = (canvasOffset.top - workspaceOffset.top) + bound.top - 55;
             let leftPos = (canvasOffset.left - workspaceOffset.left) + bound.left + (bound.width / 2);
 
-            // Prevent going out of screen bounds top
             if (topPos < 10) topPos = 10;
 
             floatingAction.style.top = `${topPos}px`;
@@ -242,9 +281,47 @@
             floatingAction.style.transform = `translateX(-50%)`;
         }
 
+        // --- Smart Properties Configurator ---
+        function configureSmartProperties(obj) {
+            const isText = obj.type === 'i-text';
+            const isImage = obj.type === 'image';
+            const isShape = obj.type === 'rect' || obj.type === 'circle' || obj.type === 'triangle';
+
+            // Reset UI
+            ['propColor', 'divColor', 'propGradient', 'divGradient', 'propOpacity', 'divOpacity', 'propStroke', 'divStroke', 'propDelete'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            ['propColor', 'divColor', 'propGradient', 'divGradient', 'propOpacity', 'divOpacity', 'propStroke', 'divStroke', 'propDelete'].forEach(id => document.getElementById(id).classList.remove('flex'));
+
+            // Show relevant options based on type
+            if(isText) {
+                document.getElementById('propColor').classList.replace('hidden', 'flex');
+                document.getElementById('divColor').classList.replace('hidden', 'block');
+                document.getElementById('propStroke').classList.replace('hidden', 'flex');
+                document.getElementById('divStroke').classList.replace('hidden', 'block');
+            } else if (isShape) {
+                document.getElementById('propColor').classList.replace('hidden', 'flex');
+                document.getElementById('divColor').classList.replace('hidden', 'block');
+                document.getElementById('propGradient').classList.replace('hidden', 'flex');
+                document.getElementById('divGradient').classList.replace('hidden', 'block');
+                document.getElementById('propStroke').classList.replace('hidden', 'flex');
+                document.getElementById('divStroke').classList.replace('hidden', 'block');
+            }
+            
+            // Opacity and Delete are common for all
+            document.getElementById('propOpacity').classList.replace('hidden', 'flex');
+            document.getElementById('divOpacity').classList.replace('hidden', 'block');
+            document.getElementById('propDelete').classList.replace('hidden', 'flex');
+
+            // Set Values
+            if(typeof obj.fill === 'string') document.getElementById('itemColor').value = obj.fill;
+            document.getElementById('itemOpacity').value = obj.opacity || 1;
+            document.getElementById('opVal').innerText = Math.round((obj.opacity || 1)*100)+'%';
+            document.getElementById('strokeWidth').value = obj.strokeWidth || 0;
+            if(obj.stroke) document.getElementById('strokeColor').value = obj.stroke;
+        }
+
         // --- ✅ Tick & ❌ Cross Actions ---
         function confirmChanges() {
-            saveHistory(); // Save the final state
+            saveHistory(); 
             canvas.discardActiveObject();
             canvas.renderAll();
         }
@@ -252,7 +329,6 @@
         function discardChanges() {
             const obj = canvas.getActiveObject();
             if(obj && objectInitialState) {
-                // Revert to the state when it was first clicked
                 const prevData = JSON.parse(objectInitialState);
                 obj.set(prevData);
             }
@@ -264,7 +340,7 @@
         function addText() {
             const text = new fabric.IText('Edit Text', {
                 left: canvas.width/2 - 60, top: canvas.height/2 - 20, 
-                fontFamily: 'Inter', fill: '#1f2937', fontSize: 32, fontWeight: 'bold'
+                fontFamily: 'Inter', fill: '#1e293b', fontSize: 36, fontWeight: 'bold'
             });
             canvas.add(text);
             canvas.setActiveObject(text);
@@ -272,10 +348,13 @@
 
         function addShape(type) {
             let shape;
-            if(type === 'rect') shape = new fabric.Rect({ left: canvas.width/2 - 40, top: canvas.height/2 - 40, fill: '#3b82f6', width: 80, height: 80, rx: 8, ry: 8 });
-            else if (type === 'circle') shape = new fabric.Circle({ left: canvas.width/2 - 40, top: canvas.height/2 - 40, fill: '#ec4899', radius: 40 });
+            if(type === 'rect') shape = new fabric.Rect({ left: canvas.width/2 - 40, top: canvas.height/2 - 40, fill: '#3b82f6', width: 80, height: 80, rx: 12, ry: 12 });
+            else if (type === 'circle') shape = new fabric.Circle({ left: canvas.width/2 - 40, top: canvas.height/2 - 40, fill: '#ec4899', radius: 45 });
+            else if (type === 'triangle') shape = new fabric.Triangle({ left: canvas.width/2 - 40, top: canvas.height/2 - 40, fill: '#eab308', width: 80, height: 80 });
+            
             canvas.add(shape);
             canvas.setActiveObject(shape);
+            toggleShapeMenu(false); // Go back to main menu after adding shape
         }
 
         function addImage(e) {
@@ -286,8 +365,7 @@
             reader.onload = function(f) {
                 fabric.Image.fromURL(f.target.result, function(img) {
                     img.scaleToWidth(canvas.width / 2.5);
-                    // IMPORTANT: Ensuring selection lock doesn't happen
-                    img.set({ selectable: true, evented: true }); 
+                    img.set({ selectable: true, evented: true, rx: 10, ry: 10 }); // Keeps it unlocked
                     canvas.add(img);
                     canvas.centerObject(img);
                     canvas.setActiveObject(img);
@@ -295,7 +373,7 @@
                 });
             };
             reader.readAsDataURL(file);
-            e.target.value = ''; // Reset input
+            e.target.value = ''; 
         }
 
         function changeBgColor(color) {
@@ -304,15 +382,7 @@
             saveHistory();
         }
 
-        // --- Properties Updates ---
-        function updatePropertiesUI(obj) {
-            if(typeof obj.fill === 'string') document.getElementById('itemColor').value = obj.fill;
-            document.getElementById('itemOpacity').value = obj.opacity || 1;
-            document.getElementById('opVal').innerText = Math.round((obj.opacity || 1)*100)+'%';
-            document.getElementById('strokeWidth').value = obj.strokeWidth || 0;
-            if(obj.stroke) document.getElementById('strokeColor').value = obj.stroke;
-        }
-
+        // --- Properties Actions ---
         function changeColor(color) {
             const activeObj = canvas.getActiveObject();
             if(activeObj) { activeObj.set('fill', color); canvas.renderAll(); }
@@ -323,7 +393,7 @@
             const color1 = document.getElementById('gradColor1').value;
             const color2 = document.getElementById('gradColor2').value;
             
-            if(activeObj) {
+            if(activeObj && activeObj.type !== 'image' && activeObj.type !== 'i-text') {
                 const grad = new fabric.Gradient({
                     type: 'linear', gradientUnits: 'pixels', 
                     coords: { x1: 0, y1: 0, x2: activeObj.width, y2: activeObj.height },
@@ -360,9 +430,9 @@
         function exportBanner() {
             canvas.discardActiveObject(); 
             canvas.renderAll();
-            const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 3 }); // High resolution
+            const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 3 }); 
             const link = document.createElement('a');
-            link.download = 'ProBanner-Design.png';
+            link.download = 'ProBanner-HighRes.png';
             link.href = dataURL;
             document.body.appendChild(link);
             link.click();
