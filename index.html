@@ -164,7 +164,7 @@
                         <div class="flex items-center justify-between gap-2 border-b border-gray-200 pb-3">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">ফিল কালার (ভিতরের রঙ)</label>
                             <div class="flex items-center gap-1.5 bg-white p-1 rounded-full border shadow-inner">
-                                <button id="solidModeBtn" onclick="setColorMode('solid')" class="px-3 py-1 text-[10px] font-bold rounded-full bg-indigo-100 text-indigo-700">सलीड</button>
+                                <button id="solidModeBtn" onclick="setColorMode('solid')" class="px-3 py-1 text-[10px] font-bold rounded-full bg-indigo-100 text-indigo-700">সলিড</button>
                                 <button id="gradientModeBtn" onclick="setColorMode('gradient')" class="px-3 py-1 text-[10px] font-bold rounded-full text-gray-500 hover:bg-gray-100">গ্রেডিয়েন্ট</button>
                             </div>
                         </div>
@@ -202,10 +202,19 @@
 
                         <div class="pt-3.5 border-t border-gray-200">
                             <div class="flex justify-between items-center mb-2">
-                                <label class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">ভেতরের রঙের ট্রান্সপারেন্সি (Opacity)</label>
+                                <label class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">রঙের ট্রান্সপারেন্সি (Opacity)</label>
                                 <span id="fillOpacityDisplay" class="text-[10px] text-gray-500 font-mono bg-white px-1.5 py-0.5 rounded border border-gray-200 shadow-inner">100%</span>
                             </div>
                             <input type="range" id="fillOpacitySlider" min="0" max="1" step="0.05" value="1" oninput="changeFillOpacity(this.value)" onchange="saveHistory()" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                        </div>
+                    </div>
+
+                    <div id="alignmentFeature" class="hidden p-4 bg-slate-50 rounded-xl border border-slate-200 flex-col items-start gap-2">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">টেক্সট এলাইনমেন্ট</label>
+                        <div class="flex w-full gap-1 bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+                            <button onclick="changeAlignment('left')" class="flex-1 py-2 rounded bg-white text-gray-600 active:bg-gray-100"><i class="fa-solid fa-align-left text-sm"></i></button>
+                            <button onclick="changeAlignment('center')" class="flex-1 py-2 rounded bg-white text-gray-600 active:bg-gray-100"><i class="fa-solid fa-align-center text-sm"></i></button>
+                            <button onclick="changeAlignment('right')" class="flex-1 py-2 rounded bg-white text-gray-600 active:bg-gray-100"><i class="fa-solid fa-align-right text-sm"></i></button>
                         </div>
                     </div>
 
@@ -228,7 +237,7 @@
                     </div>
 
                     <div id="textOnlyFeatures_Fonts" class="hidden">
-                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2.5 block pl-1">ফন্ট স্টাইল পরিবর্তন</label>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2.5 block pl-1">ফন্ট স্টাইল</label>
                         <div id="fontListContainer" class="grid grid-cols-2 gap-2.5 max-h-48 overflow-y-auto px-1 pb-3"></div>
                     </div>
 
@@ -252,18 +261,14 @@
 
         // Object Context Toolbar (Fixed selection lock issue)
         const contextToolbar = document.getElementById('contextToolbar');
-        let preEditState = null; // Store state before editing for canceling
+        let preEditState = null; 
 
-        // Function to update toolbar position
         function updateToolbarPosition() {
             const activeObj = canvas.getActiveObject();
             if (activeObj) {
                 const bound = activeObj.getBoundingRect();
-                // We need to account for canvas zoom/pan if implemented, 
-                // but since it's responsive with setZoom, bounding rect is in screen coords relative to canvas element.
                 const canvasEl = canvas.getElement();
                 const canvasOffset = canvasEl.getBoundingClientRect();
-
                 contextToolbar.style.top = (canvasOffset.top + bound.top) + 'px';
                 contextToolbar.style.left = (canvasOffset.left + bound.left + bound.width / 2) + 'px';
                 contextToolbar.style.display = 'flex';
@@ -272,69 +277,56 @@
             }
         }
 
-        // Save current object state before any modification session starts
         function backupObjectState(obj) {
-            // Minimal json for just properties that can be changed via tools
-            // For pattern-fill shapes, we need pattern zoom data
             preEditState = JSON.stringify(obj.toJSON(['customImgWidth', 'customImgHeight', 'baseScale', 'currentZoom']));
         }
 
-        // --- TICK (✓) -> Confirm & Deselect ---
         function confirmChanges() {
             canvas.discardActiveObject();
             canvas.requestRenderAll();
-            // Deselect clearing triggers history save in modified handler
+            // Deselect clears and triggers history save
         }
 
-        // --- CROSS (✕) -> Cancel, Revert & Deselect ---
         function cancelChanges() {
-            isTrackingHistory = false; // Don't track the revert itself
+            isTrackingHistory = false;
             const activeObj = canvas.getActiveObject();
             
             if (activeObj && preEditState) {
-                // Remove temp object, create from pre-edit json
                 const objIndex = canvas.getObjects().indexOf(activeObj);
-                const currentId = activeObj.id; // Preserve ID if template relies on it
-                
+                const currentId = activeObj.id; 
                 canvas.remove(activeObj);
                 
                 fabric.util.enlivenObjects([JSON.parse(preEditState)], function(objects) {
                     objects.forEach(function(revertedObj) {
                         revertedObj.set('id', currentId);
-                        // Re-disable direct editing (matches object:added logic)
                         if(revertedObj.type === 'i-text') revertedObj.set({ editable: false, padding: 5 });
                         else revertedObj.set({ padding: 5 });
-
                         canvas.add(revertedObj);
-                        // Make sure it goes back to the same stack position
                         while (canvas.getObjects().indexOf(revertedObj) > objIndex && objIndex !== -1) {
                             revertedObj.sendBackwards();
                         }
                     });
-                    
                     canvas.discardActiveObject();
                     canvas.requestRenderAll();
-                    isTrackingHistory = true; // Turn history back on
+                    isTrackingHistory = true; 
                     preEditState = null;
                 });
             } else {
-                // If somehow no state, just deselect
                 canvas.discardActiveObject();
                 canvas.requestRenderAll();
                 isTrackingHistory = true;
             }
         }
 
-        // Fabric Events for selection & toolbar
         canvas.on('mouse:up', updateToolbarPosition);
         canvas.on('object:moving', updateToolbarPosition);
         canvas.on('object:scaling', updateToolbarPosition);
         canvas.on('object:rotating', updateToolbarPosition);
 
-        // --- Undo/Redo Engine (Fixed context lock logic) ---
+        // --- Undo/Redo Engine ---
         let historyData = [];
         let historyIndex = -1;
-        isTrackingHistory = false; // Don't track initial load
+        let isTrackingHistory = false;
 
         function saveHistory() {
             if (!isTrackingHistory) return;
@@ -357,7 +349,7 @@
                     canvas.renderAll();
                     isTrackingHistory = true;
                     updateHistoryButtons();
-                    onSelectionCleared(); // Hide tools/toolbar
+                    onSelectionCleared(); 
                 });
             }
         }
@@ -370,19 +362,13 @@
                     canvas.renderAll();
                     isTrackingHistory = true;
                     updateHistoryButtons();
-                    onSelectionCleared(); // Hide tools/toolbar
+                    onSelectionCleared(); 
                 });
             }
         }
 
-        // Save history on modified (fires after scale/move stop or deselect finalized changes)
         canvas.on('object:modified', function() {
             saveHistory();
-            // Object remains selected, update toolbar, preEditState remains same 
-            // as toolbar '✕' would revert back to BEFORE scaling/zoom start.
-            // However, after Scaling stops, we might want toolbar not to revert.
-            // To match standard mobile editors, scaling *is* confirmed when finger lifts.
-            // So on lifted finger (modified), save history and NEW backup state.
             updateToolbarPosition();
             const activeObj = canvas.getActiveObject();
             if(activeObj) backupObjectState(activeObj);
@@ -397,30 +383,18 @@
         const fontSizeDisplay = document.getElementById('fontSizeDisplay');
         
         canvas.on('object:added', function(e) {
-            if(e.target.type === 'i-text') {
-                e.target.set({ editable: false, borderDashArray: [5, 5], padding: 5 });
-            } else {
-                e.target.set({ padding: 5 });
-            }
+            if(e.target.type === 'i-text') { e.target.set({ editable: false, borderDashArray: [5, 5], padding: 5 }); } 
+            else { e.target.set({ padding: 5 }); }
         });
 
         textInput.addEventListener('input', function(e) {
             const obj = canvas.getActiveObject();
-            if (obj && obj.type === 'i-text') {
-                obj.set('text', e.target.value);
-                canvas.requestRenderAll();
-                // modified handler (mouse:up/deselected) will trigger history save later
-            }
+            if (obj && obj.type === 'i-text') { obj.set('text', e.target.value); canvas.requestRenderAll(); }
         });
 
         function changeFontSize(value) {
             const obj = canvas.getActiveObject();
-            if (obj && obj.type === 'i-text') {
-                obj.set('fontSize', parseInt(value));
-                fontSizeDisplay.innerText = value;
-                canvas.requestRenderAll();
-                // slider oninput, saveHistory will be called by slider onchange handler
-            }
+            if (obj && obj.type === 'i-text') { obj.set('fontSize', parseInt(value)); fontSizeDisplay.innerText = value; canvas.requestRenderAll(); }
         }
 
         function resizeCanvas() {
@@ -429,9 +403,7 @@
             const scaleX = (wrapper.clientWidth - padding) / CANVAS_WIDTH;
             const scaleY = (wrapper.clientHeight - padding) / CANVAS_HEIGHT;
             const scale = Math.min(scaleX, scaleY); 
-            canvas.setZoom(scale);
-            canvas.setWidth(CANVAS_WIDTH * scale);
-            canvas.setHeight(CANVAS_HEIGHT * scale);
+            canvas.setZoom(scale); canvas.setWidth(CANVAS_WIDTH * scale); canvas.setHeight(CANVAS_HEIGHT * scale);
         }
         window.addEventListener('resize', resizeCanvas);
         setTimeout(resizeCanvas, 100);
@@ -440,29 +412,16 @@
             isTrackingHistory = false;
             canvas.backgroundColor = color;
             const objects = canvas.getObjects();
-            if (objects.length > 0 && objects[0].type === 'rect' && !objects[0].selectable) {
-                objects[0].set('fill', color);
-            }
-            canvas.requestRenderAll();
-            isTrackingHistory = true;
-            saveHistory();
+            if (objects.length > 0 && objects[0].type === 'rect' && !objects[0].selectable) { objects[0].set('fill', color); }
+            canvas.requestRenderAll(); isTrackingHistory = true; saveHistory();
         }
 
-        // Layer Control
         function bringToFront() {
             const obj = canvas.getActiveObject();
-            if(obj) {
-                isTrackingHistory = false; // Pause adding
-                obj.bringToFront();
-                canvas.requestRenderAll();
-                isTrackingHistory = true;
-                saveHistory(); // Single save
-            } else {
-                alert('উপরে আনার জন্য আগে কিছু সিলেক্ট করুন।');
-            }
+            if(obj) { isTrackingHistory = false; obj.bringToFront(); canvas.requestRenderAll(); isTrackingHistory = true; saveHistory(); } 
+            else { alert('উপরে আনার জন্য আগে কিছু সিলেক্ট করুন।'); }
         }
 
-        // Shapes Library
         function addShape(type) {
             const center = canvas.getCenter();
             const commonProps = { left: center.left, top: center.top, originX: 'center', originY: 'center', fill: '#cbd5e1', stroke: '#111827', strokeWidth: 0 };
@@ -471,17 +430,14 @@
             else if (type === 'circle') shape = new fabric.Circle({ ...commonProps, radius: 100 });
             else if (type === 'triangle') shape = new fabric.Triangle({ ...commonProps, width: 220, height: 200 });
             else if (type === 'star') shape = new fabric.Polygon([{x: 100, y: 10}, {x: 40, y: 198}, {x: 190, y: 78}, {x: 10, y: 78}, {x: 160, y: 198}], { ...commonProps });
+            else if (type === 'pentagon') shape = new fabric.Polygon([{x: 100, y: 0}, {x: 200, y: 75}, {x: 160, y: 200}, {x: 40, y: 200}, {x: 0, y: 75}], { ...commonProps });
             else if (type === 'line') shape = new fabric.Line([0, 0, 300, 0], { ...commonProps, stroke: '#111827', strokeWidth: 8, fill: '' });
 
-            if (shape) {
-                canvas.add(shape);
-                canvas.setActiveObject(shape);
-                // object:added will save history
-            }
+            if (shape) { canvas.add(shape); canvas.setActiveObject(shape); }
         }
 
-        // --- 2. ADVANCED COLOR MODE & GRADIENT LOGIC (New) ---
-        let currentFillMode = 'solid'; // 'solid' or 'gradient'
+        // --- ADVANCED COLOR MODE & GRADIENT LOGIC ---
+        let currentFillMode = 'solid'; 
         const solidCtrl = document.getElementById('solidColorControl');
         const gradCtrl = document.getElementById('gradientColorControl');
         const solidBtn = document.getElementById('solidModeBtn');
@@ -495,224 +451,101 @@
             currentFillMode = mode;
             const obj = canvas.getActiveObject();
             if(!obj) return;
-
-            obj.set('colorMode', mode); // persistent data for UI loading
-
+            obj.set('colorMode', mode); 
             if (mode === 'solid') {
-                solidCtrl.classList.remove('hidden');
-                gradCtrl.classList.add('hidden');
-                solidBtn.classList.add('bg-indigo-100', 'text-indigo-700');
-                solidBtn.classList.remove('text-gray-500');
-                gradBtn.classList.add('text-gray-500');
-                gradBtn.classList.remove('bg-indigo-100', 'text-indigo-700');
-                // Apply solid from picker current val
+                solidCtrl.classList.remove('hidden'); gradCtrl.classList.add('hidden');
+                solidBtn.classList.add('bg-indigo-100', 'text-indigo-700'); solidBtn.classList.remove('text-gray-500');
+                gradBtn.classList.add('text-gray-500'); gradBtn.classList.remove('bg-indigo-100', 'text-indigo-700');
                 changeColor(document.getElementById('colorPicker').value);
             } else {
-                solidCtrl.classList.add('hidden');
-                gradCtrl.classList.remove('hidden');
-                gradBtn.classList.add('bg-indigo-100', 'text-indigo-700');
-                gradBtn.classList.remove('text-gray-500');
-                solidBtn.classList.add('text-gray-500');
-                solidBtn.classList.remove('bg-indigo-100', 'text-indigo-700');
-                // Apply gradient current state
+                solidCtrl.classList.add('hidden'); gradCtrl.classList.remove('hidden');
+                gradBtn.classList.add('bg-indigo-100', 'text-indigo-700'); gradBtn.classList.remove('text-gray-500');
+                solidBtn.classList.add('text-gray-500'); solidBtn.classList.remove('bg-indigo-100', 'text-indigo-700');
                 updateGradient();
             }
         }
 
-        // --- Opacity Logic (Separate from Stroke) ---
         function changeFillOpacity(val) {
             const obj = canvas.getActiveObject();
             if(!obj) return;
-            
-            if(currentFillMode === 'gradient') {
-                updateGradient(); // gradient update handles stops opacity
-            } else if(obj.fill && typeof obj.fill === 'string' && !obj.fill.startsWith('url')) {
-                // Solid fill rgba handling
-                let color = new fabric.Color(obj.fill);
-                color.setAlpha(parseFloat(val));
-                obj.set('fill', color.toRgba());
+            if(currentFillMode === 'gradient') { updateGradient(); } 
+            else if(obj.fill && typeof obj.fill === 'string' && !obj.fill.startsWith('url')) {
+                let color = new fabric.Color(obj.fill); color.setAlpha(parseFloat(val)); obj.set('fill', color.toRgba());
             }
             document.getElementById('fillOpacityDisplay').innerText = Math.round(val * 100) + '%';
             canvas.requestRenderAll();
         }
 
-        // Handle solid color picker change
         function changeColor(hex) {
             const obj = canvas.getActiveObject();
             if(obj && currentFillMode === 'solid') {
                 let currentAlpha = parseFloat(document.getElementById('fillOpacitySlider').value) || 1;
-                // Preserve transparency when changing solid color
-                if(obj.fill && typeof obj.fill === 'string' && obj.fill.startsWith('rgba')) {
-                    currentAlpha = new fabric.Color(obj.fill).getAlpha();
-                }
-                
-                let color = new fabric.Color(hex);
-                color.setAlpha(currentAlpha);
-                obj.set('fill', color.toRgba());
-                canvas.requestRenderAll();
-                // history will save later (mouse:up on picker or deselect)
+                if(obj.fill && typeof obj.fill === 'string' && obj.fill.startsWith('rgba')) { currentAlpha = new fabric.Color(obj.fill).getAlpha(); }
+                let color = new fabric.Color(hex); color.setAlpha(currentAlpha);
+                obj.set('fill', color.toRgba()); canvas.requestRenderAll(); 
             }
         }
 
-        // --- GRADIENT UPDATE FUNCTION ---
-        // Converts Angle to Percentage units required by Fabric 5 percentage gradient units
-        function updateGradientAngle(val) {
-            gradAngleDisp.innerText = val + '°';
-            updateGradient();
-        }
+        function updateGradientAngle(val) { gradAngleDisp.innerText = val + '°'; updateGradient(); }
 
         function updateGradient() {
             const obj = canvas.getActiveObject();
-            if (!obj || currentFillMode === 'gradient') return;
-
-            const c1 = gradColor1El.value;
-            const c2 = gradColor2El.value;
-            const angleDeg = parseFloat(gradAngleEl.value);
-            const globalOp = parseFloat(document.getElementById('fillOpacitySlider').value);
-
-            // Handle alpha per stop based on global fill opacity slider
+            if (!obj || currentFillMode === 'solid') return;
+            const c1 = gradColor1El.value, c2 = gradColor2El.value;
+            const angleDeg = parseFloat(gradAngleEl.value), globalOp = parseFloat(document.getElementById('fillOpacitySlider').value);
             let fc1 = new fabric.Color(c1); fc1.setAlpha(globalOp);
             let fc2 = new fabric.Color(c2); fc2.setAlpha(globalOp);
-
-            // Persist grad data on object for UNDO loading
             obj.set('gradData', {c1, c2, angleDeg, globalOp});
-
-            // Convert angle to percentage unit coords (0,0 to 1,1 diagonal implies 45deg)
             const angleRad = (angleDeg * Math.PI) / 180;
-            const x2 = 0.5 + 0.5 * Math.cos(angleRad);
-            const y2 = 0.5 + 0.5 * Math.sin(angleRad);
-            const x1 = 1 - x2;
-            const y1 = 1 - y2;
-
-            let grad = new fabric.Gradient({
-                type: 'linear',
-                gradientUnits: 'percentage', // percentage based ensures scaling works
-                coords: { x1: x1, y1: y1, x2: x2, y2: y2 },
-                colorStops: [ { offset: 0, color: fc1.toRgba() }, { offset: 1, color: fc2.toRgba() } ]
-            });
-            
-            obj.set('fill', grad);
-            canvas.requestRenderAll();
+            const x2 = 0.5 + 0.5 * Math.cos(angleRad), y2 = 0.5 + 0.5 * Math.sin(angleRad);
+            let grad = new fabric.Gradient({ type: 'linear', gradientUnits: 'percentage', coords: { x1: 1-x2, y1: 1-y2, x2: x2, y2: y2 }, colorStops: [ { offset: 0, color: fc1.toRgba() }, { offset: 1, color: fc2.toRgba() } ] });
+            obj.set('fill', grad); canvas.requestRenderAll();
         }
 
-        // --- Shared Stroke Settings ---
-        function changeStrokeColor(color) {
-            const obj = canvas.getActiveObject();
-            if (obj) { obj.set("stroke", color); canvas.requestRenderAll(); /* modified saves */ }
-        }
-        function changeStrokeWidth(value) {
-            const obj = canvas.getActiveObject();
-            if (obj) { 
-                obj.set("strokeWidth", parseInt(value)); 
-                document.getElementById('strokeWidthDisplay').innerText = value + ' px';
-                canvas.requestRenderAll(); /* modified saves */
-            }
-        }
-        function changeAlignment(align) {
-            const obj = canvas.getActiveObject();
-            if (obj && obj.type === 'i-text') { 
-                obj.set("textAlign", align); 
-                canvas.requestRenderAll(); 
-                saveHistory(); 
-            }
-        }
+        function changeStrokeColor(color) { const obj = canvas.getActiveObject(); if (obj) { obj.set("stroke", color); canvas.requestRenderAll(); } }
+        function changeStrokeWidth(value) { const obj = canvas.getActiveObject(); if (obj) { obj.set("strokeWidth", parseInt(value)); document.getElementById('strokeWidthDisplay').innerText = value + ' px'; canvas.requestRenderAll(); } }
+        function changeAlignment(align) { const obj = canvas.getActiveObject(); if (obj && obj.type === 'i-text') { obj.set("textAlign", align); canvas.requestRenderAll(); saveHistory(); } }
 
-        // --- Gradients Presets (Modified to update Advanced Panel state) ---
         function applyGradient(c1, c2) {
             const obj = canvas.getActiveObject();
-            if (!obj) {
-                alert('গ্রেডিয়েন্ট দেয়ার জন্য আগে শেইপ সিলেক্ট করুন।');
-                return;
-            }
-            // Set panel inputs
-            gradColor1El.value = c1;
-            gradColor2El.value = c2;
-            gradAngleEl.value = 45; // default angle for presets
-            
-            // Switch to grad mode & apply
-            if(currentFillMode !== 'gradient') { setColorMode('gradient'); }
-            else { updateGradient(); } // force immediate apply if already grad mode
-
-            saveHistory(); // trigger save since preset is immediate change
+            if (!obj) { alert('গ্রেডিয়েন্ট দেয়ার জন্য আগে শেইপ বা টেক্সট সিলেক্ট করুন।'); return; }
+            gradColor1El.value = c1; gradColor2El.value = c2; gradAngleEl.value = 45; 
+            if(currentFillMode !== 'gradient') { setColorMode('gradient'); } else { updateGradient(); }
+            saveHistory(); 
         }
 
-        // --- GLITCH-FREE PATTERN FILL LOGIC (Exact Fit Fix) ---
+        // --- BUG-FREE EXACT PATTERN FILL LOGIC ---
         document.getElementById('imageLoader').addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function (event) {
                 const targetObj = canvas.getActiveObject();
-                
                 fabric.Image.fromURL(event.target.result, function(img) {
                     isTrackingHistory = false;
-
-                    // Mask Shape logic
-                    if (targetObj && targetObj.selectable && (targetObj.type === 'circle' || targetObj.type === 'rect' || targetObj.type === 'triangle' || targetObj.type === 'polygon')) {
-                        
-                        // 1. Get exact unscaled dimensions of shape
-                        let unscaledW = targetObj.width;
-                        let unscaledH = targetObj.height;
+                    if (targetObj && targetObj.selectable && targetObj.type !== 'i-text' && targetObj.type !== 'image' && targetObj.type !== 'line') {
+                        let unscaledW = targetObj.width; let unscaledH = targetObj.height;
                         if(targetObj.type === 'circle') { unscaledW = unscaledH = targetObj.radius * 2; }
-                        
-                        // 2. Base scale calculation to perfectly cover shape
-                        let pScaleX = unscaledW / img.width;
-                        let pScaleY = unscaledH / img.height;
+                        let pScaleX = unscaledW / img.width; let pScaleY = unscaledH / img.height;
                         let baseScale = Math.max(pScaleX, pScaleY);
                         
-                        // Using img.getElement() avoids StaticCanvas glitch entirely
-                        let pattern = new fabric.Pattern({
-                            source: img.getElement(),
-                            repeat: 'no-repeat'
-                        });
-
-                        // 3. Center offset logic (Fabric Pattern coords are relative to center origin of object)
-                        let scaledW_inPatternCoords = img.width * (baseScale / targetObj.scaleX);
-                        let scaledH_inPatternCoords = img.height * (baseScale / targetObj.scaleY);
-
-                        // Fabric Pattern default starts from center origin. 
-                        // To make top-left, offsetX must be (-objW/2). 
-                        // To center, offsetX is top-left + (spacingW / 2). spacingW = objW - scaledW
-                        let offsetX = (-unscaledW / 2) + (unscaledW - scaledImgWidth = scaledW_inPatternCoords)/2; 
-                        // scaledImgWidth is wrong var name from older code, replaced below.
-
-                        // Correct Center Offset Math for PatternTransform Diagonal scaling/translation
-                        let scaledImgWidth_inShape = img.width * (baseScale);
-                        let scaledImgHeight_inShape = img.height * (baseScale);
-                        
-                        // Need pattern transform to account for object scale if diagonally scaled
-                        let tx = baseScale / targetObj.scaleX;
-                        let ty = baseScale / targetObj.scaleY;
-
-                        let offX = (unscaledW - img.width * tx) / 2;
-                        let offY = (unscaledH - img.height * ty) / 2;
+                        let pattern = new fabric.Pattern({ source: img.getElement(), repeat: 'no-repeat' });
+                        let scaledImgWidth_inShape = img.width * baseScale;
+                        let scaledImgHeight_inShape = img.height * baseScale;
+                        let tx = baseScale / targetObj.scaleX; let ty = baseScale / targetObj.scaleY;
+                        let offX = (unscaledW - img.width * tx) / 2; let offY = (unscaledH - img.height * ty) / 2;
 
                         pattern.patternTransform = [tx, 0, 0, ty, offX, offY];
-
                         targetObj.set('fill', pattern);
+                        targetObj.customImgWidth = img.width; targetObj.customImgHeight = img.height; targetObj.baseScale = baseScale; targetObj.currentZoom = 1;
                         
-                        targetObj.customImgWidth = img.width;
-                        targetObj.customImgHeight = img.height;
-                        targetObj.baseScale = baseScale;
-                        targetObj.currentZoom = 1;
-
-                        canvas.requestRenderAll();
-                        onObjectSelected({ target: targetObj }); // Refresh tools immediately
-                        backupObjectState(targetObj); // New backup for tick/cross
-
+                        canvas.requestRenderAll(); onObjectSelected({ target: targetObj }); backupObjectState(targetObj);
                     } else {
-                        // Regular image drop
                         const scale = (CANVAS_WIDTH * 0.4) / img.width; 
                         img.set({ left: CANVAS_WIDTH/2, top: CANVAS_HEIGHT/2, originX: 'center', originY: 'center', scaleX: scale, scaleY: scale, padding: 5 });
-                        canvas.add(img);
-                        img.bringToFront();
-                        canvas.setActiveObject(img);
-                        // object:added handles history
+                        canvas.add(img); img.bringToFront(); canvas.setActiveObject(img);
                     }
-
-                    e.target.value = ''; 
-                    isTrackingHistory = true; 
-                    // No saveHistory() here, adds trigger it. Patterns don't add, but modified handler (or ticks/cross deselect finalized) handles modified
+                    e.target.value = ''; isTrackingHistory = true; 
                 });
             }
             reader.readAsDataURL(file);
@@ -722,28 +555,14 @@
         function changeImageZoom(zoomValue) {
             const targetObj = canvas.getActiveObject();
             if(targetObj && targetObj.fill && targetObj.fill.source && targetObj.customImgWidth) {
-                
-                let unscaledW = targetObj.width;
-                let unscaledH = targetObj.height;
+                let unscaledW = targetObj.width; let unscaledH = targetObj.height;
                 if(targetObj.type === 'circle') { unscaledW = unscaledH = targetObj.radius * 2; }
-
                 let newScale = targetObj.baseScale * parseFloat(zoomValue);
-                
-                let scaledImgW = targetObj.customImgWidth * newScale;
-                let scaledImgH = targetObj.customImgHeight * newScale;
-
-                let tx = newScale / targetObj.scaleX;
-                let ty = newScale / targetObj.scaleY;
-
-                let offX = (unscaledW - targetObj.customImgWidth * tx) / 2;
-                let offY = (unscaledH - targetObj.customImgHeight * ty) / 2;
-
-                targetObj.fill.patternTransform = [tx, 0, 0, ty, offX, offY];
-                targetObj.currentZoom = parseFloat(zoomValue);
-                
+                let tx = newScale / targetObj.scaleX; let ty = newScale / targetObj.scaleY;
+                let offX = (unscaledW - targetObj.customImgWidth * tx) / 2; let offY = (unscaledH - targetObj.customImgHeight * ty) / 2;
+                targetObj.fill.patternTransform = [tx, 0, 0, ty, offX, offY]; targetObj.currentZoom = parseFloat(zoomValue);
                 document.getElementById('imageZoomDisplay').innerText = Math.round(zoomValue * 100) + '%';
                 canvas.requestRenderAll();
-                // Slider oninput, saveHistory triggered by slider onchange handler
             }
         }
 
@@ -755,8 +574,7 @@
                     const btn = document.createElement('button');
                     btn.className = "flex flex-col bg-white border border-slate-200 rounded-xl overflow-hidden active:scale-95 transition-transform shadow-sm hover:shadow-md text-left";
                     btn.onclick = () => loadTemplate(template.id);
-                    let previewHTML = '';
-                    let textCount = 0;
+                    let previewHTML = ''; let textCount = 0;
                     template.data.objects.forEach(obj => {
                         if (obj.type === 'circle') previewHTML += `<div style="width: 40px; height: 40px; border-radius: 50%; background-color: ${obj.fill === 'transparent' ? 'transparent' : '#ffffff'}; border: 2px solid ${obj.stroke || 'transparent'}; margin: 5px auto;"></div>`;
                         else if (obj.type === 'i-text' && textCount < 3) { previewHTML += `<div style="color: ${obj.fill}; font-size: 8px; font-weight: bold; margin-top: 3px; text-align: center; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px;">${obj.text}</div>`; textCount++; }
@@ -782,33 +600,28 @@
             canvas.loadFromJSON(JSON.stringify(template.data), () => {
                 canvas.getObjects().forEach(obj => { if(obj.type === 'i-text') obj.set({ editable: false, borderDashArray: [5, 5], padding: 5 }); else obj.set({padding: 5}); });
                 document.getElementById('bgColorPicker').value = template.bgColor || '#ffffff';
-                canvas.requestRenderAll();
-                openTab('toolsTab');
-                onSelectionCleared();
+                canvas.requestRenderAll(); openTab('toolsTab'); onSelectionCleared();
                 historyData = [JSON.stringify(canvas.toJSON(['customImgWidth', 'customImgHeight', 'baseScale', 'currentZoom', 'colorMode', 'gradData']))]; historyIndex = 0; isTrackingHistory = true; updateHistoryButtons();
             });
         }
 
-        // --- Advance Fonts & UI ---
         const fontCollection = [
             { name: 'আনেক বাংলা', family: 'Anek Bangla' }, { name: 'বালু দা ২', family: 'Baloo Da 2' },
             { name: 'গালাদা', family: 'Galada' }, { name: 'হিন্দ শিলিগুড়ি', family: 'Hind Siliguri' },
             { name: 'তীরো বাংলা', family: 'Tiro Bangla' }, { name: 'মিনা', family: 'Mina' },
-            { name: 'নোটো সান্স Bengali', family: 'Noto Sans Bengali' }, { name: 'Poppins Eng', family: 'Poppins' },
-            { name: 'Pacifico Eng', family: 'Pacifico' }, { name: 'Satisfy Eng', family: 'Satisfy' },
-            { name: 'Lobster Eng', family: 'Lobster' }
+            { name: 'নোটো সান্স', family: 'Noto Sans Bengali' }, { name: 'Poppins', family: 'Poppins' },
+            { name: 'Pacifico', family: 'Pacifico' }, { name: 'Caveat', family: 'Caveat' },
+            { name: 'Dancing Script', family: 'Dancing Script' }, { name: 'Lobster', family: 'Lobster' }
         ];
         function initFonts() {
             const container = document.getElementById('fontListContainer');
             fontCollection.forEach(font => {
                 const div = document.createElement('div');
                 div.className = "font-item cursor-pointer border border-slate-200 rounded-lg py-2.5 px-2 text-center text-[11px] transition-colors text-slate-700 truncate";
-                div.style.fontFamily = `'${font.family}', sans-serif`;
-                div.innerText = font.name;
+                div.style.fontFamily = `'${font.family}', sans-serif`; div.innerText = font.name;
                 div.onclick = () => {
                     document.querySelectorAll('.font-item').forEach(el => el.classList.remove('selected'));
-                    div.classList.add('selected');
-                    const activeObj = canvas.getActiveObject();
+                    div.classList.add('selected'); const activeObj = canvas.getActiveObject();
                     if(activeObj && activeObj.type === 'i-text') { activeObj.set('fontFamily', font.family); canvas.requestRenderAll(); saveHistory(); }
                 };
                 container.appendChild(div);
@@ -825,10 +638,7 @@
             document.getElementById(tabId + 'Btn').className = btnClassActive;
         }
 
-        // --- Selection Changed Handler for Dynamic Panel ---
-        // Crucial fix: selection lock was caused by history saves inside these handlers
-        // on Mobile editors, selection lock happens when StaticCanvas pattern is used, but also
-        // if context menu is too far or events get dropped. Floating toolbar fixes context proximity.
+        // --- Selection Changed Handler ---
         canvas.on('selection:created', onObjectSelected);
         canvas.on('selection:updated', onObjectSelected);
         canvas.on('selection:cleared', onSelectionCleared);
@@ -837,100 +647,59 @@
             if (canvas.getActiveObjects().length > 1) { onSelectionCleared(); return; }
             const obj = canvas.getActiveObject();
             
-            // Backup state for '✕' cross cancel feature
             backupObjectState(obj);
-            
-            // Show Context Toolbar and Position it
             updateToolbarPosition();
-
             document.getElementById('noSelectionPanel').classList.add('hidden');
             document.getElementById('editPanel').classList.remove('hidden');
             
-            // Load Stroke
             document.getElementById('strokeWidthSlider').value = obj.strokeWidth || 0;
             document.getElementById('strokeWidthDisplay').innerText = (obj.strokeWidth || 0) + ' px';
-            if (obj.stroke && typeof obj.stroke === 'string' && !obj.stroke.startsWith('url')) {
-                document.getElementById('strokeColorPicker').value = obj.stroke;
-            } else { document.getElementById('strokeColorPicker').value = '#111827'; }
+            if (obj.stroke && typeof obj.stroke === 'string' && !obj.stroke.startsWith('url')) { document.getElementById('strokeColorPicker').value = obj.stroke; } 
+            else { document.getElementById('strokeColorPicker').value = '#111827'; }
             
-            // --- LOAD ADVANCED COLOR PANEL UI (New) ---
             const fillZoomBox = document.getElementById('imageZoomContainer');
             const colorPickerBox = document.getElementById('advancedColorPanel');
             const fillOpacitySlider = document.getElementById('fillOpacitySlider');
             const fillOpacityDisp = document.getElementById('fillOpacityDisplay');
 
-            // 1. Fill Zoom (only for patterns)
             if (obj.fill && obj.fill.source && obj.customImgWidth) {
-                fillZoomBox.style.display = 'block';
-                colorPickerBox.style.display = 'none'; // hide colors for images
+                fillZoomBox.style.display = 'block'; colorPickerBox.style.display = 'none'; 
                 document.getElementById('imageZoomSlider').value = obj.currentZoom || 1;
                 document.getElementById('imageZoomDisplay').innerText = Math.round((obj.currentZoom || 1)*100) + '%';
             } else {
-                fillZoomBox.style.display = 'none';
-                colorPickerBox.style.display = 'block';
-
-                // Restore Solid/Gradient UI state based on persistent object data
+                fillZoomBox.style.display = 'none'; colorPickerBox.style.display = 'block';
                 currentFillMode = obj.get('colorMode') || 'solid';
-                
-                // Opacity handling
                 let fillAlpha = 1;
                 if(currentFillMode === 'gradient') {
-                    // Grad data backup
                     let gd = obj.get('gradData');
-                    gradColor1El.value = (gd && gd.c1) || '#ff9a9e';
-                    gradColor2El.value = (gd && gd.c2) || '#fecfef';
-                    gradAngleEl.value = (gd && gd.angleDeg) || 45;
-                    gradAngleDisp.innerText = (gd && gd.angleDeg || 45) + '°';
+                    gradColor1El.value = (gd && gd.c1) || '#ff9a9e'; gradColor2El.value = (gd && gd.c2) || '#fecfef';
+                    gradAngleEl.value = (gd && gd.angleDeg) || 45; gradAngleDisp.innerText = (gd && gd.angleDeg || 45) + '°';
                     fillAlpha = (gd && gd.globalOp !== undefined) ? gd.globalOp : 1;
                 } else {
-                    // Solid data alpha extraction from RGBA fill string
-                    if(obj.fill && typeof obj.fill === 'string' && obj.fill.startsWith('rgba')) {
-                        fillAlpha = new fabric.Color(obj.fill).getAlpha();
-                    }
-                    if (obj.fill && typeof obj.fill === 'string' && !obj.fill.startsWith('url')) {
-                        // Set solid picker val (rgba to hex)
-                        document.getElementById('colorPicker').value = obj.fill === 'transparent' ? '#cbd5e1' : new fabric.Color(obj.fill).toHex();
-                    } else {
-                        document.getElementById('colorPicker').value = '#cbd5e1'; // default slate-200 if pattern before deselect
-                    }
+                    if(obj.fill && typeof obj.fill === 'string' && obj.fill.startsWith('rgba')) { fillAlpha = new fabric.Color(obj.fill).getAlpha(); }
+                    if (obj.fill && typeof obj.fill === 'string' && !obj.fill.startsWith('url')) { document.getElementById('colorPicker').value = obj.fill === 'transparent' ? '#cbd5e1' : new fabric.Color(obj.fill).toHex(); } 
+                    else { document.getElementById('colorPicker').value = '#cbd5e1'; }
                 }
-
-                fillOpacitySlider.value = fillAlpha;
-                fillOpacityDisp.innerText = Math.round(fillAlpha * 100) + '%';
-                setColorMode(currentFillMode); // Refresh UI to match persistent state
+                fillOpacitySlider.value = fillAlpha; fillOpacityDisp.innerText = Math.round(fillAlpha * 100) + '%';
+                setColorMode(currentFillMode); 
             }
 
-            // --- Text vs Shape ---
             const textBox = document.getElementById('textEditBoxContainer');
             const textFeaturesSize = document.getElementById('textOnlyFeatures_Size');
             const textFeaturesFonts = document.getElementById('textOnlyFeatures_Fonts');
             const alignFeat = document.getElementById('alignmentFeature');
 
             if (obj.type === 'i-text') {
-                textBox.style.display = 'block';
-                textFeaturesSize.classList.remove('hidden');
-                textFeaturesFonts.classList.remove('hidden');
-                alignFeat.style.display = 'flex'; // show alignment
-                
-                textInput.value = obj.text;
-                fontSizeSlider.value = obj.fontSize;
-                fontSizeDisplay.innerText = obj.fontSize;
-                // color and grads handled by general logic above
+                textBox.style.display = 'block'; textFeaturesSize.classList.remove('hidden'); textFeaturesFonts.classList.remove('hidden'); alignFeat.style.display = 'flex'; 
+                textInput.value = obj.text; fontSizeSlider.value = obj.fontSize; fontSizeDisplay.innerText = obj.fontSize;
             } else {
-                textBox.style.display = 'none';
-                textFeaturesSize.classList.add('hidden');
-                textFeaturesFonts.classList.add('hidden');
-                alignFeat.style.display = 'none';
-                // Line shapes special case
-                if(obj.type === 'line') {
-                    colorPickerBox.style.display = 'none'; // lines use stroke only
-                }
+                textBox.style.display = 'none'; textFeaturesSize.classList.add('hidden'); textFeaturesFonts.classList.add('hidden'); alignFeat.style.display = 'none';
+                if(obj.type === 'line') { colorPickerBox.style.display = 'none'; }
             }
         }
 
         function onSelectionCleared() {
-            preEditState = null;
-            contextToolbar.style.display = 'none';
+            preEditState = null; contextToolbar.style.display = 'none';
             document.getElementById('editPanel').classList.add('hidden');
             document.getElementById('textEditBoxContainer').style.display = 'none';
             document.getElementById('imageZoomContainer').style.display = 'none';
@@ -939,25 +708,14 @@
 
         function addText() {
             const center = canvas.getCenter();
-            const text = new fabric.IText('আপনার লেখা', { 
-                left: center.left, top: center.top, originX: 'center', originY: 'center',
-                fontFamily: 'Hind Siliguri', fontSize: 60, fill: '#1e293b', editable: false
-            });
-            canvas.add(text);
-            text.bringToFront();
-            canvas.setActiveObject(text);
-            // added history is handled
+            const text = new fabric.IText('আপনার লেখা', { left: center.left, top: center.top, originX: 'center', originY: 'center', fontFamily: 'Hind Siliguri', fontSize: 60, fill: '#1e293b', editable: false });
+            canvas.add(text); text.bringToFront(); canvas.setActiveObject(text);
         }
-
         function deleteObject() {
             const activeObjects = canvas.getActiveObjects();
-            if (activeObjects.length) {
-                isTrackingHistory = false;
-                activeObjects.forEach(obj => canvas.remove(obj));
-                canvas.discardActiveObject(); isTrackingHistory = true; saveHistory();
-            } else { alert('প্রথমে ক্যানভাস থেকে কিছু সিলেক্ট করুন'); }
+            if (activeObjects.length) { isTrackingHistory = false; activeObjects.forEach(obj => canvas.remove(obj)); canvas.discardActiveObject(); isTrackingHistory = true; saveHistory(); } 
+            else { alert('প্রথমে ক্যানভাস থেকে কিছু সিলেক্ট করুন'); }
         }
-
         function downloadBanner() {
             canvas.discardActiveObject(); canvas.requestRenderAll();
             const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1, multiplier: 2 }); 
