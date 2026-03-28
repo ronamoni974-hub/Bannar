@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ProBanner - Simple & Stable</title>
+    <title>ProBanner - The Ultimate Creator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Hind+Siliguri:wght@500;700&family=Inter:wght@400;600;800&family=Mina:wght@400;700&family=Montserrat:wght@700;900&family=Oswald:wght@500&family=Pacifico&family=Playfair+Display:ital,wght@0,700;1,700&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; touch-action: manipulation; background-color: #f1f5f9; }
-        .canvas-container { margin: 0 auto; box-shadow: 0 12px 35px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; background: white; transition: all 0.3s ease; }
-        
+        body { font-family: 'Inter', sans-serif; touch-action: manipulation; background-color: #f8fafc; }
+        .canvas-container { margin: 0 auto; box-shadow: 0 10px 40px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; background: white; transition: all 0.3s ease; }
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-        
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        input[type="color"]::-webkit-color-swatch { border: 2px solid #e2e8f0; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-        
+        input[type="color"]::-webkit-color-swatch { border: 2px solid #e2e8f0; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; outline: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #4f46e5; cursor: pointer; margin-top: -5px; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.4); border: 2px solid white; transition: transform 0.1s; }
         input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
@@ -26,70 +25,95 @@
 </head>
 <body class="h-[100dvh] w-full overflow-hidden text-gray-800 flex flex-col selection:bg-indigo-100 relative">
 
-    <div id="homeScreen" class="absolute inset-0 bg-white z-50 overflow-y-auto flex flex-col transition-opacity duration-300">
-        <header class="p-4 md:p-6 flex justify-between items-center shadow-sm border-b">
-            <h1 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">ProBanner</h1>
-            <button onclick="openEditor()" class="bg-indigo-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-indigo-700 transition shadow-md text-sm">Create Blank</button>
+    <div id="homeScreen" class="absolute inset-0 bg-[#f8fafc] z-50 overflow-y-auto flex flex-col transition-opacity duration-300">
+        <header class="p-4 md:p-6 flex justify-between items-center bg-white shadow-sm sticky top-0 z-10">
+            <h1 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 tracking-tight">ProBanner</h1>
+            <button onclick="openEditor()" class="bg-indigo-600 text-white px-5 py-2 rounded-full font-bold hover:bg-indigo-700 transition shadow-md text-sm">Create Blank</button>
         </header>
 
-        <div class="flex flex-col items-center justify-center mt-8 px-4">
-            <h2 class="text-3xl md:text-4xl font-extrabold mb-6 text-center text-gray-800">What will you design today?</h2>
-            <div class="relative w-full max-w-2xl">
-                <input type="text" placeholder="Search for templates..." class="w-full pl-12 pr-4 py-3 md:py-4 rounded-full border-2 border-gray-200 focus:border-indigo-500 focus:outline-none shadow-sm text-base">
-                <i class="fas fa-search absolute left-5 top-4 md:top-5 text-gray-400 text-xl"></i>
-            </div>
-        </div>
-
-        <div class="max-w-6xl mx-auto w-full px-4 mt-10 pb-10">
-            <div class="flex items-center justify-between mb-4 mt-6">
-                <h3 class="text-lg font-bold text-gray-700">Trending Templates</h3>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 h-32 md:h-40 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
-                    <i class="fas fa-plus text-3xl text-indigo-400 mb-2 group-hover:scale-110 transition"></i>
-                    <span class="text-indigo-600 font-bold text-sm mt-2">Blank Canvas</span>
+        <div class="max-w-6xl mx-auto w-full px-4 mt-8 pb-10">
+            <h2 class="text-2xl font-extrabold mb-6 text-gray-800">What will you design today?</h2>
+            
+            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Start Creating</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div onclick="openEditor()" class="bg-white border border-gray-100 h-32 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group shadow-sm">
+                    <div class="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition"><i class="fas fa-plus text-indigo-500 text-xl"></i></div>
+                    <span class="text-gray-700 font-bold text-xs">Blank Canvas</span>
                 </div>
-                <div class="bg-gradient-to-tr from-blue-100 to-blue-50 h-32 md:h-40 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
-                    <i class="fas fa-briefcase text-3xl text-blue-400 mb-2 group-hover:scale-110 transition"></i>
-                    <span class="text-blue-700 font-bold text-sm mt-2">Corporate</span>
+                <div onclick="openEditor()" class="bg-white border border-gray-100 h-32 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group shadow-sm">
+                    <div class="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition"><i class="fab fa-youtube text-red-500 text-xl"></i></div>
+                    <span class="text-gray-700 font-bold text-xs">YT Thumbnail</span>
                 </div>
-                <div class="bg-gradient-to-tr from-pink-100 to-red-50 h-32 md:h-40 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
-                    <i class="fas fa-shopping-bag text-3xl text-pink-400 mb-2 group-hover:scale-110 transition"></i>
-                    <span class="text-pink-700 font-bold text-sm mt-2">Sale Promo</span>
+                <div onclick="openEditor()" class="bg-white border border-gray-100 h-32 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group shadow-sm">
+                    <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition"><i class="fab fa-facebook text-blue-500 text-xl"></i></div>
+                    <span class="text-gray-700 font-bold text-xs">FB Cover</span>
                 </div>
-                <div class="bg-gradient-to-tr from-green-100 to-emerald-50 h-32 md:h-40 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
-                    <i class="fas fa-leaf text-3xl text-emerald-400 mb-2 group-hover:scale-110 transition"></i>
-                    <span class="text-emerald-700 font-bold text-sm mt-2">Nature/Eco</span>
+                <div onclick="openEditor()" class="bg-white border border-gray-100 h-32 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group shadow-sm">
+                    <div class="w-12 h-12 bg-pink-50 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition"><i class="fab fa-instagram text-pink-500 text-xl"></i></div>
+                    <span class="text-gray-700 font-bold text-xs">Insta Post</span>
                 </div>
             </div>
 
-            <h3 class="text-lg font-bold mb-4 text-gray-700">Categories</h3>
-            <div class="flex gap-3 overflow-x-auto pb-2 hide-scroll">
-                <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fas fa-laptop mr-2 text-indigo-500"></i>Web Banner</button>
-                <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fab fa-youtube mr-2 text-red-500"></i>Thumbnail</button>
-                <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fab fa-facebook mr-2 text-blue-600"></i>FB Cover</button>
+            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Trending Templates</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div onclick="openEditor()" class="bg-gradient-to-br from-blue-500 to-indigo-600 h-40 rounded-2xl cursor-pointer hover:opacity-90 transition shadow-md relative overflow-hidden group">
+                    <div class="absolute inset-0 flex items-center justify-center"><span class="text-white font-bold text-xl uppercase tracking-widest mix-blend-overlay">Tech</span></div>
+                </div>
+                <div onclick="openEditor()" class="bg-gradient-to-tr from-pink-500 to-orange-400 h-40 rounded-2xl cursor-pointer hover:opacity-90 transition shadow-md relative overflow-hidden group">
+                    <div class="absolute inset-0 flex items-center justify-center"><span class="text-white font-extrabold text-2xl italic mix-blend-overlay">SALE</span></div>
+                </div>
+                <div onclick="openEditor()" class="bg-gradient-to-bl from-emerald-400 to-teal-600 h-40 rounded-2xl cursor-pointer hover:opacity-90 transition shadow-md relative overflow-hidden group">
+                    <div class="absolute inset-0 flex items-center justify-center"><span class="text-white font-bold text-lg mix-blend-overlay border-2 border-white/50 p-2">NATURE</span></div>
+                </div>
+                <div onclick="openEditor()" class="bg-gradient-to-t from-gray-900 to-gray-700 h-40 rounded-2xl cursor-pointer hover:opacity-90 transition shadow-md relative overflow-hidden group">
+                    <div class="absolute inset-0 flex items-center justify-center"><span class="text-yellow-400 font-serif text-xl mix-blend-overlay">Luxury</span></div>
+                </div>
+                <div onclick="openEditor()" class="bg-gradient-to-br from-yellow-300 to-red-500 h-40 rounded-2xl cursor-pointer hover:opacity-90 transition shadow-md relative overflow-hidden group">
+                    <div class="absolute inset-0 flex items-center justify-center"><span class="text-white font-black text-2xl drop-shadow-md">FOOD</span></div>
+                </div>
+                <div onclick="openEditor()" class="bg-gradient-to-br from-purple-500 to-pink-500 h-40 rounded-2xl cursor-pointer hover:opacity-90 transition shadow-md relative overflow-hidden group">
+                    <div class="absolute inset-0 flex items-center justify-center"><span class="text-white font-bold text-lg">Gaming</span></div>
+                </div>
+                <div onclick="openEditor()" class="bg-gradient-to-r from-cyan-400 to-blue-500 h-40 rounded-2xl cursor-pointer hover:opacity-90 transition shadow-md relative overflow-hidden group">
+                    <div class="absolute inset-0 flex items-center justify-center"><span class="text-white font-bold text-lg">Corporate</span></div>
+                </div>
+                <div onclick="openEditor()" class="bg-white border-2 border-dashed border-gray-300 h-40 rounded-2xl cursor-pointer hover:bg-gray-50 transition flex items-center justify-center group">
+                    <span class="text-gray-400 font-bold text-sm group-hover:text-indigo-500">View All</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="resizeModal" class="fixed inset-0 bg-black/50 z-[100] hidden flex justify-center items-center backdrop-blur-sm transition-opacity">
-        <div class="bg-white rounded-2xl w-80 shadow-2xl overflow-hidden transform transition-all scale-100">
-            <div class="p-5 border-b flex justify-between items-center">
-                <h3 class="font-bold text-lg text-gray-800"><i class="fas fa-crop-alt mr-2 text-indigo-500"></i>Resize Canvas</h3>
-                <button onclick="document.getElementById('resizeModal').classList.add('hidden')" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-lg"></i></button>
+    <div id="resizeModal" class="fixed inset-0 bg-gray-900/50 z-[100] hidden flex justify-center items-center backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-2xl w-[90%] max-w-md shadow-2xl overflow-hidden">
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-base text-gray-800"><i class="fas fa-crop-alt mr-2 text-indigo-500"></i>Canvas Size</h3>
+                <button onclick="document.getElementById('resizeModal').classList.add('hidden')" class="text-gray-400 hover:text-red-500 w-8 h-8 rounded-full hover:bg-red-50"><i class="fas fa-times"></i></button>
             </div>
-            <div class="p-5 grid grid-cols-2 gap-3">
-                <button onclick="setCanvasSize(16/9)" class="bg-gray-50 hover:bg-indigo-50 border hover:border-indigo-200 p-3 rounded-xl flex flex-col items-center gap-2 transition">
-                    <div class="w-10 h-6 bg-indigo-200 rounded-sm"></div><span class="text-xs font-bold text-gray-600">16:9 Banner</span>
+            <div class="p-4 grid grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto">
+                <button onclick="setCanvasSize(16/9)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
+                    <div class="w-10 h-5 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">16:9 YT</span>
                 </button>
-                <button onclick="setCanvasSize(1/1)" class="bg-gray-50 hover:bg-indigo-50 border hover:border-indigo-200 p-3 rounded-xl flex flex-col items-center gap-2 transition">
-                    <div class="w-8 h-8 bg-indigo-200 rounded-sm"></div><span class="text-xs font-bold text-gray-600">1:1 Square</span>
+                <button onclick="setCanvasSize(1/1)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
+                    <div class="w-8 h-8 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">1:1 Insta</span>
                 </button>
-                <button onclick="setCanvasSize(9/16)" class="bg-gray-50 hover:bg-indigo-50 border hover:border-indigo-200 p-3 rounded-xl flex flex-col items-center gap-2 transition">
-                    <div class="w-6 h-10 bg-indigo-200 rounded-sm"></div><span class="text-xs font-bold text-gray-600">9:16 Story</span>
+                <button onclick="setCanvasSize(9/16)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
+                    <div class="w-5 h-10 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">9:16 Story</span>
                 </button>
-                <button onclick="setCanvasSize(4/3)" class="bg-gray-50 hover:bg-indigo-50 border hover:border-indigo-200 p-3 rounded-xl flex flex-col items-center gap-2 transition">
-                    <div class="w-9 h-7 bg-indigo-200 rounded-sm"></div><span class="text-xs font-bold text-gray-600">4:3 Post</span>
+                <button onclick="setCanvasSize(4/3)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
+                    <div class="w-10 h-7 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">4:3 Post</span>
+                </button>
+                <button onclick="setCanvasSize(3/4)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
+                    <div class="w-7 h-10 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">3:4 Portrait</span>
+                </button>
+                <button onclick="setCanvasSize(21/9)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
+                    <div class="w-12 h-5 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">21:9 Cover</span>
+                </button>
+                <button onclick="setCanvasSize(1/1.414)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
+                    <div class="w-7 h-10 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">A4 Document</span>
+                </button>
+                <button onclick="setCanvasSize(3/2)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
+                    <div class="w-9 h-6 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">3:2 Web</span>
                 </button>
             </div>
         </div>
@@ -99,65 +123,93 @@
         
         <header class="h-14 bg-white/95 backdrop-blur-md border-b flex items-center justify-between px-3 md:px-4 shadow-sm shrink-0 z-30">
             <div class="flex items-center gap-2 md:gap-3">
-                <button onclick="closeEditor()" class="text-gray-500 hover:text-indigo-600 w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center transition"><i class="fas fa-arrow-left"></i></button>
-                <h1 class="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 hidden md:block">ProBanner</h1>
+                <button onclick="closeEditor()" class="text-gray-500 hover:text-indigo-600 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition"><i class="fas fa-arrow-left"></i></button>
+                <h1 class="text-sm font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 hidden sm:block tracking-tight">ProEditor</h1>
             </div>
             
-            <div class="flex items-center gap-2 sm:gap-3">
-                <button onclick="undo()" class="text-gray-500 hover:text-indigo-600 w-8 h-8 flex items-center justify-center rounded-full active:bg-gray-100 transition"><i class="fas fa-undo text-sm"></i></button>
-                <button onclick="redo()" class="text-gray-500 hover:text-indigo-600 w-8 h-8 flex items-center justify-center rounded-full active:bg-gray-100 transition"><i class="fas fa-redo text-sm"></i></button>
-                <div class="w-px h-5 bg-gray-200 mx-1"></div>
-                <button onclick="document.getElementById('resizeModal').classList.remove('hidden')" class="text-gray-600 hover:text-indigo-600 bg-gray-100 hover:bg-indigo-50 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition">
+            <div class="flex items-center gap-1 sm:gap-3">
+                <button onclick="undo()" class="text-gray-500 hover:text-indigo-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition"><i class="fas fa-undo text-sm"></i></button>
+                <button onclick="redo()" class="text-gray-500 hover:text-indigo-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition"><i class="fas fa-redo text-sm"></i></button>
+                <div class="w-px h-5 bg-gray-300 mx-1"></div>
+                <button onclick="document.getElementById('resizeModal').classList.remove('hidden')" class="text-gray-600 hover:text-indigo-600 bg-gray-100 hover:bg-indigo-50 px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition">
                     <i class="fas fa-expand"></i> <span class="hidden sm:inline">Size</span>
                 </button>
-                <button onclick="exportBanner()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-700 font-bold shadow-md shadow-indigo-200 text-sm transition">Export</button>
+                <button onclick="exportBanner()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-700 font-bold shadow-md shadow-indigo-200 text-xs transition">Export</button>
             </div>
         </header>
 
-        <main id="workspace" class="flex-1 relative flex justify-center items-center overflow-hidden w-full p-4 bg-[#eef2f6]">
+        <main id="workspace" class="flex-1 relative flex justify-center items-center overflow-hidden w-full p-4 bg-[#eef2f6] touch-none">
             <canvas id="bannerCanvas"></canvas>
             
-            <div id="floatingAction" class="absolute hidden bg-white rounded-full shadow-2xl p-1.5 flex gap-2 border border-gray-100 z-50 transition-all scale-95">
-                <button onclick="confirmChanges()" class="w-9 h-9 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-500 hover:text-white transition"><i class="fas fa-check text-base"></i></button>
-                <button onclick="discardChanges()" class="w-9 h-9 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition"><i class="fas fa-times text-base"></i></button>
+            <div id="floatingAction" class="absolute hidden bg-white rounded-full shadow-lg p-1.5 flex gap-2 border border-gray-100 z-50 transition-all scale-95 opacity-90 hover:opacity-100">
+                <button onclick="confirmChanges()" class="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-500 hover:text-white transition"><i class="fas fa-check text-sm"></i></button>
+                <button onclick="discardChanges()" class="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition"><i class="fas fa-times text-sm"></i></button>
             </div>
         </main>
 
-        <div id="propertiesPanel" class="h-auto py-3 bg-white border-t flex items-center px-4 gap-6 overflow-x-auto hide-scroll shrink-0 shadow-[0_-15px_30px_rgba(0,0,0,0.05)] transition-transform duration-300 translate-y-full absolute bottom-[72px] w-full z-20">
+        <div id="propertiesPanel" class="h-auto py-3 bg-white border-t flex items-center px-4 gap-5 overflow-x-auto hide-scroll shrink-0 shadow-[0_-15px_30px_rgba(0,0,0,0.05)] transition-transform duration-300 translate-y-full absolute bottom-[72px] w-full z-20">
             
+            <div id="propFont" class="flex-col shrink-0 hidden">
+                <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest">Font Style</span>
+                <select id="fontSelect" onchange="changeFont(this.value)" class="w-32 bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg px-2 py-1 outline-none focus:border-indigo-500">
+                    <optgroup label="English Fonts">
+                        <option value="Inter" style="font-family: 'Inter'">Inter (Modern)</option>
+                        <option value="Montserrat" style="font-family: 'Montserrat'">Montserrat (Bold)</option>
+                        <option value="Playfair Display" style="font-family: 'Playfair Display'">Playfair (Serif)</option>
+                        <option value="Oswald" style="font-family: 'Oswald'">Oswald (Tall)</option>
+                        <option value="Pacifico" style="font-family: 'Pacifico'">Pacifico (Cursive)</option>
+                        <option value="Dancing Script" style="font-family: 'Dancing Script'">Dancing Script</option>
+                    </optgroup>
+                    <optgroup label="Bangla Fonts">
+                        <option value="'Hind Siliguri', sans-serif" style="font-family: 'Hind Siliguri'">Hind Siliguri</option>
+                        <option value="'Mina', sans-serif" style="font-family: 'Mina'">Mina (Modern)</option>
+                        <option value="'Tiro Bangla', serif" style="font-family: 'Tiro Bangla'">Tiro Bangla</option>
+                    </optgroup>
+                </select>
+            </div>
+
             <div id="propColor" class="flex-col items-center shrink-0 hidden">
-                <span class="text-[9px] font-extrabold text-gray-400 mb-1.5 uppercase tracking-widest block text-center">Color</span>
-                <input type="color" id="itemColor" onchange="changeColor(this.value)" class="w-8 h-8 cursor-pointer bg-transparent block mx-auto">
+                <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest text-center">Color</span>
+                <input type="color" id="itemColor" onchange="changeColor(this.value)" class="w-7 h-7 cursor-pointer bg-transparent mx-auto">
+            </div>
+
+            <div id="propGradient" class="flex-col items-center shrink-0 hidden">
+                <span class="text-[9px] font-extrabold text-indigo-500 mb-1 uppercase tracking-widest text-center">Gradient</span>
+                <div class="flex items-center gap-1 bg-gray-50 p-1 rounded-lg border border-gray-200">
+                    <input type="color" id="grad1" value="#ff00cc" class="w-5 h-5 cursor-pointer bg-transparent">
+                    <input type="color" id="grad2" value="#333399" class="w-5 h-5 cursor-pointer bg-transparent">
+                    <button onclick="applyCustomGradient()" class="bg-white border border-gray-300 text-gray-700 rounded px-2 py-0.5 text-[10px] font-bold shadow-sm hover:bg-gray-100">Set</button>
+                </div>
             </div>
 
             <div id="divSep1" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
 
             <div id="propImageShape" class="flex-col items-center shrink-0 hidden">
-                <span class="text-[9px] font-extrabold text-gray-500 mb-1.5 uppercase tracking-widest block text-center">Image Shape</span>
-                <div class="flex items-center gap-2 bg-gray-50 p-1 rounded border border-gray-100">
-                    <button onclick="setImageShape('square')" class="w-7 h-7 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50 transition"><div class="w-4 h-4 bg-indigo-300 border border-indigo-500"></div></button>
-                    <button onclick="setImageShape('rounded')" class="w-7 h-7 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50 transition"><div class="w-4 h-4 bg-indigo-300 border border-indigo-500 rounded-md"></div></button>
-                    <button onclick="setImageShape('circle')" class="w-7 h-7 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50 transition"><div class="w-4 h-4 bg-indigo-300 border border-indigo-500 rounded-full"></div></button>
+                <span class="text-[9px] font-extrabold text-gray-500 mb-1 uppercase tracking-widest text-center">Image Shape</span>
+                <div class="flex items-center gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+                    <button onclick="setImageShape('square')" class="w-6 h-6 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50 transition"><div class="w-3 h-3 bg-indigo-400 border border-indigo-600"></div></button>
+                    <button onclick="setImageShape('rounded')" class="w-6 h-6 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50 transition"><div class="w-3 h-3 bg-indigo-400 border border-indigo-600 rounded-sm"></div></button>
+                    <button onclick="setImageShape('circle')" class="w-6 h-6 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50 transition"><div class="w-3 h-3 bg-indigo-400 border border-indigo-600 rounded-full"></div></button>
                 </div>
             </div>
 
             <div id="divSep2" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
 
-            <div id="propStroke" class="flex items-center gap-3 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-100">
+            <div id="propStroke" class="flex items-center gap-3 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-200">
                 <div class="flex-col items-center">
                     <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest block text-center">Border</span>
-                    <input type="color" id="strokeColor" onchange="changeStroke(this.value, null)" class="w-6 h-6 cursor-pointer bg-transparent mx-auto block">
+                    <input type="color" id="strokeColor" onchange="changeStroke(this.value, null)" class="w-5 h-5 cursor-pointer bg-transparent mx-auto block">
                 </div>
                 <div class="flex-col w-20">
                     <div class="flex justify-between w-full mb-1">
                         <span class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">Width</span>
                         <span id="strokeVal" class="text-[9px] font-bold text-gray-600">0</span>
                     </div>
-                    <input type="range" id="strokeWidth" min="0" max="40" step="1" value="0" oninput="changeStroke(null, this.value); document.getElementById('strokeVal').innerText=this.value" class="w-full accent-gray-500">
+                    <input type="range" id="strokeWidth" min="0" max="40" step="1" value="0" oninput="changeStroke(null, this.value)" class="w-full accent-gray-500">
                 </div>
             </div>
 
-            <div id="propOpacity" class="flex-col shrink-0 w-24 hidden">
+            <div id="propOpacity" class="flex-col shrink-0 w-20 hidden">
                 <div class="flex justify-between w-full mb-1">
                     <span class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">Opacity</span>
                     <span id="opVal" class="text-[9px] font-bold text-indigo-600">100%</span>
@@ -166,42 +218,71 @@
             </div>
 
             <div id="propDelete" class="flex-col items-center shrink-0 pr-4 hidden ml-auto">
-                <span class="text-[9px] font-extrabold text-red-400 mb-1.5 uppercase tracking-widest block text-center">Delete</span>
-                <button onclick="deleteObject()" class="text-red-500 bg-red-50 hover:bg-red-500 hover:text-white w-8 h-8 rounded-full flex items-center justify-center transition shadow-sm border border-red-100">
+                <span class="text-[9px] font-extrabold text-red-400 mb-1 uppercase tracking-widest block text-center">Delete</span>
+                <button onclick="deleteObject()" class="text-red-500 bg-red-50 hover:bg-red-500 hover:text-white w-7 h-7 rounded-full flex items-center justify-center transition shadow-sm border border-red-100">
                     <i class="fas fa-trash-alt text-xs"></i>
                 </button>
             </div>
         </div>
 
+        <nav id="layerMenu" class="absolute inset-0 flex items-center justify-center gap-4 px-2 transition-transform duration-300 transform translate-y-full bg-white z-[35]">
+            <button onclick="toggleLayerMenu(false)" class="flex flex-col items-center text-gray-400 hover:text-gray-800 p-2 shrink-0 transition">
+                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-1"><i class="fas fa-times text-base"></i></div>
+                <span class="text-[10px] font-bold">Close</span>
+            </button>
+            <div class="w-px h-8 bg-gray-200 shrink-0"></div>
+            <button onclick="layerAction('front')" class="flex flex-col items-center text-indigo-600 p-2 shrink-0 transition hover:scale-110">
+                <div class="w-10 h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-1"><i class="fas fa-angle-double-up text-lg"></i></div>
+                <span class="text-[10px] font-bold">Front</span>
+            </button>
+            <button onclick="layerAction('up')" class="flex flex-col items-center text-blue-500 p-2 shrink-0 transition hover:scale-110">
+                <div class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center mb-1"><i class="fas fa-angle-up text-lg"></i></div>
+                <span class="text-[10px] font-bold">Up</span>
+            </button>
+            <button onclick="layerAction('down')" class="flex flex-col items-center text-orange-500 p-2 shrink-0 transition hover:scale-110">
+                <div class="w-10 h-10 rounded-lg bg-orange-50 border border-orange-100 flex items-center justify-center mb-1"><i class="fas fa-angle-down text-lg"></i></div>
+                <span class="text-[10px] font-bold">Down</span>
+            </button>
+            <button onclick="layerAction('back')" class="flex flex-col items-center text-red-500 p-2 shrink-0 transition hover:scale-110">
+                <div class="w-10 h-10 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center mb-1"><i class="fas fa-angle-double-down text-lg"></i></div>
+                <span class="text-[10px] font-bold">Back</span>
+            </button>
+        </nav>
+
         <div class="h-[72px] bg-white border-t shrink-0 z-30 pb-safe relative overflow-hidden shadow-[0_-5px_25px_rgba(0,0,0,0.04)]">
-            <nav id="mainMenu" class="absolute inset-0 flex items-center justify-around px-2 transition-transform duration-300 transform translate-x-0">
-                <button onclick="addText()" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-2 w-16 transition group">
-                    <div class="w-10 h-10 rounded-2xl bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition-all"><i class="fas fa-font text-lg"></i></div>
-                    <span class="text-[10px] font-bold">Text</span>
+            <nav id="mainMenu" class="absolute inset-0 flex items-center justify-around px-1 transition-transform duration-300 transform translate-x-0 bg-white z-[34]">
+                <button onclick="addText()" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-1.5 w-14 transition group">
+                    <div class="w-9 h-9 rounded-xl bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition-all"><i class="fas fa-font text-base"></i></div>
+                    <span class="text-[9px] font-bold">Text</span>
                 </button>
                 
                 <input type="file" id="mainImageInput" class="hidden" accept="image/*" onclick="this.value=null" onchange="addMainImage(event)">
-                <button onclick="document.getElementById('mainImageInput').click()" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-2 w-16 transition group">
-                    <div class="w-10 h-10 rounded-2xl bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition-all"><i class="fas fa-image text-lg"></i></div>
-                    <span class="text-[10px] font-bold">Image</span>
+                <button onclick="document.getElementById('mainImageInput').click()" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-1.5 w-14 transition group">
+                    <div class="w-9 h-9 rounded-xl bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition-all"><i class="fas fa-image text-base"></i></div>
+                    <span class="text-[9px] font-bold">Image</span>
                 </button>
                 
-                <button onclick="toggleShapeMenu(true)" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-2 w-16 transition group">
-                    <div class="w-10 h-10 rounded-2xl bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition-all"><i class="fas fa-shapes text-lg"></i></div>
-                    <span class="text-[10px] font-bold">Shapes</span>
+                <button onclick="toggleShapeMenu(true)" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-1.5 w-14 transition group">
+                    <div class="w-9 h-9 rounded-xl bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition-all"><i class="fas fa-shapes text-base"></i></div>
+                    <span class="text-[9px] font-bold">Shapes</span>
+                </button>
+
+                <button onclick="toggleLayerMenu(true)" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-1.5 w-14 transition group">
+                    <div class="w-9 h-9 rounded-xl bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition-all"><i class="fas fa-layer-group text-base"></i></div>
+                    <span class="text-[9px] font-bold">Layers</span>
                 </button>
                 
-                <div class="flex flex-col items-center text-gray-500 p-2 w-16 relative group">
-                    <input type="color" onchange="changeBgColor(this.value)" value="#ffffff" class="w-10 h-10 rounded-2xl cursor-pointer border-0 p-0 absolute top-2 opacity-0 z-10">
-                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-400 to-indigo-500 mb-1 flex items-center justify-center text-white transition transform group-hover:scale-110 shadow-sm border border-white"><i class="fas fa-fill-drip text-sm"></i></div>
-                    <span class="text-[10px] font-bold">Canvas BG</span>
+                <div class="flex flex-col items-center text-gray-500 p-1.5 w-14 relative group cursor-pointer" onclick="document.getElementById('bgColorPicker').click()">
+                    <input type="color" id="bgColorPicker" onchange="changeBgColor(this.value)" value="#ffffff" class="absolute w-0 h-0 opacity-0">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-400 to-indigo-500 mb-1 flex items-center justify-center text-white transition transform group-hover:scale-110 shadow-sm border border-white"><i class="fas fa-fill-drip text-xs"></i></div>
+                    <span class="text-[9px] font-bold">BG</span>
                 </div>
             </nav>
 
-            <nav id="shapeMenu" class="absolute inset-0 flex items-center justify-start gap-3 px-4 transition-transform duration-300 transform translate-x-full bg-white overflow-x-auto hide-scroll">
+            <nav id="shapeMenu" class="absolute inset-0 flex items-center justify-start gap-3 px-4 transition-transform duration-300 transform translate-x-full bg-white z-[34] overflow-x-auto hide-scroll">
                 <button onclick="toggleShapeMenu(false)" class="flex flex-col items-center text-gray-400 hover:text-gray-800 p-2 shrink-0 transition">
-                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-1"><i class="fas fa-arrow-left text-base"></i></div>
-                    <span class="text-[10px] font-bold">Back</span>
+                    <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center mb-1"><i class="fas fa-arrow-left text-sm"></i></div>
+                    <span class="text-[9px] font-bold">Back</span>
                 </button>
                 <div class="w-px h-8 bg-gray-200 shrink-0"></div>
                 <button onclick="addShape('rect')" class="hover:scale-110 shrink-0 transition p-2"><i class="fas fa-square text-3xl text-blue-500 shadow-sm rounded"></i></button>
@@ -223,6 +304,7 @@
         const propertiesPanel = document.getElementById('propertiesPanel');
         const mainMenu = document.getElementById('mainMenu');
         const shapeMenu = document.getElementById('shapeMenu');
+        const layerMenu = document.getElementById('layerMenu');
 
         function openEditor() {
             homeScreen.classList.add('opacity-0');
@@ -246,7 +328,7 @@
         function initCanvas() {
             if(!canvas) {
                 let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 32;
-                let canvasHeight = canvasWidth * 0.5625; // 16:9
+                let canvasHeight = canvasWidth * 0.5625; // 16:9 default
 
                 canvas = new fabric.Canvas('bannerCanvas', {
                     width: canvasWidth, height: canvasHeight, backgroundColor: '#ffffff', preserveObjectStacking: true
@@ -279,6 +361,7 @@
             canvas.getObjects().forEach(obj => { canvas.centerObject(obj); obj.setCoords(); });
             canvas.renderAll();
             saveHistory();
+            updateFloatingPosition();
         }
 
         function toggleShapeMenu(show) {
@@ -289,6 +372,25 @@
                 shapeMenu.classList.replace('translate-x-0', 'translate-x-full');
                 mainMenu.classList.replace('-translate-x-full', 'translate-x-0');
             }
+        }
+
+        function toggleLayerMenu(show) {
+            if(show) {
+                layerMenu.classList.replace('translate-y-full', 'translate-y-0');
+            } else {
+                layerMenu.classList.replace('translate-y-0', 'translate-y-full');
+            }
+        }
+
+        function layerAction(action) {
+            const obj = canvas.getActiveObject();
+            if(!obj) return;
+            if(action === 'front') canvas.bringToFront(obj);
+            if(action === 'up') canvas.bringForward(obj);
+            if(action === 'down') canvas.sendBackwards(obj);
+            if(action === 'back') canvas.sendToBack(obj);
+            canvas.renderAll();
+            saveHistory();
         }
 
         function saveHistory() { if(redoStack.length > 0) redoStack = []; undoStack.push(JSON.stringify(canvas)); }
@@ -319,7 +421,7 @@
             const bound = obj.getBoundingRect();
             const canvasOffset = document.querySelector('.canvas-container').getBoundingClientRect();
             const workspaceOffset = workspace.getBoundingClientRect();
-            let topPos = (canvasOffset.top - workspaceOffset.top) + bound.top - 55;
+            let topPos = (canvasOffset.top - workspaceOffset.top) + bound.top - 45;
             let leftPos = (canvasOffset.left - workspaceOffset.left) + bound.left + (bound.width / 2);
             if (topPos < 10) topPos = 10;
             floatingAction.style.top = `${topPos}px`;
@@ -329,24 +431,31 @@
 
         function configureSmartProperties(obj) {
             const isText = obj.type === 'i-text';
-            const isMainImage = obj.isMainImage === true; 
             const isShape = ['rect', 'circle', 'triangle', 'polygon'].includes(obj.type);
+            const isImageShape = obj.isImageShape === true; // Natively shaped image
 
-            ['propColor', 'propImageShape', 'divSep1', 'divSep2', 'propOpacity', 'propStroke', 'propDelete'].forEach(id => {
+            ['propFont', 'propColor', 'propGradient', 'propImageShape', 'divSep1', 'divSep2', 'propOpacity', 'propStroke', 'propDelete'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
                 document.getElementById(id).classList.remove('flex');
             });
 
-            if(isText || isShape) {
+            if(isText) {
+                document.getElementById('propFont').classList.replace('hidden', 'flex');
                 document.getElementById('propColor').classList.replace('hidden', 'flex');
-                document.getElementById('divSep1').classList.replace('hidden', 'block');
+                document.getElementById('propGradient').classList.replace('hidden', 'flex');
                 document.getElementById('propStroke').classList.replace('hidden', 'flex');
-                document.getElementById('divSep2').classList.replace('hidden', 'block');
-            } else if (isMainImage) {
+                document.getElementById('divSep1').classList.replace('hidden', 'block');
+                
+                document.getElementById('fontSelect').value = obj.fontFamily || 'Inter';
+            } else if (isImageShape) {
                 document.getElementById('propImageShape').classList.replace('hidden', 'flex');
-                document.getElementById('divSep1').classList.replace('hidden', 'block');
                 document.getElementById('propStroke').classList.replace('hidden', 'flex');
-                document.getElementById('divSep2').classList.replace('hidden', 'block');
+                document.getElementById('divSep1').classList.replace('hidden', 'block');
+            } else if (isShape) {
+                document.getElementById('propColor').classList.replace('hidden', 'flex');
+                document.getElementById('propGradient').classList.replace('hidden', 'flex');
+                document.getElementById('propStroke').classList.replace('hidden', 'flex');
+                document.getElementById('divSep1').classList.replace('hidden', 'block');
             }
             
             document.getElementById('propOpacity').classList.replace('hidden', 'flex');
@@ -365,11 +474,27 @@
         function confirmChanges() { saveHistory(); canvas.discardActiveObject(); canvas.renderAll(); }
         function discardChanges() { const obj = canvas.getActiveObject(); if(obj && objectInitialState) obj.set(JSON.parse(objectInitialState)); canvas.discardActiveObject(); canvas.renderAll(); }
 
-        function addText() { const text = new fabric.IText('Your Text', { left: canvas.width/2 - 60, top: canvas.height/2 - 20, fontFamily: 'Inter', fill: '#1e293b', fontSize: 36, fontWeight: '800' }); canvas.add(text); canvas.setActiveObject(text); }
+        // --- NEW: FONT STYLE LOGIC ---
+        function changeFont(fontName) {
+            const obj = canvas.getActiveObject();
+            if(obj && obj.type === 'i-text') {
+                obj.set('fontFamily', fontName);
+                canvas.renderAll();
+                saveHistory();
+            }
+        }
+
+        function addText() { 
+            const text = new fabric.IText('আপনার টেক্সট\nYour Text', { 
+                left: canvas.width/2 - 60, top: canvas.height/2 - 20, 
+                fontFamily: 'Hind Siliguri', fill: '#1e293b', fontSize: 36, fontWeight: '700', textAlign: 'center'
+            }); 
+            canvas.add(text); canvas.setActiveObject(text); 
+        }
 
         function addShape(type) {
             let shape; const cx = canvas.width/2 - 40, cy = canvas.height/2 - 40;
-            if(type === 'rect') shape = new fabric.Rect({ left: cx, top: cy, fill: '#3b82f6', width: 80, height: 80, rx: 0, ry: 0 });
+            if(type === 'rect') shape = new fabric.Rect({ left: cx, top: cy, fill: '#3b82f6', width: 80, height: 80 });
             else if (type === 'circle') shape = new fabric.Circle({ left: cx, top: cy, fill: '#ec4899', radius: 45 });
             else if (type === 'triangle') shape = new fabric.Triangle({ left: cx, top: cy, fill: '#eab308', width: 80, height: 80 });
             else if (type === 'star') shape = new fabric.Polygon([{x: 40, y: 0}, {x: 49, y: 28}, {x: 78, y: 28}, {x: 54, y: 46}, {x: 63, y: 73}, {x: 40, y: 56}, {x: 17, y: 73}, {x: 26, y: 46}, {x: 2, y: 28}, {x: 31, y: 28}], { left: cx, top: cy, fill: '#a855f7' });
@@ -379,76 +504,109 @@
             canvas.add(shape); canvas.setActiveObject(shape); toggleShapeMenu(false);
         }
 
-        // --- NATIVE IMAGE UPLOAD (SIMPLE & STABLE) ---
+        // --- NEW: SIMPLE, STABLE 100% QUALITY IMAGE UPLOAD + SHAPES WITH BORDERS ---
         function addMainImage(e) {
             const file = e.target.files[0]; 
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(f) {
-                fabric.Image.fromURL(f.target.result, function(img) {
-                    if(!img) return;
-                    // Standard scale to fit canvas width (80% of canvas)
-                    let scale = (canvas.width * 0.6) / img.width;
-                    if(scale > 1) scale = 1; // Don't upscale small images
+                const imgEl = new Image();
+                imgEl.src = f.target.result;
+                imgEl.onload = function() {
+                    let baseWidth = canvas.width * 0.5;
+                    let baseHeight = baseWidth * (imgEl.height / imgEl.width);
 
-                    img.set({ 
-                        scaleX: scale,
-                        scaleY: scale,
-                        selectable: true, 
-                        evented: true, 
-                        isMainImage: true 
+                    // Create a Pattern filled Rect! This solves ALL Native bugs, gives perfect borders, and NEVER zooms!
+                    let pattern = new fabric.Pattern({
+                        source: imgEl,
+                        repeat: 'no-repeat'
                     });
-                    canvas.add(img); 
-                    canvas.centerObject(img); 
-                    canvas.setActiveObject(img); 
+                    
+                    // The magic scale so the pattern perfectly fits the rect without user intervention
+                    let scale = baseWidth / imgEl.width;
+                    pattern.matrix = [scale, 0, 0, scale, 0, 0];
+
+                    const rect = new fabric.Rect({
+                        width: baseWidth, height: baseHeight,
+                        rx: 0, ry: 0, strokeWidth: 0, stroke: '#000000',
+                        fill: pattern,
+                        isImageShape: true, // Identify as image
+                        originalImgUrl: f.target.result,
+                        originalWidth: imgEl.width,
+                        originalHeight: imgEl.height
+                    });
+                    
+                    canvas.add(rect); canvas.centerObject(rect); canvas.setActiveObject(rect); 
                     saveHistory();
-                });
+                };
             }; 
             reader.readAsDataURL(file); 
         }
 
-        // --- NATIVE IMAGE SHAPING (ClipPath) ---
         function setImageShape(type) {
             const obj = canvas.getActiveObject();
-            if(!obj || !obj.isMainImage) return;
+            if(!obj || !obj.isImageShape) return;
 
-            if (type === 'square') { 
-                obj.set('clipPath', null); 
-            } 
-            else if (type === 'rounded') { 
-                const minSide = Math.min(obj.width, obj.height);
-                const radius = minSide * 0.15;
-                const clipPath = new fabric.Rect({ 
-                    width: obj.width, 
-                    height: obj.height, 
-                    rx: radius, 
-                    ry: radius, 
-                    originX: 'center', 
-                    originY: 'center' 
-                });
-                obj.set('clipPath', clipPath); 
-            } 
-            else if (type === 'circle') { 
-                const minSide = Math.min(obj.width, obj.height);
-                const r = minSide / 2;
-                const clipPath = new fabric.Circle({ 
-                    radius: r, 
-                    originX: 'center', 
-                    originY: 'center' 
-                });
-                obj.set('clipPath', clipPath); 
-            }
-            
-            canvas.renderAll(); saveHistory();
+            const imgEl = new Image();
+            imgEl.onload = function() {
+                let size = Math.min(obj.width, obj.height);
+                let newWidth, newHeight, rx, ry;
+
+                if (type === 'square') {
+                    // Reset to original proportion
+                    newWidth = size;
+                    newHeight = size;
+                    rx = 0; ry = 0;
+                } else if (type === 'rounded') {
+                    newWidth = size; newHeight = size;
+                    rx = size * 0.15; ry = size * 0.15;
+                } else if (type === 'circle') {
+                    newWidth = size; newHeight = size;
+                    rx = size / 2; ry = size / 2;
+                }
+
+                // Update Object Size & Corners natively (Keeps stroke perfect)
+                obj.set({ width: newWidth, height: newHeight, rx: rx, ry: ry });
+
+                // Update Pattern matrix to fit the new cropped shape size perfectly (Cover logic)
+                let scale = Math.max(newWidth / imgEl.width, newHeight / imgEl.height);
+                let cx = (newWidth - (imgEl.width * scale)) / 2;
+                let cy = (newHeight - (imgEl.height * scale)) / 2;
+
+                const pattern = new fabric.Pattern({ source: imgEl, repeat: 'no-repeat' });
+                pattern.matrix = [scale, 0, 0, scale, cx, cy];
+                obj.set('fill', pattern);
+
+                canvas.renderAll(); saveHistory(); updateFloatingPosition();
+            };
+            imgEl.src = obj.originalImgUrl;
         }
 
         function changeBgColor(color) { canvas.backgroundColor = color; canvas.renderAll(); saveHistory(); }
 
         function changeColor(hex) {
             const obj = canvas.getActiveObject();
-            if(obj && obj.type !== 'image') { 
+            if(obj && !obj.isImageShape) { 
                 obj.set('fill', hex);
                 canvas.renderAll(); 
+            }
+        }
+
+        // --- NEW: CUSTOM GRADIENT COLOR ---
+        function applyCustomGradient() {
+            const obj = canvas.getActiveObject();
+            if(obj && !obj.isImageShape) {
+                const c1 = document.getElementById('grad1').value;
+                const c2 = document.getElementById('grad2').value;
+                
+                const grad = new fabric.Gradient({
+                    type: 'linear', gradientUnits: 'pixels',
+                    coords: { x1: 0, y1: 0, x2: obj.width, y2: obj.height },
+                    colorStops:[ { offset: 0, color: c1 }, { offset: 1, color: c2 } ]
+                });
+                obj.set('fill', grad);
+                canvas.renderAll();
+                saveHistory();
             }
         }
 
