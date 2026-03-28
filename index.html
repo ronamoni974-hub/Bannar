@@ -187,7 +187,7 @@
                                 <span id="fillOpacityDisplay" class="text-[10px] text-gray-400 font-mono">100%</span>
                             </div>
                             <input type="range" id="fillOpacitySlider" min="0" max="1" step="0.05" value="1" oninput="changeFillOpacity(this.value)" onchange="saveHistory()" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500">
-                            <p class="text-[9px] text-gray-400 mt-1">* এটি কমালে স্ট্রোক/বর্ডার স্বচ্ছ হবে না, শুধু ভেতরের রং স্বচ্ছ হবে।</p>
+                            <p class="text-[9px] text-gray-400 mt-1">* এটি কমালে শুধু ভেতরের রং স্বচ্ছ হবে, বর্ডার আগের মতোই থাকবে।</p>
                         </div>
                         
                         <div class="flex justify-between items-center gap-3 pt-2">
@@ -243,7 +243,8 @@
         function saveHistory() {
             if (!isTrackingHistory) return;
             historyData = historyData.slice(0, historyIndex + 1);
-            historyData.push(JSON.stringify(canvas.toJSON(['customImage', 'baseScale', 'currentZoom'])));
+            // Added custom properties required for the pattern zoom to persist
+            historyData.push(JSON.stringify(canvas.toJSON(['customImgWidth', 'customImgHeight', 'baseScale', 'currentZoom'])));
             historyIndex++;
             updateHistoryButtons();
         }
@@ -354,7 +355,7 @@
             }
         }
 
-        // --- NEW: Fill Opacity Separate from Stroke ---
+        // --- Opacity Logic (Fill transparency separate from stroke) ---
         function changeFillOpacity(val) {
             const obj = canvas.getActiveObject();
             if(obj && typeof obj.fill === 'string' && !obj.fill.startsWith('url')) {
@@ -408,7 +409,7 @@
             saveHistory();
         }
 
-        // --- ULTIMATE PATTERN FILL LOGIC FOR IMAGES (Fixes Selection & Frames) ---
+        // --- GLITCH-FREE PATTERN FILL LOGIC (Fixes the Barcode Effect) ---
         document.getElementById('imageLoader').addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -422,7 +423,6 @@
                     // If a Shape is selected
                     if (targetObj && targetObj.selectable && targetObj.type !== 'i-text' && targetObj.type !== 'image') {
                         
-                        // Calculate scale to perfectly cover the shape
                         let scaleX = (targetObj.width * targetObj.scaleX) / img.width;
                         let scaleY = (targetObj.height * targetObj.scaleY) / img.height;
                         if(targetObj.type === 'circle') {
@@ -430,36 +430,36 @@
                         }
                         let baseScale = Math.max(scaleX, scaleY);
                         
-                        // Convert image to a Pattern Source Canvas to make it work natively
-                        let pCanvas = new fabric.StaticCanvas();
-                        pCanvas.add(img);
-                        pCanvas.setDimensions({ width: img.width, height: img.height });
-                        pCanvas.renderAll();
-
+                        // Using Native HTML Image Element avoids the canvas rendering glitch entirely
                         let pattern = new fabric.Pattern({
-                            source: function() { return pCanvas.getElement(); },
+                            source: img.getElement(),
                             repeat: 'no-repeat'
                         });
 
-                        // Center the image inside the shape
+                        // Calculate offset to center the image
                         let objWidth = targetObj.width;
                         let objHeight = targetObj.height;
                         if(targetObj.type === 'circle') { objWidth = objHeight = targetObj.radius * 2; }
                         
-                        let offsetX = (objWidth - (img.width * baseScale / targetObj.scaleX)) / 2;
-                        let offsetY = (objHeight - (img.height * baseScale / targetObj.scaleY)) / 2;
+                        let scaledImgWidth = img.width * (baseScale / targetObj.scaleX);
+                        let scaledImgHeight = img.height * (baseScale / targetObj.scaleY);
+
+                        // Fabric Pattern offset logic (relative to center origin)
+                        let offsetX = (-objWidth / 2) + (objWidth - scaledImgWidth) / 2;
+                        let offsetY = (-objHeight / 2) + (objHeight - scaledImgHeight) / 2;
 
                         pattern.patternTransform = [baseScale / targetObj.scaleX, 0, 0, baseScale / targetObj.scaleY, offsetX, offsetY];
 
                         targetObj.set('fill', pattern);
-                        targetObj.customImage = img; // store original image for zooming
+                        
+                        // Store minimal properties needed for zooming logic (avoids JSON circular errors)
+                        targetObj.customImgWidth = img.width;
+                        targetObj.customImgHeight = img.height;
                         targetObj.baseScale = baseScale;
                         targetObj.currentZoom = 1;
 
                         canvas.requestRenderAll();
-                        
-                        // Show Zoom UI immediately
-                        onObjectSelected({ target: targetObj });
+                        onObjectSelected({ target: targetObj }); // Refresh UI
                         
                     } else {
                         // Regular image drop
@@ -481,16 +481,18 @@
         // --- IMAGE ZOOM LOGIC ---
         function changeImageZoom(zoomValue) {
             const targetObj = canvas.getActiveObject();
-            if(targetObj && targetObj.fill && targetObj.fill.source && targetObj.customImage) {
-                let img = targetObj.customImage;
+            if(targetObj && targetObj.fill && targetObj.fill.source && targetObj.customImgWidth) {
                 let newScale = targetObj.baseScale * parseFloat(zoomValue);
                 
                 let objWidth = targetObj.width;
                 let objHeight = targetObj.height;
                 if(targetObj.type === 'circle') { objWidth = objHeight = targetObj.radius * 2; }
                 
-                let offsetX = (objWidth - (img.width * newScale / targetObj.scaleX)) / 2;
-                let offsetY = (objHeight - (img.height * newScale / targetObj.scaleY)) / 2;
+                let scaledImgWidth = targetObj.customImgWidth * (newScale / targetObj.scaleX);
+                let scaledImgHeight = targetObj.customImgHeight * (newScale / targetObj.scaleY);
+
+                let offsetX = (-objWidth / 2) + (objWidth - scaledImgWidth) / 2;
+                let offsetY = (-objHeight / 2) + (objHeight - scaledImgHeight) / 2;
 
                 targetObj.fill.patternTransform = [newScale / targetObj.scaleX, 0, 0, newScale / targetObj.scaleY, offsetX, offsetY];
                 targetObj.currentZoom = parseFloat(zoomValue);
@@ -538,7 +540,7 @@
                 canvas.requestRenderAll();
                 openTab('toolsTab');
                 onSelectionCleared();
-                historyData = [JSON.stringify(canvas.toJSON(['customImage', 'baseScale', 'currentZoom']))]; historyIndex = 0; isTrackingHistory = true; updateHistoryButtons();
+                historyData = [JSON.stringify(canvas.toJSON(['customImgWidth', 'customImgHeight', 'baseScale', 'currentZoom']))]; historyIndex = 0; isTrackingHistory = true; updateHistoryButtons();
             });
         }
 
@@ -606,7 +608,7 @@
             
             // Check if Pattern Image (Show Zoom)
             const imgZoomBox = document.getElementById('imageZoomContainer');
-            if (obj.fill && obj.fill.source && obj.customImage) {
+            if (obj.fill && obj.fill.source && obj.customImgWidth) {
                 imgZoomBox.style.display = 'block';
                 document.getElementById('imageZoomSlider').value = obj.currentZoom || 1;
                 document.getElementById('imageZoomDisplay').innerText = Math.round((obj.currentZoom || 1)*100) + '%';
