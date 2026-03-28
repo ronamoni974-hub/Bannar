@@ -10,7 +10,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; touch-action: manipulation; background-color: #f1f5f9; }
-        .canvas-container { margin: 0 auto; box-shadow: 0 12px 35px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; background: white; }
+        .canvas-container { margin: 0 auto; box-shadow: 0 12px 35px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; background: white; transition: all 0.3s ease; }
         
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
@@ -51,15 +51,19 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
                 <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 h-32 md:h-40 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
                     <i class="fas fa-plus text-3xl text-indigo-400 mb-2 group-hover:scale-110 transition"></i>
-                    <span class="text-indigo-600 font-bold text-sm">Blank Canvas</span>
+                    <span class="text-indigo-600 font-bold text-sm mt-2">Blank Canvas</span>
                 </div>
                 <div class="bg-gradient-to-tr from-blue-100 to-blue-50 h-32 md:h-40 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
                     <i class="fas fa-briefcase text-3xl text-blue-400 mb-2 group-hover:scale-110 transition"></i>
-                    <span class="text-blue-700 font-bold text-sm">Corporate</span>
+                    <span class="text-blue-700 font-bold text-sm mt-2">Corporate</span>
                 </div>
                 <div class="bg-gradient-to-tr from-pink-100 to-red-50 h-32 md:h-40 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
                     <i class="fas fa-shopping-bag text-3xl text-pink-400 mb-2 group-hover:scale-110 transition"></i>
-                    <span class="text-pink-700 font-bold text-sm">Sale Promo</span>
+                    <span class="text-pink-700 font-bold text-sm mt-2">Sale Promo</span>
+                </div>
+                <div class="bg-gradient-to-tr from-green-100 to-emerald-50 h-32 md:h-40 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
+                    <i class="fas fa-leaf text-3xl text-emerald-400 mb-2 group-hover:scale-110 transition"></i>
+                    <span class="text-emerald-700 font-bold text-sm mt-2">Nature/Eco</span>
                 </div>
             </div>
 
@@ -72,6 +76,31 @@
         </div>
     </div>
 
+    <div id="resizeModal" class="fixed inset-0 bg-black/50 z-[100] hidden flex justify-center items-center backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-2xl w-80 shadow-2xl overflow-hidden transform transition-all scale-100">
+            <div class="p-5 border-b">
+                <h3 class="font-bold text-lg text-gray-800"><i class="fas fa-crop-alt mr-2 text-indigo-500"></i>Resize Canvas</h3>
+            </div>
+            <div class="p-5 grid grid-cols-2 gap-3">
+                <button onclick="setCanvasSize(16/9)" class="bg-gray-50 hover:bg-indigo-50 border hover:border-indigo-200 p-3 rounded-xl flex flex-col items-center gap-2 transition">
+                    <div class="w-10 h-6 bg-indigo-200 rounded-sm"></div><span class="text-xs font-bold text-gray-600">16:9 Banner</span>
+                </button>
+                <button onclick="setCanvasSize(1/1)" class="bg-gray-50 hover:bg-indigo-50 border hover:border-indigo-200 p-3 rounded-xl flex flex-col items-center gap-2 transition">
+                    <div class="w-8 h-8 bg-indigo-200 rounded-sm"></div><span class="text-xs font-bold text-gray-600">1:1 Square</span>
+                </button>
+                <button onclick="setCanvasSize(9/16)" class="bg-gray-50 hover:bg-indigo-50 border hover:border-indigo-200 p-3 rounded-xl flex flex-col items-center gap-2 transition">
+                    <div class="w-6 h-10 bg-indigo-200 rounded-sm"></div><span class="text-xs font-bold text-gray-600">9:16 Story</span>
+                </button>
+                <button onclick="setCanvasSize(4/3)" class="bg-gray-50 hover:bg-indigo-50 border hover:border-indigo-200 p-3 rounded-xl flex flex-col items-center gap-2 transition">
+                    <div class="w-9 h-7 bg-indigo-200 rounded-sm"></div><span class="text-xs font-bold text-gray-600">4:3 Post</span>
+                </button>
+            </div>
+            <div class="p-3 bg-gray-50 border-t flex justify-end">
+                <button onclick="document.getElementById('resizeModal').classList.add('hidden')" class="px-5 py-2 bg-white border rounded-lg font-semibold text-gray-600 hover:bg-gray-100 text-sm">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <div id="editorScreen" class="absolute inset-0 flex flex-col bg-gray-100 z-20 hidden opacity-0 transition-opacity duration-300">
         
         <header class="h-14 bg-white/95 backdrop-blur-md border-b flex items-center justify-between px-3 md:px-4 shadow-sm shrink-0 z-30">
@@ -80,11 +109,14 @@
                 <h1 class="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 hidden md:block">ProBanner Editor</h1>
             </div>
             
-            <div class="flex items-center gap-1 sm:gap-3">
+            <div class="flex items-center gap-2 sm:gap-3">
                 <button onclick="undo()" class="text-gray-500 hover:text-indigo-600 w-8 h-8 flex items-center justify-center rounded-full active:bg-gray-100 transition"><i class="fas fa-undo text-sm"></i></button>
                 <button onclick="redo()" class="text-gray-500 hover:text-indigo-600 w-8 h-8 flex items-center justify-center rounded-full active:bg-gray-100 transition"><i class="fas fa-redo text-sm"></i></button>
                 <div class="w-px h-5 bg-gray-200 mx-1"></div>
-                <button onclick="exportBanner()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-full hover:bg-indigo-700 font-semibold shadow-md shadow-indigo-200 text-sm transition">Export</button>
+                <button onclick="document.getElementById('resizeModal').classList.remove('hidden')" class="text-gray-600 hover:text-indigo-600 bg-gray-100 hover:bg-indigo-50 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition">
+                    <i class="fas fa-expand"></i> <span class="hidden sm:inline">Size</span>
+                </button>
+                <button onclick="exportBanner()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-700 font-bold shadow-md shadow-indigo-200 text-sm transition">Export</button>
             </div>
         </header>
 
@@ -119,9 +151,9 @@
             <div id="propImageShape" class="flex-col items-center shrink-0 hidden">
                 <span class="text-[9px] font-extrabold text-gray-500 mb-1.5 uppercase tracking-widest block text-center">Image Shape</span>
                 <div class="flex items-center gap-2 bg-gray-50 p-1 rounded border border-gray-100">
-                    <button onclick="setImageShape('square')" class="w-7 h-7 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50"><div class="w-4 h-4 bg-indigo-300 border border-indigo-500"></div></button>
-                    <button onclick="setImageShape('rounded')" class="w-7 h-7 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50"><div class="w-4 h-4 bg-indigo-300 border border-indigo-500 rounded-md"></div></button>
-                    <button onclick="setImageShape('circle')" class="w-7 h-7 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50"><div class="w-4 h-4 bg-indigo-300 border border-indigo-500 rounded-full"></div></button>
+                    <button onclick="setImageShape('square')" class="w-7 h-7 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50 transition"><div class="w-4 h-4 bg-indigo-300 border border-indigo-500"></div></button>
+                    <button onclick="setImageShape('rounded')" class="w-7 h-7 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50 transition"><div class="w-4 h-4 bg-indigo-300 border border-indigo-500 rounded-md"></div></button>
+                    <button onclick="setImageShape('circle')" class="w-7 h-7 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50 transition"><div class="w-4 h-4 bg-indigo-300 border border-indigo-500 rounded-full"></div></button>
                 </div>
             </div>
 
@@ -214,9 +246,7 @@
 
     <script>
         let canvas, undoStack = [], redoStack = [], objectInitialState = null, isProgrammaticSelection = false;
-        let isPanMode = false;
-        let lastPanTap = 0;
-        let panLastX = 0, panLastY = 0;
+        let isPanMode = false, lastPanTap = 0, panLastX = 0, panLastY = 0;
 
         const homeScreen = document.getElementById('homeScreen');
         const editorScreen = document.getElementById('editorScreen');
@@ -249,7 +279,7 @@
         function initCanvas() {
             if(!canvas) {
                 let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 32;
-                let canvasHeight = canvasWidth * 0.5625;
+                let canvasHeight = canvasWidth * 0.5625; // default 16:9
 
                 canvas = new fabric.Canvas('bannerCanvas', {
                     width: canvasWidth, height: canvasHeight, backgroundColor: '#ffffff', preserveObjectStacking: true
@@ -262,15 +292,13 @@
                 canvas.on('object:rotating', updateFloatingPosition);
                 canvas.on('selection:cleared', handleDeselection);
                 
-                // Advanced Pan Mode Listeners (Direct Drag / Touch Position)
+                // Advanced Pan Mode Listeners
                 canvas.on('mouse:down', function(opt) {
                     const now = new Date().getTime();
                     const obj = canvas.getActiveObject();
                     
                     // Double Tap to enter Pan Mode
-                    if(now - lastPanTap < 300 && obj && obj.patternImgUrl && !isPanMode) {
-                        togglePanMode(true);
-                    }
+                    if(now - lastPanTap < 300 && obj && obj.patternImgUrl && !isPanMode) togglePanMode(true);
                     lastPanTap = now;
 
                     if(isPanMode && obj && opt.target === obj) {
@@ -281,33 +309,51 @@
 
                 canvas.on('mouse:move', function(opt) {
                     const obj = canvas.getActiveObject();
-                    if(isPanMode && obj && panLastX && panLastY) {
+                    if(isPanMode && obj && panLastX && panLastY && obj.fill.matrix) {
                         var pointer = canvas.getPointer(opt.e);
-                        var deltaX = pointer.x - panLastX;
-                        var deltaY = pointer.y - panLastY;
+                        // Adjust delta based on object scale to make finger tracking 1:1 smooth
+                        var deltaX = (pointer.x - panLastX) / (obj.scaleX || 1);
+                        var deltaY = (pointer.y - panLastY) / (obj.scaleY || 1);
                         
                         obj.patternOffsetX = (obj.patternOffsetX || 0) + deltaX;
                         obj.patternOffsetY = (obj.patternOffsetY || 0) + deltaY;
                         
-                        // Instantly update matrix without reloading image
-                        if(obj.fill && obj.fill.matrix) {
-                            obj.fill.matrix[4] = obj.patternOffsetX;
-                            obj.fill.matrix[5] = obj.patternOffsetY;
-                        }
-                        canvas.renderAll();
+                        let totalScale = (obj.patternBaseScale || 1) * (obj.patternScale || 1);
+                        let cx = (obj.width - (obj.fill.source.width * totalScale)) / 2;
+                        let cy = (obj.height - (obj.fill.source.height * totalScale)) / 2;
+
+                        obj.fill.matrix[4] = cx + obj.patternOffsetX;
+                        obj.fill.matrix[5] = cy + obj.patternOffsetY;
+                        
+                        canvas.requestRenderAll();
                         panLastX = pointer.x; panLastY = pointer.y;
                     }
                 });
 
-                canvas.on('mouse:up', function(opt) {
-                    if(isPanMode && panLastX) {
-                        saveHistory(); // Save position
-                    }
-                    panLastX = 0; panLastY = 0;
-                });
-
+                canvas.on('mouse:up', function(opt) { if(isPanMode && panLastX) saveHistory(); panLastX = 0; panLastY = 0; });
                 saveHistory();
             }
+        }
+
+        // --- CANVAS RESIZE FUNCTION ---
+        function setCanvasSize(ratio) {
+            if(!canvas) return;
+            let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 32;
+            let canvasHeight = canvasWidth / ratio;
+            
+            // Limit height to fit on mobile screen
+            if(canvasHeight > window.innerHeight * 0.6) {
+                canvasHeight = window.innerHeight * 0.6;
+                canvasWidth = canvasHeight * ratio;
+            }
+
+            canvas.setDimensions({ width: canvasWidth, height: canvasHeight });
+            document.getElementById('resizeModal').classList.add('hidden');
+            
+            // Re-center all objects to fit new canvas beautifully
+            canvas.getObjects().forEach(obj => { canvas.centerObject(obj); obj.setCoords(); });
+            canvas.renderAll();
+            saveHistory();
         }
 
         function togglePanMode(force) {
@@ -318,14 +364,12 @@
             const btn = document.getElementById('panToggleBtn');
             
             if(isPanMode) {
-                obj.lockMovementX = true; obj.lockMovementY = true;
-                obj.lockScalingX = true; obj.lockScalingY = true; obj.lockRotation = true;
+                obj.lockMovementX = true; obj.lockMovementY = true; obj.lockScalingX = true; obj.lockScalingY = true; obj.lockRotation = true;
                 btn.classList.add('bg-indigo-600', 'text-white', 'pan-active');
                 btn.classList.remove('bg-indigo-50', 'text-indigo-600');
                 panToast.classList.remove('-translate-y-20');
             } else {
-                obj.lockMovementX = false; obj.lockMovementY = false;
-                obj.lockScalingX = false; obj.lockScalingY = false; obj.lockRotation = false;
+                obj.lockMovementX = false; obj.lockMovementY = false; obj.lockScalingX = false; obj.lockScalingY = false; obj.lockRotation = false;
                 btn.classList.remove('bg-indigo-600', 'text-white', 'pan-active');
                 btn.classList.add('bg-indigo-50', 'text-indigo-600');
                 panToast.classList.add('-translate-y-20');
@@ -368,7 +412,7 @@
             floatingAction.classList.add('hidden');
             propertiesPanel.classList.add('translate-y-full');
             objectInitialState = null;
-            if(isPanMode) togglePanMode(false); // Auto exit pan mode
+            if(isPanMode) togglePanMode(false); 
         }
 
         function updateFloatingPosition() {
@@ -388,7 +432,7 @@
         function configureSmartProperties(obj) {
             const isText = obj.type === 'i-text';
             const isShape = ['rect', 'circle', 'triangle', 'polygon'].includes(obj.type);
-            const isCustomImageShape = obj.isCustomShapeImage; // Uploaded direct image
+            const isCustomImageShape = obj.isCustomShapeImage; 
             const hasPattern = obj.patternImgUrl !== undefined; 
 
             ['propColor', 'propShapeImage', 'propImageShape', 'propReposition', 'propZoom', 'divSep1', 'divSep2', 'propOpacity', 'propStroke', 'propDelete'].forEach(id => {
@@ -402,10 +446,8 @@
                 document.getElementById('divSep1').classList.replace('hidden', 'block');
             } else if (isShape) {
                 
-                if (isCustomImageShape) {
-                    // It's an uploaded image. Allow Shape manipulation (Square/Circle/Rounded)
-                    document.getElementById('propImageShape').classList.replace('hidden', 'flex');
-                } else {
+                if (isCustomImageShape) document.getElementById('propImageShape').classList.replace('hidden', 'flex');
+                else {
                     document.getElementById('propColor').classList.replace('hidden', 'flex');
                     document.getElementById('propShapeImage').classList.replace('hidden', 'flex');
                 }
@@ -435,7 +477,6 @@
             document.getElementById('strokeVal').innerText = obj.strokeWidth || 0;
             if(obj.stroke) document.getElementById('strokeColor').value = obj.stroke;
 
-            // Reset pan mode button UI if needed
             if(!isPanMode) document.getElementById('panToggleBtn').classList.replace('bg-indigo-600', 'bg-indigo-50');
         }
 
@@ -456,7 +497,7 @@
             canvas.add(shape); canvas.setActiveObject(shape); toggleShapeMenu(false);
         }
 
-        // --- DIRECT IMAGE UPLOAD WITH SHAPE & BORDER CAPABILITIES (HIGH QUALITY) ---
+        // --- DIRECT IMAGE UPLOAD FIX (NO ZOOM BUG) ---
         function addMainImage(e) {
             const file = e.target.files[0]; 
             if (!file) return;
@@ -465,7 +506,7 @@
                 const imgEl = new Image();
                 imgEl.src = f.target.result;
                 imgEl.onload = function() {
-                    // Create a Rect instead of Image to allow perfect borders & rounded corners
+                    // Fit image into the canvas reasonably
                     const visualWidth = canvas.width / 2.5;
                     const scale = visualWidth / imgEl.width;
                     const visualHeight = imgEl.height * scale;
@@ -473,16 +514,14 @@
                     const rect = new fabric.Rect({
                         width: visualWidth, height: visualHeight,
                         rx: 0, ry: 0, strokeWidth: 0, stroke: '#000000',
-                        isCustomShapeImage: true, // Flag to show Image Shape controls
+                        isCustomShapeImage: true, 
                         patternImgUrl: f.target.result,
-                        patternScale: 1, patternBaseScale: scale,
+                        patternScale: 1, patternBaseScale: scale, // Base scale perfectly fits it
                         patternOffsetX: 0, patternOffsetY: 0,
                         customOpacity: 1
                     });
                     
-                    canvas.add(rect); 
-                    canvas.centerObject(rect); 
-                    canvas.setActiveObject(rect); 
+                    canvas.add(rect); canvas.centerObject(rect); canvas.setActiveObject(rect); 
                     applyPatternToShape(rect, true);
                 };
             }; 
@@ -493,21 +532,15 @@
             const obj = canvas.getActiveObject();
             if(!obj || !obj.isCustomShapeImage) return;
 
-            if (type === 'square') {
-                obj.set({ rx: 0, ry: 0 });
-            } else if (type === 'rounded') {
-                obj.set({ rx: Math.min(obj.width, obj.height) * 0.1, ry: Math.min(obj.width, obj.height) * 0.1 });
-            } else if (type === 'circle') {
-                const minSide = Math.min(obj.width, obj.height);
-                obj.set({ rx: minSide / 2, ry: minSide / 2 });
-            }
-            canvas.renderAll();
-            saveHistory();
+            if (type === 'square') { obj.set({ rx: 0, ry: 0 }); } 
+            else if (type === 'rounded') { obj.set({ rx: Math.min(obj.width, obj.height) * 0.1, ry: Math.min(obj.width, obj.height) * 0.1 }); } 
+            else if (type === 'circle') { const minSide = Math.min(obj.width, obj.height); obj.set({ width: minSide, height: minSide, rx: minSide / 2, ry: minSide / 2 }); applyPatternToShape(obj); }
+            
+            canvas.renderAll(); saveHistory();
         }
 
         function changeBgColor(color) { canvas.backgroundColor = color; canvas.renderAll(); saveHistory(); }
 
-        // --- SHAPE PATTERN LOGIC ---
         function fillShapeWithImage(e) {
             const file = e.target.files[0]; 
             if(!file) return;
@@ -530,7 +563,7 @@
             }
         }
 
-        // --- ORIGINAL QUALITY PRESERVED ---
+        // --- ORIGINAL QUALITY PATTERN LOGIC ---
         function applyPatternToShape(obj, isInit = false) {
             if(!obj.patternImgUrl) return;
             const imgEl = new Image();
@@ -538,7 +571,7 @@
                 let op = obj.customOpacity !== undefined ? obj.customOpacity : 1;
                 let scale = obj.patternScale || 1;
                 
-                // Draw Original High-Res Image on Temp Canvas to apply Opacity independently of Stroke
+                // Temp canvas is original image size (Preserves 100% Quality)
                 let tempCanvas = document.createElement('canvas');
                 tempCanvas.width = imgEl.width; tempCanvas.height = imgEl.height;
                 let ctx = tempCanvas.getContext('2d');
@@ -553,22 +586,19 @@
                 
                 let totalScale = baseScale * scale;
 
-                const pattern = new fabric.Pattern({
-                    source: tempCanvas,
-                    repeat: 'no-repeat'
-                });
+                const pattern = new fabric.Pattern({ source: tempCanvas, repeat: 'no-repeat' });
                 
-                // Position pattern at center initially or use offsets
+                // Centering math
                 let cx = (obj.width - (imgEl.width * totalScale)) / 2;
                 let cy = (obj.height - (imgEl.height * totalScale)) / 2;
                 
                 pattern.matrix = [totalScale, 0, 0, totalScale, cx + (obj.patternOffsetX || 0), cy + (obj.patternOffsetY || 0)];
                 
                 obj.set('fill', pattern);
-                obj.set('opacity', 1); // Protect stroke opacity!
+                obj.set('opacity', 1); // Protect stroke opacity
                 
                 if(!isInit) configureSmartProperties(obj); 
-                canvas.renderAll();
+                canvas.requestRenderAll();
                 if(isInit) saveHistory();
             };
             imgEl.src = obj.patternImgUrl;
@@ -577,13 +607,10 @@
         function changeColor(hex) {
             const obj = canvas.getActiveObject();
             if(obj) { 
-                obj.set('patternImgUrl', undefined); // Remove pattern if solid color clicked
-                obj.set('baseFillColor', hex);
+                obj.set('patternImgUrl', undefined); obj.set('baseFillColor', hex);
                 let op = obj.customOpacity !== undefined ? obj.customOpacity : 1;
-                obj.set('fill', op < 1 ? hexToRgba(hex, op) : hex);
-                obj.set('opacity', 1);
-                configureSmartProperties(obj);
-                canvas.renderAll(); 
+                obj.set('fill', op < 1 ? hexToRgba(hex, op) : hex); obj.set('opacity', 1);
+                configureSmartProperties(obj); canvas.renderAll(); 
             }
         }
 
@@ -591,15 +618,12 @@
             const obj = canvas.getActiveObject(); if(!obj) return;
             obj.set('customOpacity', parseFloat(val));
             
-            if (obj.type === 'i-text') {
-                obj.set('opacity', parseFloat(val));
-            } else if (obj.patternImgUrl) {
-                applyPatternToShape(obj); // Re-draw high-res pattern with new opacity
-            } else {
+            if (obj.type === 'i-text') { obj.set('opacity', parseFloat(val)); } 
+            else if (obj.patternImgUrl) { applyPatternToShape(obj); } 
+            else {
                 let baseColor = obj.baseFillColor || obj.fill;
                 if(typeof baseColor === 'string' && baseColor.startsWith('#')) {
-                    obj.set('fill', hexToRgba(baseColor, parseFloat(val)));
-                    obj.set('opacity', 1); // Keep stroke visible
+                    obj.set('fill', hexToRgba(baseColor, parseFloat(val))); obj.set('opacity', 1); 
                 }
             }
             canvas.renderAll();
