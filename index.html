@@ -32,7 +32,7 @@
             <button onclick="openEditor()" class="bg-indigo-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-indigo-700 transition shadow-md text-sm">Create Blank</button>
         </header>
 
-        <div class="flex flex-col items-center justify-center mt-10 px-4">
+        <div class="flex flex-col items-center justify-center mt-8 px-4">
             <h2 class="text-3xl md:text-4xl font-extrabold mb-6 text-center text-gray-800">What will you design today?</h2>
             <div class="relative w-full max-w-2xl">
                 <input type="text" placeholder="Search for templates..." class="w-full pl-12 pr-4 py-3 md:py-4 rounded-full border-2 border-gray-200 focus:border-indigo-500 focus:outline-none shadow-sm text-base">
@@ -40,19 +40,32 @@
             </div>
         </div>
 
-        <div class="max-w-6xl mx-auto w-full px-4 mt-12 pb-10">
+        <div class="max-w-6xl mx-auto w-full px-4 mt-10 pb-10">
             <h3 class="text-lg font-bold mb-4 text-gray-700">Categories</h3>
             <div class="flex gap-3 overflow-x-auto pb-2 hide-scroll">
                 <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fas fa-laptop mr-2 text-indigo-500"></i>Web Banner</button>
                 <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fab fa-youtube mr-2 text-red-500"></i>Thumbnail</button>
                 <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fab fa-facebook mr-2 text-blue-600"></i>FB Cover</button>
+                <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fab fa-instagram mr-2 text-pink-500"></i>Insta Post</button>
             </div>
 
-            <h3 class="text-lg font-bold mt-10 mb-4 text-gray-700">Start with a Blank Canvas</h3>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 h-32 md:h-48 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
+            <h3 class="text-lg font-bold mt-10 mb-4 text-gray-700">Trending Templates</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 h-32 md:h-40 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
                     <i class="fas fa-plus text-3xl text-indigo-400 mb-2 group-hover:scale-110 transition"></i>
-                    <span class="text-indigo-600 font-bold text-sm">Custom Banner</span>
+                    <span class="text-indigo-600 font-bold text-sm">Blank Canvas</span>
+                </div>
+                <div class="bg-gradient-to-tr from-blue-100 to-blue-50 h-32 md:h-40 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
+                    <i class="fas fa-briefcase text-3xl text-blue-400 mb-2 group-hover:scale-110 transition"></i>
+                    <span class="text-blue-700 font-bold text-sm">Corporate</span>
+                </div>
+                <div class="bg-gradient-to-tr from-pink-100 to-red-50 h-32 md:h-40 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
+                    <i class="fas fa-shopping-bag text-3xl text-pink-400 mb-2 group-hover:scale-110 transition"></i>
+                    <span class="text-pink-700 font-bold text-sm">Sale Promo</span>
+                </div>
+                <div class="bg-gradient-to-tr from-green-100 to-emerald-50 h-32 md:h-40 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
+                    <i class="fas fa-leaf text-3xl text-emerald-400 mb-2 group-hover:scale-110 transition"></i>
+                    <span class="text-emerald-700 font-bold text-sm">Nature/Eco</span>
                 </div>
             </div>
         </div>
@@ -62,7 +75,7 @@
         
         <header class="h-14 bg-white/95 backdrop-blur-md border-b flex items-center justify-between px-3 md:px-4 shadow-sm shrink-0 z-30">
             <div class="flex items-center gap-2 md:gap-3">
-                <button onclick="closeEditor()" class="text-gray-500 hover:text-indigo-600 w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+                <button onclick="closeEditor()" class="text-gray-500 hover:text-indigo-600 w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center transition"><i class="fas fa-arrow-left"></i></button>
                 <h1 class="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 hidden md:block">ProBanner Editor</h1>
             </div>
             
@@ -93,7 +106,7 @@
             <div id="propShapeImage" class="flex-col items-center shrink-0 hidden">
                 <span class="text-[9px] font-extrabold text-indigo-500 mb-1.5 uppercase tracking-widest">Image Fill</span>
                 <input type="file" id="shapeImgInput" class="hidden" accept="image/*" onchange="fillShapeWithImage(event)">
-                <button onclick="document.getElementById('shapeImgInput').click()" class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded flex items-center justify-center hover:bg-indigo-100 border border-indigo-100"><i class="fas fa-image text-sm"></i></button>
+                <button onclick="document.getElementById('shapeImgInput').click()" class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded flex items-center justify-center hover:bg-indigo-100 border border-indigo-100 transition"><i class="fas fa-image text-sm"></i></button>
             </div>
 
             <div id="propPatternControls" class="flex items-center gap-4 shrink-0 hidden bg-indigo-50/50 p-2 rounded-lg border border-indigo-50">
@@ -123,7 +136,7 @@
 
             <div id="propStroke" class="flex items-center gap-3 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-100">
                 <div class="flex-col items-center">
-                    <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest block text-center">Border Color</span>
+                    <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest block text-center">Border</span>
                     <input type="color" id="strokeColor" onchange="changeStroke(this.value, null)" class="w-6 h-6 cursor-pointer bg-transparent mx-auto block">
                 </div>
                 <div class="flex-col w-20">
@@ -149,11 +162,13 @@
                     <div class="w-10 h-10 rounded-2xl bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition-all"><i class="fas fa-font text-lg"></i></div>
                     <span class="text-[10px] font-bold">Text</span>
                 </button>
-                <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="addImage(event)">
-                <button onclick="document.getElementById('imageInput').click()" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-2 w-16 transition group">
+                
+                <input type="file" id="mainImageInput" class="hidden" accept="image/*" onchange="addMainImage(event)">
+                <button onclick="document.getElementById('mainImageInput').click()" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-2 w-16 transition group">
                     <div class="w-10 h-10 rounded-2xl bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition-all"><i class="fas fa-image text-lg"></i></div>
                     <span class="text-[10px] font-bold">Image</span>
                 </button>
+                
                 <button onclick="toggleShapeMenu(true)" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-2 w-16 transition group">
                     <div class="w-10 h-10 rounded-2xl bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition-all"><i class="fas fa-shapes text-lg"></i></div>
                     <span class="text-[10px] font-bold">Shapes</span>
@@ -161,7 +176,7 @@
                 <div class="flex flex-col items-center text-gray-500 p-2 w-16 relative group">
                     <input type="color" onchange="changeBgColor(this.value)" value="#ffffff" class="w-10 h-10 rounded-2xl cursor-pointer border-0 p-0 absolute top-2 opacity-0 z-10">
                     <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-400 to-indigo-500 mb-1 flex items-center justify-center text-white transition transform group-hover:scale-110 shadow-sm border border-white"><i class="fas fa-fill-drip text-sm"></i></div>
-                    <span class="text-[10px] font-bold">Background</span>
+                    <span class="text-[10px] font-bold">Canvas BG</span>
                 </div>
             </nav>
 
@@ -287,7 +302,7 @@
             const isText = obj.type === 'i-text';
             const isImage = obj.type === 'image';
             const isShape = ['rect', 'circle', 'triangle', 'polygon'].includes(obj.type);
-            const hasPattern = obj.patternImgUrl !== undefined; // Check if custom pattern applied
+            const hasPattern = obj.patternImgUrl !== undefined; 
 
             // Reset UI
             ['propColor', 'propShapeImage', 'propPatternControls', 'divSeparator', 'propOpacity', 'propStroke', 'propDelete'].forEach(id => {
@@ -348,23 +363,32 @@
             canvas.add(shape); canvas.setActiveObject(shape); toggleShapeMenu(false);
         }
 
-        function addImage(e) {
-            const file = e.target.files[0]; if (!file) return;
+        // --- BUG FIX: MAIN IMAGE UPLOAD ---
+        function addMainImage(e) {
+            const file = e.target.files[0]; 
+            if (!file) return;
             const reader = new FileReader();
             reader.onload = function(f) {
                 fabric.Image.fromURL(f.target.result, function(img) {
+                    if(!img) return;
                     img.scaleToWidth(canvas.width / 2.5);
                     img.set({ selectable: true, evented: true, rx: 10, ry: 10, customOpacity: 1 });
-                    canvas.add(img); canvas.centerObject(img); canvas.setActiveObject(img); saveHistory();
+                    canvas.add(img); 
+                    canvas.centerObject(img); 
+                    canvas.setActiveObject(img); 
+                    saveHistory();
                 });
-            }; reader.readAsDataURL(file); e.target.value = ''; 
+            }; 
+            reader.readAsDataURL(file); 
+            e.target.value = ''; // Reset input
         }
 
         function changeBgColor(color) { canvas.backgroundColor = color; canvas.renderAll(); saveHistory(); }
 
         // --- SHAPE PATTERN LOGIC (Position, Scale, Opacity) ---
         function fillShapeWithImage(e) {
-            const file = e.target.files[0]; if(!file) return;
+            const file = e.target.files[0]; 
+            if(!file) return;
             const obj = canvas.getActiveObject();
             if(!obj || !['rect', 'circle', 'triangle', 'polygon'].includes(obj.type)) return;
 
@@ -375,9 +399,9 @@
                     patternScale: 1, patternOffsetX: 0, patternOffsetY: 0
                 });
                 applyPatternToShape(obj);
-                saveHistory();
             };
-            reader.readAsDataURL(file); e.target.value = ''; 
+            reader.readAsDataURL(file); 
+            e.target.value = ''; 
         }
 
         function changePatternProps(prop, val) {
@@ -395,7 +419,7 @@
             const imgEl = new Image();
             imgEl.src = obj.patternImgUrl;
             imgEl.onload = function() {
-                // Apply Opacity to pattern source image using an offscreen canvas
+                // Apply Opacity to pattern source image
                 let op = obj.customOpacity !== undefined ? obj.customOpacity : 1;
                 let tempCanvas = document.createElement('canvas');
                 tempCanvas.width = imgEl.width; tempCanvas.height = imgEl.height;
@@ -404,7 +428,6 @@
                 ctx.drawImage(imgEl, 0, 0);
 
                 let scale = obj.patternScale || 1;
-                // Base scale so image roughly fits shape initially
                 let baseScale = (obj.width / imgEl.width) * scale;
 
                 const pattern = new fabric.Pattern({
@@ -412,13 +435,13 @@
                     repeat: 'no-repeat'
                 });
                 
-                // Matrix: [scaleX, skewX, skewY, scaleY, translateX, translateY]
                 pattern.matrix = [baseScale, 0, 0, baseScale, obj.patternOffsetX || 0, obj.patternOffsetY || 0];
                 obj.set('fill', pattern);
                 obj.set('opacity', 1); // Keep stroke full opacity
                 
-                configureSmartProperties(obj); // Reveal sliders
+                configureSmartProperties(obj); 
                 canvas.renderAll();
+                saveHistory(); // Async save
             };
         }
 
