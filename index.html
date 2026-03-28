@@ -11,18 +11,14 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; touch-action: manipulation; background-color: #f1f5f9; }
         .canvas-container { margin: 0 auto; box-shadow: 0 12px 35px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; background: white; transition: all 0.3s ease; }
-        
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-        
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch { border: 2px solid #e2e8f0; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-        
         input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; outline: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #4f46e5; cursor: pointer; margin-top: -5px; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.4); border: 2px solid white; transition: transform 0.1s; }
         input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #e2e8f0; border-radius: 4px; }
-        
         @keyframes pulse-border { 0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); } 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); } }
         .pan-active { animation: pulse-border 2s infinite; border: 2px solid #4f46e5 !important; background-color: #eef2ff !important; }
     </style>
@@ -119,7 +115,7 @@
 
         <main id="workspace" class="flex-1 relative flex justify-center items-center overflow-hidden w-full p-4 bg-[#eef2f6]">
             <div id="panToast" class="absolute top-4 bg-indigo-600 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg transition-transform duration-300 -translate-y-20 z-50 flex items-center gap-2 pointer-events-none">
-                <i class="fas fa-hand-pointer"></i> Drag inside shape to adjust image.
+                <i class="fas fa-hand-pointer"></i> Drag inside to adjust position.
             </div>
 
             <canvas id="bannerCanvas"></canvas>
@@ -289,12 +285,11 @@
                 canvas.on('object:rotating', updateFloatingPosition);
                 canvas.on('selection:cleared', handleDeselection);
                 
-                // --- 100% BUG FREE PAN MODE FOR PATTERNS ---
+                // --- 100% FIXED PAN MODE (Smooth matrix translation) ---
                 canvas.on('mouse:down', function(opt) {
                     const now = new Date().getTime();
                     const obj = canvas.getActiveObject();
                     
-                    // Double tap to enter Pan Mode (Only for Shapes with Patterns)
                     if(now - lastPanTap < 300 && obj && obj.patternImgUrl && !isPanMode) togglePanMode(true);
                     lastPanTap = now;
 
@@ -306,17 +301,15 @@
 
                 canvas.on('mouse:move', function(opt) {
                     const obj = canvas.getActiveObject();
-                    if(isPanMode && obj && panLastX !== null && panLastY !== null && obj.fill && obj.fill.matrix) {
+                    if(isPanMode && obj && panLastX !== null && panLastY !== null && obj.patternImgUrl) {
                         var pointer = canvas.getPointer(opt.e);
-                        // Scale delta down to match object scale for 1:1 finger tracking
                         var deltaX = (pointer.x - panLastX) / (obj.scaleX || 1);
                         var deltaY = (pointer.y - panLastY) / (obj.scaleY || 1);
                         
                         obj.patternOffsetX = (obj.patternOffsetX || 0) + deltaX;
                         obj.patternOffsetY = (obj.patternOffsetY || 0) + deltaY;
                         
-                        // Rebuild pattern matrix correctly
-                        applyPatternToShape(obj);
+                        applyPatternToShape(obj); // Direct apply, no temp canvas
                         panLastX = pointer.x; panLastY = pointer.y;
                     }
                 });
@@ -423,8 +416,8 @@
 
         function configureSmartProperties(obj) {
             const isText = obj.type === 'i-text';
-            const isMainImage = obj.isMainImage === true; 
             const isShape = ['rect', 'circle', 'triangle', 'polygon'].includes(obj.type);
+            const isCustomImageShape = obj.isCustomShapeImage; 
             const hasPattern = obj.patternImgUrl !== undefined; 
 
             ['propColor', 'propShapeImage', 'propImageShape', 'propReposition', 'propZoom', 'divSep1', 'divSep2', 'propOpacity', 'propStroke', 'propDelete'].forEach(id => {
@@ -436,14 +429,13 @@
                 document.getElementById('propColor').classList.replace('hidden', 'flex');
                 document.getElementById('propStroke').classList.replace('hidden', 'flex');
                 document.getElementById('divSep1').classList.replace('hidden', 'block');
-            } else if (isMainImage) {
-                // Direct Image Mode
-                document.getElementById('propImageShape').classList.replace('hidden', 'flex');
-                document.getElementById('propStroke').classList.replace('hidden', 'flex');
-                document.getElementById('divSep1').classList.replace('hidden', 'block');
             } else if (isShape) {
-                document.getElementById('propColor').classList.replace('hidden', 'flex');
-                document.getElementById('propShapeImage').classList.replace('hidden', 'flex');
+                
+                if (isCustomImageShape) document.getElementById('propImageShape').classList.replace('hidden', 'flex');
+                else {
+                    document.getElementById('propColor').classList.replace('hidden', 'flex');
+                    document.getElementById('propShapeImage').classList.replace('hidden', 'flex');
+                }
                 
                 if(hasPattern) {
                     document.getElementById('divSep1').classList.replace('hidden', 'block');
@@ -490,55 +482,59 @@
             canvas.add(shape); canvas.setActiveObject(shape); toggleShapeMenu(false);
         }
 
-        // --- 100% FIXED: NATIVE DIRECT IMAGE UPLOAD (NO ZOOM BUG) ---
+        // --- 100% FIXED: DIRECT IMAGE UPLOAD (NO ZOOM BUG) ---
         function addMainImage(e) {
             const file = e.target.files[0]; 
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(f) {
-                // Use Native Fabric Image
-                fabric.Image.fromURL(f.target.result, function(img) {
-                    // Scale it so it fits nicely on canvas
-                    img.scaleToWidth(canvas.width / 2.5);
-                    img.set({ 
-                        selectable: true, evented: true, 
-                        isMainImage: true, // Identify as direct image
-                        customOpacity: 1 
+                const imgEl = new Image();
+                imgEl.src = f.target.result;
+                imgEl.onload = function() {
+                    let startWidth = canvas.width / 2;
+                    let initialScale = startWidth / imgEl.width;
+                    let startHeight = imgEl.height * initialScale;
+
+                    const rect = new fabric.Rect({
+                        width: startWidth, height: startHeight,
+                        rx: 0, ry: 0, strokeWidth: 0, stroke: '#000000',
+                        isCustomShapeImage: true, 
+                        patternImgUrl: f.target.result,
+                        patternScale: 1, 
+                        patternBaseScale: initialScale, // Fix base scale
+                        patternOffsetX: 0, patternOffsetY: 0,
+                        customOpacity: 1
                     });
-                    canvas.add(img); 
-                    canvas.centerObject(img); 
-                    canvas.setActiveObject(img); 
+                    
+                    canvas.add(rect); canvas.centerObject(rect); canvas.setActiveObject(rect); 
+                    applyPatternToShape(rect);
                     saveHistory();
-                });
+                };
             }; 
             reader.readAsDataURL(file); 
         }
 
         function setImageShape(type) {
             const obj = canvas.getActiveObject();
-            if(!obj || !obj.isMainImage) return;
+            if(!obj || !obj.isCustomShapeImage) return;
 
-            // Use clipPath for native images to apply shapes without breaking scaling
             if (type === 'square') { 
-                obj.set('clipPath', null); 
+                obj.set({ rx: 0, ry: 0 }); 
             } 
             else if (type === 'rounded') { 
-                const rx = obj.width * 0.1;
-                const clipPath = new fabric.Rect({ width: obj.width, height: obj.height, rx: rx, ry: rx, originX: 'center', originY: 'center' });
-                obj.set('clipPath', clipPath); 
+                obj.set({ rx: Math.min(obj.width, obj.height) * 0.15, ry: Math.min(obj.width, obj.height) * 0.15 }); 
             } 
             else if (type === 'circle') { 
-                const r = Math.min(obj.width, obj.height) / 2;
-                const clipPath = new fabric.Circle({ radius: r, originX: 'center', originY: 'center' });
-                obj.set('clipPath', clipPath); 
+                const minSide = Math.min(obj.width, obj.height); 
+                obj.set({ width: minSide, height: minSide, rx: minSide / 2, ry: minSide / 2 }); 
+                obj.patternBaseScale = null; // Re-calculate to fit new square bounding box
+                applyPatternToShape(obj); 
             }
-            
             canvas.renderAll(); saveHistory();
         }
 
         function changeBgColor(color) { canvas.backgroundColor = color; canvas.renderAll(); saveHistory(); }
 
-        // --- SHAPE PATTERN LOGIC ---
         function fillShapeWithImage(e) {
             const file = e.target.files[0]; 
             if(!file) return;
@@ -547,7 +543,7 @@
 
             const reader = new FileReader();
             reader.onload = function(f) {
-                obj.set({ patternImgUrl: f.target.result, patternScale: 1, patternOffsetX: 0, patternOffsetY: 0 });
+                obj.set({ patternImgUrl: f.target.result, patternScale: 1, patternOffsetX: 0, patternOffsetY: 0, patternBaseScale: null });
                 applyPatternToShape(obj);
             };
             reader.readAsDataURL(file); 
@@ -561,35 +557,32 @@
             }
         }
 
-        function applyPatternToShape(obj, isInit = false) {
+        // --- 100% BUG FREE PATTERN LOGIC ---
+        function applyPatternToShape(obj) {
             if(!obj.patternImgUrl) return;
             const imgEl = new Image();
             imgEl.onload = function() {
-                let op = obj.customOpacity !== undefined ? obj.customOpacity : 1;
-                let scale = obj.patternScale || 1;
                 
-                let tempCanvas = document.createElement('canvas');
-                tempCanvas.width = imgEl.width; tempCanvas.height = imgEl.height;
-                let ctx = tempCanvas.getContext('2d');
-                ctx.globalAlpha = op; 
-                ctx.drawImage(imgEl, 0, 0);
+                if (!obj.patternBaseScale) {
+                    if (obj.isCustomShapeImage) {
+                        obj.patternBaseScale = Math.min(obj.width / imgEl.width, obj.height / imgEl.height);
+                    } else {
+                        obj.patternBaseScale = Math.max(obj.width / imgEl.width, obj.height / imgEl.height);
+                    }
+                }
 
-                // Math to cover shape
-                let baseScale = Math.max(obj.width / imgEl.width, obj.height / imgEl.height);
-                let totalScale = baseScale * scale;
+                let totalScale = obj.patternBaseScale * (obj.patternScale || 1);
                 
                 let cx = (obj.width - (imgEl.width * totalScale)) / 2;
                 let cy = (obj.height - (imgEl.height * totalScale)) / 2;
 
-                const pattern = new fabric.Pattern({ source: tempCanvas, repeat: 'no-repeat' });
+                const pattern = new fabric.Pattern({ source: imgEl, repeat: 'no-repeat' });
                 pattern.matrix = [totalScale, 0, 0, totalScale, cx + (obj.patternOffsetX || 0), cy + (obj.patternOffsetY || 0)];
                 
                 obj.set('fill', pattern);
-                obj.set('opacity', 1); 
+                obj.set('opacity', obj.customOpacity !== undefined ? obj.customOpacity : 1);
                 
-                if(!isInit) configureSmartProperties(obj); 
                 canvas.requestRenderAll();
-                if(isInit) saveHistory();
             };
             imgEl.src = obj.patternImgUrl;
         }
@@ -608,10 +601,8 @@
             const obj = canvas.getActiveObject(); if(!obj) return;
             obj.set('customOpacity', parseFloat(val));
             
-            if (obj.isMainImage || obj.type === 'i-text') { 
+            if (obj.patternImgUrl || obj.type === 'i-text') { 
                 obj.set('opacity', parseFloat(val)); 
-            } else if (obj.patternImgUrl) { 
-                applyPatternToShape(obj); 
             } else {
                 let baseColor = obj.baseFillColor || obj.fill;
                 if(typeof baseColor === 'string' && baseColor.startsWith('#')) {
