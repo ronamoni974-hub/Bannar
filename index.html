@@ -2,76 +2,74 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ProBanner - Banner Maker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; touch-action: manipulation; }
         .canvas-container { margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
-        /* Scrollbar styling */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-gray-100 h-screen overflow-hidden text-gray-800">
+<body class="bg-gray-100 h-[100dvh] w-full overflow-hidden text-gray-800 flex flex-col">
 
-    <div id="homeScreen" class="h-full w-full flex flex-col bg-white overflow-y-auto">
-        <header class="p-6 flex justify-between items-center shadow-sm">
-            <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">ProBanner</h1>
-            <button onclick="openEditor()" class="bg-blue-600 text-white px-6 py-2 rounded-full font-medium hover:bg-blue-700 transition">Create Blank</button>
+    <div id="homeScreen" class="absolute inset-0 flex flex-col bg-white overflow-y-auto z-10">
+        <header class="p-4 md:p-6 flex justify-between items-center shadow-sm">
+            <h1 class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">ProBanner</h1>
+            <button onclick="openEditor()" class="bg-blue-600 text-white px-4 md:px-6 py-2 rounded-full font-medium hover:bg-blue-700 transition text-sm md:text-base">Create Blank</button>
         </header>
 
-        <div class="flex flex-col items-center justify-center mt-12 px-4">
-            <h2 class="text-4xl font-bold mb-6 text-center">What will you design today?</h2>
+        <div class="flex flex-col items-center justify-center mt-8 px-4">
+            <h2 class="text-2xl md:text-4xl font-bold mb-6 text-center">What will you design today?</h2>
             <div class="relative w-full max-w-2xl">
-                <input type="text" placeholder="Search for templates..." class="w-full pl-12 pr-4 py-4 rounded-full border-2 border-gray-200 focus:border-blue-500 focus:outline-none shadow-sm text-lg">
-                <i class="fas fa-search absolute left-5 top-5 text-gray-400 text-xl"></i>
+                <input type="text" placeholder="Search for templates..." class="w-full pl-12 pr-4 py-3 md:py-4 rounded-full border-2 border-gray-200 focus:border-blue-500 focus:outline-none shadow-sm text-base md:text-lg">
+                <i class="fas fa-search absolute left-5 top-4 md:top-5 text-gray-400 text-xl"></i>
             </div>
         </div>
 
-        <div class="max-w-6xl mx-auto w-full px-6 mt-16">
-            <h3 class="text-xl font-semibold mb-4">Categories</h3>
-            <div class="flex gap-4 overflow-x-auto pb-4">
-                <button class="px-6 py-3 bg-gray-100 rounded-lg hover:bg-gray-200 whitespace-nowrap"><i class="fas fa-laptop mr-2 text-blue-500"></i>Web Banner</button>
-                <button class="px-6 py-3 bg-gray-100 rounded-lg hover:bg-gray-200 whitespace-nowrap"><i class="fab fa-youtube mr-2 text-red-500"></i>Thumbnail</button>
-                <button class="px-6 py-3 bg-gray-100 rounded-lg hover:bg-gray-200 whitespace-nowrap"><i class="fab fa-facebook mr-2 text-blue-700"></i>FB Cover</button>
-                <button class="px-6 py-3 bg-gray-100 rounded-lg hover:bg-gray-200 whitespace-nowrap"><i class="fab fa-instagram mr-2 text-pink-500"></i>Insta Post</button>
+        <div class="max-w-6xl mx-auto w-full px-4 mt-10 pb-10">
+            <h3 class="text-lg font-semibold mb-3">Categories</h3>
+            <div class="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+                <button class="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 whitespace-nowrap text-sm"><i class="fas fa-laptop mr-2 text-blue-500"></i>Web Banner</button>
+                <button class="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 whitespace-nowrap text-sm"><i class="fab fa-youtube mr-2 text-red-500"></i>Thumbnail</button>
+                <button class="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 whitespace-nowrap text-sm"><i class="fab fa-facebook mr-2 text-blue-700"></i>FB Cover</button>
             </div>
 
-            <h3 class="text-xl font-semibold mt-10 mb-4">Trending Templates</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-gray-200 h-48 rounded-xl cursor-pointer hover:shadow-lg transition flex items-center justify-center" onclick="openEditor()"><span class="text-gray-500">Tech Banner</span></div>
-                <div class="bg-gray-200 h-48 rounded-xl cursor-pointer hover:shadow-lg transition flex items-center justify-center" onclick="openEditor()"><span class="text-gray-500">Sale Promo</span></div>
-                <div class="bg-gray-200 h-48 rounded-xl cursor-pointer hover:shadow-lg transition flex items-center justify-center" onclick="openEditor()"><span class="text-gray-500">Event Poster</span></div>
+            <h3 class="text-lg font-semibold mt-8 mb-3">Trending Templates</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div class="bg-gray-200 h-32 md:h-48 rounded-xl cursor-pointer hover:shadow-lg transition flex items-center justify-center" onclick="openEditor()"><span class="text-gray-500 text-sm">Tech Banner</span></div>
+                <div class="bg-gray-200 h-32 md:h-48 rounded-xl cursor-pointer hover:shadow-lg transition flex items-center justify-center" onclick="openEditor()"><span class="text-gray-500 text-sm">Sale Promo</span></div>
             </div>
         </div>
     </div>
 
-    <div id="editorScreen" class="h-full w-full flex flex-col hidden bg-gray-100">
-        <div class="h-16 bg-white border-b flex items-center justify-between px-6 shadow-sm z-20">
-            <div class="flex items-center gap-4">
-                <button onclick="closeEditor()" class="text-gray-500 hover:text-gray-800"><i class="fas fa-arrow-left text-xl"></i></button>
-                <h1 class="text-xl font-bold text-gray-800">Untitled Banner</h1>
+    <div id="editorScreen" class="absolute inset-0 flex flex-col hidden bg-gray-100 z-20">
+        <div class="h-14 md:h-16 flex-none bg-white border-b flex items-center justify-between px-3 md:px-6 shadow-sm z-30">
+            <div class="flex items-center gap-2 md:gap-4">
+                <button onclick="closeEditor()" class="text-gray-500 hover:text-gray-800 p-2"><i class="fas fa-arrow-left text-lg"></i></button>
+                <h1 class="text-base md:text-xl font-bold text-gray-800 hidden md:block">Untitled Banner</h1>
             </div>
             
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 md:gap-4">
                 <button onclick="undo()" class="text-gray-600 hover:text-blue-600 p-2" title="Undo"><i class="fas fa-undo"></i></button>
                 <button onclick="redo()" class="text-gray-600 hover:text-blue-600 p-2" title="Redo"><i class="fas fa-redo"></i></button>
-                <button onclick="saveProject()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 font-medium">Save</button>
-                <button onclick="exportBanner()" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-2 rounded-md hover:opacity-90 font-medium shadow-md">
-                    <i class="fas fa-download mr-2"></i>Export
+                <button onclick="saveProject()" class="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-200 font-medium text-sm">Save</button>
+                <button onclick="exportBanner()" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 md:px-5 py-1.5 md:py-2 rounded-md hover:opacity-90 font-medium shadow-md text-sm">
+                    <i class="fas fa-download md:mr-2"></i><span class="hidden md:inline">Export</span>
                 </button>
             </div>
         </div>
 
-        <div class="flex-1 flex overflow-hidden relative">
-            <div class="flex-1 flex justify-center items-center bg-gray-200 overflow-auto p-8 relative" id="canvas-wrapper">
+        <div class="flex-1 min-h-0 flex overflow-hidden relative w-full">
+            
+            <div class="flex-1 h-full flex justify-center items-center bg-gray-200 overflow-auto relative p-4" id="canvas-wrapper">
                 <canvas id="bannerCanvas"></canvas>
                 
-                <div id="floatingAction" class="absolute hidden bg-white rounded-full shadow-lg px-2 py-1 flex gap-2 border border-gray-200 z-50 transform -translate-x-1/2 -translate-y-full mb-2">
+                <div id="floatingAction" class="absolute hidden bg-white rounded-full shadow-lg px-2 py-1 flex gap-2 border border-gray-200 z-40 transform -translate-x-1/2 -translate-y-full mb-2">
                     <button onclick="confirmChanges()" class="text-green-500 hover:bg-green-50 rounded-full w-8 h-8 flex items-center justify-center transition" title="Save & Deselect">
                         <i class="fas fa-check"></i>
                     </button>
@@ -81,82 +79,86 @@
                 </div>
             </div>
 
-            <div id="propertiesPanel" class="w-72 bg-white border-l shadow-sm hidden flex-col z-10 overflow-y-auto">
-                <div class="p-4 border-b">
-                    <h4 class="text-sm font-semibold text-gray-500 uppercase mb-4">Properties</h4>
+            <div id="propertiesPanel" class="absolute right-0 top-0 h-full w-64 bg-white border-l shadow-2xl hidden flex-col z-50 overflow-y-auto transform transition-transform">
+                <div class="p-4 flex flex-col h-full">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h4 class="text-sm font-semibold text-gray-500 uppercase">Properties</h4>
+                        <button onclick="hideProperties()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+                    </div>
                     
-                    <div class="mb-4">
-                        <label class="text-sm font-medium block mb-1">Color</label>
-                        <input type="color" id="itemColor" onchange="changeColor(this.value)" class="w-full h-8 rounded cursor-pointer">
-                    </div>
-
-                    <div class="mb-4 p-3 bg-gray-50 rounded border">
-                        <label class="text-sm font-medium block mb-2">Apply Gradient</label>
-                        <div class="flex gap-2 mb-2">
-                            <input type="color" id="gradColor1" value="#ff0000" class="w-full h-8 cursor-pointer">
-                            <input type="color" id="gradColor2" value="#0000ff" class="w-full h-8 cursor-pointer">
+                    <div class="flex-1 overflow-y-auto pr-1">
+                        <div class="mb-4">
+                            <label class="text-sm font-medium block mb-1">Color</label>
+                            <input type="color" id="itemColor" onchange="changeColor(this.value)" class="w-full h-8 rounded cursor-pointer">
                         </div>
-                        <button onclick="applyGradient()" class="w-full bg-gray-200 text-sm py-1 rounded hover:bg-gray-300">Set Gradient</button>
-                    </div>
 
-                    <div class="mb-4">
-                        <label class="text-sm font-medium flex justify-between">Opacity <span id="opVal">100%</span></label>
-                        <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" onchange="changeOpacity(this.value)" oninput="document.getElementById('opVal').innerText=Math.round(this.value*100)+'%'" class="w-full">
-                    </div>
+                        <div class="mb-4 p-3 bg-gray-50 rounded border">
+                            <label class="text-sm font-medium block mb-2">Apply Gradient</label>
+                            <div class="flex gap-2 mb-2">
+                                <input type="color" id="gradColor1" value="#ff0000" class="w-full h-8 cursor-pointer">
+                                <input type="color" id="gradColor2" value="#0000ff" class="w-full h-8 cursor-pointer">
+                            </div>
+                            <button onclick="applyGradient()" class="w-full bg-gray-200 text-xs py-1.5 rounded hover:bg-gray-300 font-medium">Set Gradient</button>
+                        </div>
 
-                    <div class="mb-4">
-                        <label class="text-sm font-medium block mb-1">Stroke Color & Width</label>
-                        <div class="flex gap-2">
-                            <input type="color" id="strokeColor" onchange="changeStroke(this.value, null)" class="w-10 h-8 cursor-pointer">
-                            <input type="number" id="strokeWidth" value="0" min="0" max="20" onchange="changeStroke(null, this.value)" class="w-full border rounded px-2 text-sm">
+                        <div class="mb-4">
+                            <label class="text-sm font-medium flex justify-between">Opacity <span id="opVal">100%</span></label>
+                            <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" onchange="changeOpacity(this.value)" oninput="document.getElementById('opVal').innerText=Math.round(this.value*100)+'%'" class="w-full">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-sm font-medium block mb-1">Stroke (Color & Width)</label>
+                            <div class="flex gap-2">
+                                <input type="color" id="strokeColor" onchange="changeStroke(this.value, null)" class="w-10 h-8 cursor-pointer">
+                                <input type="number" id="strokeWidth" value="0" min="0" max="20" onchange="changeStroke(null, this.value)" class="w-full border rounded px-2 text-sm">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-sm font-medium block mb-1">Size (Scale)</label>
+                            <input type="range" id="itemScale" min="0.1" max="5" step="0.1" value="1" onchange="changeScale(this.value)" class="w-full">
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="text-sm font-medium block mb-1">Size (Scale)</label>
-                        <input type="range" id="itemScale" min="0.1" max="5" step="0.1" value="1" onchange="changeScale(this.value)" class="w-full">
-                    </div>
-
-                    <button onclick="deleteObject()" class="w-full mt-4 bg-red-50 text-red-600 py-2 rounded-md hover:bg-red-100 transition flex justify-center items-center gap-2 font-medium">
-                        <i class="fas fa-trash"></i> Delete Item
+                    <button onclick="deleteObject()" class="w-full mt-2 bg-red-50 text-red-600 py-2 rounded-md hover:bg-red-100 transition flex justify-center items-center gap-2 font-medium text-sm">
+                        <i class="fas fa-trash"></i> Delete
                     </button>
                 </div>
             </div>
         </div>
 
-        <div class="h-20 bg-white border-t flex items-center justify-center gap-6 shadow-md z-20 px-4 overflow-x-auto">
-            <button onclick="addText()" class="flex flex-col items-center text-gray-600 hover:text-blue-600 p-2 transition min-w-[60px]">
-                <i class="fas fa-font text-2xl mb-1"></i>
-                <span class="text-xs font-medium">Text</span>
+        <div class="h-16 md:h-20 flex-none bg-white border-t flex items-center justify-start md:justify-center gap-4 md:gap-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-30 px-4 overflow-x-auto pb-safe">
+            <button onclick="addText()" class="flex flex-col items-center text-gray-600 hover:text-blue-600 p-2 transition min-w-[50px]">
+                <i class="fas fa-font text-xl md:text-2xl mb-1"></i>
+                <span class="text-[10px] md:text-xs font-medium">Text</span>
             </button>
             
             <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="addImage(event)">
-            <button onclick="document.getElementById('imageInput').click()" class="flex flex-col items-center text-gray-600 hover:text-blue-600 p-2 transition min-w-[60px]">
-                <i class="fas fa-image text-2xl mb-1"></i>
-                <span class="text-xs font-medium">Image</span>
+            <button onclick="document.getElementById('imageInput').click()" class="flex flex-col items-center text-gray-600 hover:text-blue-600 p-2 transition min-w-[50px]">
+                <i class="fas fa-image text-xl md:text-2xl mb-1"></i>
+                <span class="text-[10px] md:text-xs font-medium">Image</span>
             </button>
             
-            <button onclick="addShape('rect')" class="flex flex-col items-center text-gray-600 hover:text-blue-600 p-2 transition min-w-[60px]">
-                <i class="fas fa-square text-2xl mb-1"></i>
-                <span class="text-xs font-medium">Square</span>
+            <button onclick="addShape('rect')" class="flex flex-col items-center text-gray-600 hover:text-blue-600 p-2 transition min-w-[50px]">
+                <i class="fas fa-square text-xl md:text-2xl mb-1"></i>
+                <span class="text-[10px] md:text-xs font-medium">Square</span>
             </button>
 
-            <button onclick="addShape('circle')" class="flex flex-col items-center text-gray-600 hover:text-blue-600 p-2 transition min-w-[60px]">
-                <i class="fas fa-circle text-2xl mb-1"></i>
-                <span class="text-xs font-medium">Circle</span>
+            <button onclick="addShape('circle')" class="flex flex-col items-center text-gray-600 hover:text-blue-600 p-2 transition min-w-[50px]">
+                <i class="fas fa-circle text-xl md:text-2xl mb-1"></i>
+                <span class="text-[10px] md:text-xs font-medium">Circle</span>
             </button>
 
-            <div class="w-px h-10 bg-gray-300 mx-2"></div>
+            <div class="w-px h-8 bg-gray-300 mx-1"></div>
 
-            <div class="flex flex-col items-center justify-center min-w-[60px]">
-                <input type="color" onchange="changeBgColor(this.value)" value="#ffffff" class="w-8 h-8 rounded cursor-pointer border-0 p-0">
-                <span class="text-xs font-medium text-gray-600 mt-1">BG Color</span>
+            <div class="flex flex-col items-center justify-center min-w-[50px]">
+                <input type="color" onchange="changeBgColor(this.value)" value="#ffffff" class="w-6 h-6 md:w-8 md:h-8 rounded cursor-pointer border-0 p-0">
+                <span class="text-[10px] md:text-xs font-medium text-gray-600 mt-1">BG</span>
             </div>
         </div>
     </div>
 
     <script>
-        // --- UI & State Navigation ---
         const homeScreen = document.getElementById('homeScreen');
         const editorScreen = document.getElementById('editorScreen');
         
@@ -171,22 +173,23 @@
             homeScreen.classList.remove('hidden');
         }
 
-        // --- Core Variables ---
         let canvas;
         let undoStack = [];
         let redoStack = [];
-        let objectInitialState = null; // To hold object state before changes for Cross icon
+        let objectInitialState = null;
         let isProgrammaticSelection = false;
 
-        // --- Canvas Initialization ---
         function initCanvas() {
             if(!canvas) {
+                // Responsive width for mobile
+                let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 40;
+                let canvasHeight = canvasWidth * 0.5625; // 16:9 ratio
+
                 canvas = new fabric.Canvas('bannerCanvas', {
-                    width: 800, height: 450, backgroundColor: '#ffffff',
-                    preserveObjectStacking: true // Keep selections from messing up z-index
+                    width: canvasWidth, height: canvasHeight, backgroundColor: '#ffffff',
+                    preserveObjectStacking: true
                 });
 
-                // Events for Floating Controls and Properties
                 canvas.on('selection:created', onObjectSelected);
                 canvas.on('selection:updated', onObjectSelected);
                 canvas.on('object:moving', updateFloatingPosition);
@@ -194,22 +197,19 @@
                 canvas.on('object:rotating', updateFloatingPosition);
                 canvas.on('selection:cleared', onSelectionCleared);
 
-                // Initial State for Undo
                 saveHistory();
             }
         }
 
-        // --- Undo / Redo Logic ---
         function saveHistory() {
-            if(redoStack.length > 0) redoStack = []; // clear redo on new action
+            if(redoStack.length > 0) redoStack = [];
             undoStack.push(JSON.stringify(canvas));
         }
 
         function undo() {
             if (undoStack.length > 1) {
                 redoStack.push(undoStack.pop());
-                const prevState = undoStack[undoStack.length - 1];
-                loadCanvasState(prevState);
+                loadCanvasState(undoStack[undoStack.length - 1]);
             }
         }
 
@@ -229,7 +229,6 @@
             });
         }
 
-        // --- Tick & Cross Logic ---
         const floatingAction = document.getElementById('floatingAction');
 
         function onObjectSelected(e) {
@@ -237,7 +236,6 @@
             const obj = canvas.getActiveObject();
             if(!obj) return;
             
-            // Backup object state when first selected (for Cross action)
             if(e.type === 'selection:created') {
                 objectInitialState = JSON.stringify(obj.toObject());
             }
@@ -251,12 +249,10 @@
             const obj = canvas.getActiveObject();
             if(!obj) return;
             
-            // Calculate absolute position on the wrapper
             const objBound = obj.getBoundingRect();
             const wrapperOffset = document.getElementById('canvas-wrapper').getBoundingClientRect();
             const canvasOffset = document.querySelector('.canvas-container').getBoundingClientRect();
             
-            // Relative to wrapper
             let topPos = (canvasOffset.top - wrapperOffset.top) + objBound.top - 15;
             let leftPos = (canvasOffset.left - wrapperOffset.left) + objBound.left + (objBound.width / 2);
 
@@ -265,35 +261,33 @@
         }
 
         function onSelectionCleared() {
-            hideProperties();
+            // Only hide floating menu, keep properties open if they want, or close it
             floatingAction.classList.add('hidden');
             objectInitialState = null;
         }
 
         function confirmChanges() {
-            // ✅ Tick Clicked: Save to Undo History, then Deselect
             saveHistory();
             canvas.discardActiveObject();
             canvas.renderAll();
+            hideProperties();
         }
 
         function discardChanges() {
-            // ❌ Cross Clicked: Revert to objectInitialState, then Deselect
             const obj = canvas.getActiveObject();
             if(obj && objectInitialState) {
-                // Re-apply original properties
                 const prevData = JSON.parse(objectInitialState);
                 obj.set(prevData);
                 canvas.renderAll();
             }
             canvas.discardActiveObject();
             canvas.renderAll();
+            hideProperties();
         }
 
-        // --- Tools Functions ---
         function addText() {
-            const text = new fabric.IText('Your Text Here', {
-                left: 100, top: 100, fontFamily: 'Inter', fill: '#333333', fontSize: 40
+            const text = new fabric.IText('Your Text', {
+                left: canvas.width/2 - 50, top: canvas.height/2 - 20, fontFamily: 'Inter', fill: '#333333', fontSize: 30
             });
             canvas.add(text);
             canvas.setActiveObject(text);
@@ -301,8 +295,8 @@
 
         function addShape(type) {
             let shape;
-            if(type === 'rect') shape = new fabric.Rect({ left: 150, top: 150, fill: '#3b82f6', width: 100, height: 100, rx: 10, ry: 10 });
-            else if (type === 'circle') shape = new fabric.Circle({ left: 150, top: 150, fill: '#ec4899', radius: 50 });
+            if(type === 'rect') shape = new fabric.Rect({ left: canvas.width/2 - 40, top: canvas.height/2 - 40, fill: '#3b82f6', width: 80, height: 80, rx: 8, ry: 8 });
+            else if (type === 'circle') shape = new fabric.Circle({ left: canvas.width/2 - 40, top: canvas.height/2 - 40, fill: '#ec4899', radius: 40 });
             canvas.add(shape);
             canvas.setActiveObject(shape);
         }
@@ -313,17 +307,15 @@
             reader.onload = function(f) {
                 const data = f.target.result;
                 fabric.Image.fromURL(data, function(img) {
-                    img.scaleToWidth(300);
-                    // Ensure it is selectable and canvas doesn't lock
+                    img.scaleToWidth(canvas.width / 2);
                     img.set({ selectable: true, evented: true }); 
                     canvas.add(img);
                     canvas.centerObject(img);
                     canvas.setActiveObject(img);
-                    saveHistory(); // Auto save on add
+                    saveHistory();
                 });
             };
             if(file) reader.readAsDataURL(file);
-            // Reset input so same file can be uploaded again
             e.target.value = ''; 
         }
 
@@ -333,7 +325,6 @@
             saveHistory();
         }
 
-        // --- Properties Panel Functions ---
         const propPanel = document.getElementById('propertiesPanel');
 
         function showProperties(activeObj) {
@@ -355,10 +346,7 @@
 
         function changeColor(color) {
             const activeObj = canvas.getActiveObject();
-            if(activeObj) {
-                activeObj.set('fill', color);
-                canvas.renderAll();
-            }
+            if(activeObj) { activeObj.set('fill', color); canvas.renderAll(); }
         }
 
         function applyGradient() {
@@ -368,36 +356,22 @@
             
             if(activeObj) {
                 const grad = new fabric.Gradient({
-                    type: 'linear',
-                    gradientUnits: 'pixels',
-                    coords: { x1: 0, y1: 0, x2: activeObj.width, y2: activeObj.height },
-                    colorStops:[
-                        { offset: 0, color: color1 },
-                        { offset: 1, color: color2 }
-                    ]
-                });
-                activeObj.set('fill', grad);
-                canvas.renderAll();
-            } else {
-                // Apply to background if no object selected
-                const grad = new fabric.Gradient({
-                    type: 'linear',
-                    gradientUnits: 'pixels',
-                    coords: { x1: 0, y1: 0, x2: canvas.width, y2: canvas.height },
+                    type: 'linear', gradientUnits: 'pixels', coords: { x1: 0, y1: 0, x2: activeObj.width, y2: activeObj.height },
                     colorStops:[ { offset: 0, color: color1 }, { offset: 1, color: color2 } ]
                 });
-                canvas.backgroundColor = grad;
-                canvas.renderAll();
-                saveHistory();
+                activeObj.set('fill', grad); canvas.renderAll();
+            } else {
+                const grad = new fabric.Gradient({
+                    type: 'linear', gradientUnits: 'pixels', coords: { x1: 0, y1: 0, x2: canvas.width, y2: canvas.height },
+                    colorStops:[ { offset: 0, color: color1 }, { offset: 1, color: color2 } ]
+                });
+                canvas.backgroundColor = grad; canvas.renderAll(); saveHistory();
             }
         }
 
         function changeOpacity(val) {
             const activeObj = canvas.getActiveObject();
-            if(activeObj) {
-                activeObj.set('opacity', parseFloat(val));
-                canvas.renderAll();
-            }
+            if(activeObj) { activeObj.set('opacity', parseFloat(val)); canvas.renderAll(); }
         }
 
         function changeStroke(color, width) {
@@ -412,9 +386,7 @@
         function changeScale(val) {
             const activeObj = canvas.getActiveObject();
             if(activeObj) {
-                activeObj.scale(parseFloat(val));
-                canvas.renderAll();
-                updateFloatingPosition();
+                activeObj.scale(parseFloat(val)); canvas.renderAll(); updateFloatingPosition();
             }
         }
 
@@ -424,19 +396,19 @@
                 canvas.discardActiveObject();
                 activeObjects.forEach(function(object) { canvas.remove(object); });
                 saveHistory();
+                hideProperties();
             }
         }
 
-        // --- Save / Export ---
         function saveProject() {
-            alert("Project saved logically! (State pushed to memory)");
+            alert("Project saved logically!");
             saveHistory();
         }
 
         function exportBanner() {
-            canvas.discardActiveObject(); // Hide bounding boxes
+            canvas.discardActiveObject(); 
             canvas.renderAll();
-            const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 }); // High quality export
+            const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 }); 
             const link = document.createElement('a');
             link.download = 'ProBanner-Design.png';
             link.href = dataURL;
@@ -444,15 +416,6 @@
             link.click();
             document.body.removeChild(link);
         }
-
-        // Keyboard Delete Support
-        window.addEventListener('keydown', function(e) {
-            if(e.key === 'Delete' || e.key === 'Backspace') {
-                if(canvas.getActiveObject() && !canvas.getActiveObject().isEditing) {
-                    deleteObject();
-                }
-            }
-        });
     </script>
 </body>
 </html>
