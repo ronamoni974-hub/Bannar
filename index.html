@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ProBanner - Professional Editor</title>
+    <title>ProBanner - Ultimate Editor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,12 +16,16 @@
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        input[type="color"]::-webkit-color-swatch { border: 2px solid white; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+        input[type="color"]::-webkit-color-swatch { border: 2px solid #e2e8f0; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
         
         input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; outline: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #4f46e5; cursor: pointer; margin-top: -5px; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.4); border: 2px solid white; transition: transform 0.1s; }
         input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #e2e8f0; border-radius: 4px; }
+        
+        /* Pulse Animation for Reposition Mode */
+        @keyframes pulse-border { 0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); } 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); } }
+        .pan-active { animation: pulse-border 2s infinite; border: 2px solid #4f46e5 !important; background-color: #eef2ff !important; }
     </style>
 </head>
 <body class="h-[100dvh] w-full overflow-hidden text-gray-800 flex flex-col selection:bg-indigo-100 relative">
@@ -57,10 +61,6 @@
                     <i class="fas fa-shopping-bag text-3xl text-pink-400 mb-2 group-hover:scale-110 transition"></i>
                     <span class="text-pink-700 font-bold text-sm">Sale Promo</span>
                 </div>
-                <div class="bg-gradient-to-tr from-green-100 to-emerald-50 h-32 md:h-40 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
-                    <i class="fas fa-leaf text-3xl text-emerald-400 mb-2 group-hover:scale-110 transition"></i>
-                    <span class="text-emerald-700 font-bold text-sm">Nature/Eco</span>
-                </div>
             </div>
 
             <h3 class="text-lg font-bold mb-4 text-gray-700">Categories</h3>
@@ -68,7 +68,6 @@
                 <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fas fa-laptop mr-2 text-indigo-500"></i>Web Banner</button>
                 <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fab fa-youtube mr-2 text-red-500"></i>Thumbnail</button>
                 <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fab fa-facebook mr-2 text-blue-600"></i>FB Cover</button>
-                <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fab fa-instagram mr-2 text-pink-500"></i>Insta Post</button>
             </div>
         </div>
     </div>
@@ -90,6 +89,10 @@
         </header>
 
         <main id="workspace" class="flex-1 relative flex justify-center items-center overflow-hidden w-full p-4 bg-[#eef2f6]">
+            <div id="panToast" class="absolute top-4 bg-indigo-600 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg transition-transform duration-300 -translate-y-20 z-50 flex items-center gap-2">
+                <i class="fas fa-hand-pointer"></i> Drag to reposition image. Click outside to finish.
+            </div>
+
             <canvas id="bannerCanvas"></canvas>
             
             <div id="floatingAction" class="absolute hidden bg-white rounded-full shadow-2xl p-1.5 flex gap-2 border border-gray-100 z-50 transition-all scale-95">
@@ -98,35 +101,60 @@
             </div>
         </main>
 
-        <div id="propertiesPanel" class="h-auto py-3 bg-white border-t flex items-center px-4 gap-5 overflow-x-auto hide-scroll shrink-0 shadow-[0_-15px_30px_rgba(0,0,0,0.05)] transition-transform duration-300 translate-y-full absolute bottom-[72px] w-full z-20">
+        <div id="propertiesPanel" class="h-auto py-3 bg-white border-t flex items-center px-4 gap-6 overflow-x-auto hide-scroll shrink-0 shadow-[0_-15px_30px_rgba(0,0,0,0.05)] transition-transform duration-300 translate-y-full absolute bottom-[72px] w-full z-20">
             
             <div id="propColor" class="flex-col items-center shrink-0 hidden">
-                <span class="text-[9px] font-extrabold text-gray-400 mb-1.5 uppercase tracking-widest">Color</span>
-                <input type="color" id="itemColor" onchange="changeColor(this.value)" class="w-8 h-8 cursor-pointer bg-transparent">
+                <span class="text-[9px] font-extrabold text-gray-400 mb-1.5 uppercase tracking-widest block text-center">Color</span>
+                <input type="color" id="itemColor" onchange="changeColor(this.value)" class="w-8 h-8 cursor-pointer bg-transparent block mx-auto">
             </div>
 
             <div id="propShapeImage" class="flex-col items-center shrink-0 hidden">
-                <span class="text-[9px] font-extrabold text-indigo-500 mb-1.5 uppercase tracking-widest">Image Fill</span>
+                <span class="text-[9px] font-extrabold text-indigo-500 mb-1.5 uppercase tracking-widest block text-center">Fill Image</span>
                 <input type="file" id="shapeImgInput" class="hidden" accept="image/*" onclick="this.value=null" onchange="fillShapeWithImage(event)">
                 <button onclick="document.getElementById('shapeImgInput').click()" class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded flex items-center justify-center hover:bg-indigo-100 border border-indigo-100 transition"><i class="fas fa-image text-sm"></i></button>
             </div>
 
-            <div id="propPatternControls" class="flex items-center gap-4 shrink-0 hidden bg-indigo-50/50 p-2 rounded-lg border border-indigo-50">
-                <div class="flex-col shrink-0 w-20">
-                    <span class="text-[9px] font-extrabold text-indigo-600 uppercase tracking-wider mb-1 block">Zoom <span id="scaleVal">1x</span></span>
-                    <input type="range" id="itemPatternScale" min="0.1" max="4" step="0.1" value="1" oninput="changePatternProps('scale', this.value)" class="w-full accent-indigo-500">
-                </div>
-                <div class="flex-col shrink-0 w-20">
-                    <span class="text-[9px] font-extrabold text-indigo-600 uppercase tracking-wider mb-1 block">Move X</span>
-                    <input type="range" id="itemPatternX" min="-300" max="300" step="5" value="0" oninput="changePatternProps('x', this.value)" class="w-full accent-indigo-500">
-                </div>
-                <div class="flex-col shrink-0 w-20">
-                    <span class="text-[9px] font-extrabold text-indigo-600 uppercase tracking-wider mb-1 block">Move Y</span>
-                    <input type="range" id="itemPatternY" min="-300" max="300" step="5" value="0" oninput="changePatternProps('y', this.value)" class="w-full accent-indigo-500">
+            <div id="divSep1" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
+
+            <div id="propImageShape" class="flex-col items-center shrink-0 hidden">
+                <span class="text-[9px] font-extrabold text-gray-500 mb-1.5 uppercase tracking-widest block text-center">Image Shape</span>
+                <div class="flex items-center gap-2 bg-gray-50 p-1 rounded border border-gray-100">
+                    <button onclick="setImageShape('square')" class="w-7 h-7 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50"><div class="w-4 h-4 bg-indigo-300 border border-indigo-500"></div></button>
+                    <button onclick="setImageShape('rounded')" class="w-7 h-7 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50"><div class="w-4 h-4 bg-indigo-300 border border-indigo-500 rounded-md"></div></button>
+                    <button onclick="setImageShape('circle')" class="w-7 h-7 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50"><div class="w-4 h-4 bg-indigo-300 border border-indigo-500 rounded-full"></div></button>
                 </div>
             </div>
 
-            <div id="divSeparator" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
+            <div id="propReposition" class="flex-col items-center shrink-0 hidden">
+                <span class="text-[9px] font-extrabold text-indigo-600 mb-1.5 uppercase tracking-widest block text-center">Adjust</span>
+                <button id="panToggleBtn" onclick="togglePanMode()" class="px-3 h-8 bg-indigo-50 text-indigo-600 rounded border border-indigo-200 text-[10px] font-bold shadow-sm transition flex items-center gap-1">
+                    <i class="fas fa-arrows-alt"></i> Reposition
+                </button>
+            </div>
+
+            <div id="propZoom" class="flex-col shrink-0 w-20 hidden">
+                <div class="flex justify-between w-full mb-1">
+                    <span class="text-[9px] font-extrabold text-indigo-600 uppercase tracking-wider">Zoom</span>
+                    <span id="scaleVal" class="text-[9px] font-bold text-gray-500">1x</span>
+                </div>
+                <input type="range" id="itemPatternScale" min="0.1" max="4" step="0.1" value="1" oninput="changePatternProps('scale', this.value)" class="w-full accent-indigo-500">
+            </div>
+
+            <div id="divSep2" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
+
+            <div id="propStroke" class="flex items-center gap-3 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-100">
+                <div class="flex-col items-center">
+                    <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest block text-center">Border</span>
+                    <input type="color" id="strokeColor" onchange="changeStroke(this.value, null)" class="w-6 h-6 cursor-pointer bg-transparent mx-auto block">
+                </div>
+                <div class="flex-col w-20">
+                    <div class="flex justify-between w-full mb-1">
+                        <span class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">Width</span>
+                        <span id="strokeVal" class="text-[9px] font-bold text-gray-600">0</span>
+                    </div>
+                    <input type="range" id="strokeWidth" min="0" max="40" step="1" value="0" oninput="changeStroke(null, this.value); document.getElementById('strokeVal').innerText=this.value" class="w-full accent-gray-500">
+                </div>
+            </div>
 
             <div id="propOpacity" class="flex-col shrink-0 w-24 hidden">
                 <div class="flex justify-between w-full mb-1">
@@ -136,22 +164,8 @@
                 <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" onchange="changeOpacity(this.value)" oninput="document.getElementById('opVal').innerText=Math.round(this.value*100)+'%'" class="w-full">
             </div>
 
-            <div id="propStroke" class="flex items-center gap-3 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-100">
-                <div class="flex-col items-center">
-                    <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest block text-center">Border Color</span>
-                    <input type="color" id="strokeColor" onchange="changeStroke(this.value, null)" class="w-6 h-6 cursor-pointer bg-transparent mx-auto block">
-                </div>
-                <div class="flex-col w-20">
-                    <div class="flex justify-between w-full mb-1">
-                        <span class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">Size</span>
-                        <span id="strokeVal" class="text-[9px] font-bold text-gray-600">0</span>
-                    </div>
-                    <input type="range" id="strokeWidth" min="0" max="40" step="1" value="0" oninput="changeStroke(null, this.value); document.getElementById('strokeVal').innerText=this.value" class="w-full accent-gray-500">
-                </div>
-            </div>
-
             <div id="propDelete" class="flex-col items-center shrink-0 pr-4 hidden ml-auto">
-                <span class="text-[9px] font-extrabold text-red-400 mb-1.5 uppercase tracking-widest">Delete</span>
+                <span class="text-[9px] font-extrabold text-red-400 mb-1.5 uppercase tracking-widest block text-center">Delete</span>
                 <button onclick="deleteObject()" class="text-red-500 bg-red-50 hover:bg-red-500 hover:text-white w-8 h-8 rounded-full flex items-center justify-center transition shadow-sm border border-red-100">
                     <i class="fas fa-trash-alt text-xs"></i>
                 </button>
@@ -200,6 +214,9 @@
 
     <script>
         let canvas, undoStack = [], redoStack = [], objectInitialState = null, isProgrammaticSelection = false;
+        let isPanMode = false;
+        let lastPanTap = 0;
+        let panLastX = 0, panLastY = 0;
 
         const homeScreen = document.getElementById('homeScreen');
         const editorScreen = document.getElementById('editorScreen');
@@ -208,6 +225,7 @@
         const propertiesPanel = document.getElementById('propertiesPanel');
         const mainMenu = document.getElementById('mainMenu');
         const shapeMenu = document.getElementById('shapeMenu');
+        const panToast = document.getElementById('panToast');
 
         function openEditor() {
             homeScreen.classList.add('opacity-0');
@@ -243,8 +261,76 @@
                 canvas.on('object:scaling', updateFloatingPosition);
                 canvas.on('object:rotating', updateFloatingPosition);
                 canvas.on('selection:cleared', handleDeselection);
+                
+                // Advanced Pan Mode Listeners (Direct Drag / Touch Position)
+                canvas.on('mouse:down', function(opt) {
+                    const now = new Date().getTime();
+                    const obj = canvas.getActiveObject();
+                    
+                    // Double Tap to enter Pan Mode
+                    if(now - lastPanTap < 300 && obj && obj.patternImgUrl && !isPanMode) {
+                        togglePanMode(true);
+                    }
+                    lastPanTap = now;
+
+                    if(isPanMode && obj && opt.target === obj) {
+                        var pointer = canvas.getPointer(opt.e);
+                        panLastX = pointer.x; panLastY = pointer.y;
+                    }
+                });
+
+                canvas.on('mouse:move', function(opt) {
+                    const obj = canvas.getActiveObject();
+                    if(isPanMode && obj && panLastX && panLastY) {
+                        var pointer = canvas.getPointer(opt.e);
+                        var deltaX = pointer.x - panLastX;
+                        var deltaY = pointer.y - panLastY;
+                        
+                        obj.patternOffsetX = (obj.patternOffsetX || 0) + deltaX;
+                        obj.patternOffsetY = (obj.patternOffsetY || 0) + deltaY;
+                        
+                        // Instantly update matrix without reloading image
+                        if(obj.fill && obj.fill.matrix) {
+                            obj.fill.matrix[4] = obj.patternOffsetX;
+                            obj.fill.matrix[5] = obj.patternOffsetY;
+                        }
+                        canvas.renderAll();
+                        panLastX = pointer.x; panLastY = pointer.y;
+                    }
+                });
+
+                canvas.on('mouse:up', function(opt) {
+                    if(isPanMode && panLastX) {
+                        saveHistory(); // Save position
+                    }
+                    panLastX = 0; panLastY = 0;
+                });
+
                 saveHistory();
             }
+        }
+
+        function togglePanMode(force) {
+            const obj = canvas.getActiveObject();
+            if(!obj || !obj.patternImgUrl) return;
+
+            isPanMode = force !== undefined ? force : !isPanMode;
+            const btn = document.getElementById('panToggleBtn');
+            
+            if(isPanMode) {
+                obj.lockMovementX = true; obj.lockMovementY = true;
+                obj.lockScalingX = true; obj.lockScalingY = true; obj.lockRotation = true;
+                btn.classList.add('bg-indigo-600', 'text-white', 'pan-active');
+                btn.classList.remove('bg-indigo-50', 'text-indigo-600');
+                panToast.classList.remove('-translate-y-20');
+            } else {
+                obj.lockMovementX = false; obj.lockMovementY = false;
+                obj.lockScalingX = false; obj.lockScalingY = false; obj.lockRotation = false;
+                btn.classList.remove('bg-indigo-600', 'text-white', 'pan-active');
+                btn.classList.add('bg-indigo-50', 'text-indigo-600');
+                panToast.classList.add('-translate-y-20');
+            }
+            canvas.renderAll();
         }
 
         function hexToRgba(hex, alpha) {
@@ -282,6 +368,7 @@
             floatingAction.classList.add('hidden');
             propertiesPanel.classList.add('translate-y-full');
             objectInitialState = null;
+            if(isPanMode) togglePanMode(false); // Auto exit pan mode
         }
 
         function updateFloatingPosition() {
@@ -301,9 +388,10 @@
         function configureSmartProperties(obj) {
             const isText = obj.type === 'i-text';
             const isShape = ['rect', 'circle', 'triangle', 'polygon'].includes(obj.type);
+            const isCustomImageShape = obj.isCustomShapeImage; // Uploaded direct image
             const hasPattern = obj.patternImgUrl !== undefined; 
 
-            ['propColor', 'propShapeImage', 'propPatternControls', 'divSeparator', 'propOpacity', 'propStroke', 'propDelete'].forEach(id => {
+            ['propColor', 'propShapeImage', 'propImageShape', 'propReposition', 'propZoom', 'divSep1', 'divSep2', 'propOpacity', 'propStroke', 'propDelete'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
                 document.getElementById(id).classList.remove('flex');
             });
@@ -311,21 +399,27 @@
             if(isText) {
                 document.getElementById('propColor').classList.replace('hidden', 'flex');
                 document.getElementById('propStroke').classList.replace('hidden', 'flex');
-                document.getElementById('divSeparator').classList.replace('hidden', 'block');
+                document.getElementById('divSep1').classList.replace('hidden', 'block');
             } else if (isShape) {
-                document.getElementById('propColor').classList.replace('hidden', 'flex');
-                document.getElementById('propShapeImage').classList.replace('hidden', 'flex');
+                
+                if (isCustomImageShape) {
+                    // It's an uploaded image. Allow Shape manipulation (Square/Circle/Rounded)
+                    document.getElementById('propImageShape').classList.replace('hidden', 'flex');
+                } else {
+                    document.getElementById('propColor').classList.replace('hidden', 'flex');
+                    document.getElementById('propShapeImage').classList.replace('hidden', 'flex');
+                }
                 
                 if(hasPattern) {
-                    document.getElementById('propPatternControls').classList.replace('hidden', 'flex');
+                    document.getElementById('divSep1').classList.replace('hidden', 'block');
+                    document.getElementById('propReposition').classList.replace('hidden', 'flex');
+                    document.getElementById('propZoom').classList.replace('hidden', 'flex');
                     document.getElementById('itemPatternScale').value = obj.patternScale || 1;
                     document.getElementById('scaleVal').innerText = (obj.patternScale || 1) + 'x';
-                    document.getElementById('itemPatternX').value = obj.patternOffsetX || 0;
-                    document.getElementById('itemPatternY').value = obj.patternOffsetY || 0;
                 }
                 
                 document.getElementById('propStroke').classList.replace('hidden', 'flex');
-                document.getElementById('divSeparator').classList.replace('hidden', 'block');
+                document.getElementById('divSep2').classList.replace('hidden', 'block');
             }
             
             document.getElementById('propOpacity').classList.replace('hidden', 'flex');
@@ -340,6 +434,9 @@
             document.getElementById('strokeWidth').value = obj.strokeWidth || 0;
             document.getElementById('strokeVal').innerText = obj.strokeWidth || 0;
             if(obj.stroke) document.getElementById('strokeColor').value = obj.stroke;
+
+            // Reset pan mode button UI if needed
+            if(!isPanMode) document.getElementById('panToggleBtn').classList.replace('bg-indigo-600', 'bg-indigo-50');
         }
 
         function confirmChanges() { saveHistory(); canvas.discardActiveObject(); canvas.renderAll(); }
@@ -349,7 +446,7 @@
 
         function addShape(type) {
             let shape; const cx = canvas.width/2 - 40, cy = canvas.height/2 - 40;
-            if(type === 'rect') shape = new fabric.Rect({ left: cx, top: cy, fill: '#3b82f6', width: 80, height: 80, rx: 12, ry: 12 });
+            if(type === 'rect') shape = new fabric.Rect({ left: cx, top: cy, fill: '#3b82f6', width: 80, height: 80, rx: 0, ry: 0 });
             else if (type === 'circle') shape = new fabric.Circle({ left: cx, top: cy, fill: '#ec4899', radius: 45 });
             else if (type === 'triangle') shape = new fabric.Triangle({ left: cx, top: cy, fill: '#eab308', width: 80, height: 80 });
             else if (type === 'star') shape = new fabric.Polygon([{x: 40, y: 0}, {x: 49, y: 28}, {x: 78, y: 28}, {x: 54, y: 46}, {x: 63, y: 73}, {x: 40, y: 56}, {x: 17, y: 73}, {x: 26, y: 46}, {x: 2, y: 28}, {x: 31, y: 28}], { left: cx, top: cy, fill: '#a855f7' });
@@ -359,28 +456,58 @@
             canvas.add(shape); canvas.setActiveObject(shape); toggleShapeMenu(false);
         }
 
-        // --- MAIN IMAGE UPLOAD (Fixed) ---
+        // --- DIRECT IMAGE UPLOAD WITH SHAPE & BORDER CAPABILITIES (HIGH QUALITY) ---
         function addMainImage(e) {
             const file = e.target.files[0]; 
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(f) {
-                fabric.Image.fromURL(f.target.result, function(img) {
-                    if(!img) return;
-                    img.scaleToWidth(canvas.width / 2.5);
-                    img.set({ selectable: true, evented: true, rx: 10, ry: 10, customOpacity: 1 });
-                    canvas.add(img); 
-                    canvas.centerObject(img); 
-                    canvas.setActiveObject(img); 
-                    saveHistory();
-                });
+                const imgEl = new Image();
+                imgEl.src = f.target.result;
+                imgEl.onload = function() {
+                    // Create a Rect instead of Image to allow perfect borders & rounded corners
+                    const visualWidth = canvas.width / 2.5;
+                    const scale = visualWidth / imgEl.width;
+                    const visualHeight = imgEl.height * scale;
+
+                    const rect = new fabric.Rect({
+                        width: visualWidth, height: visualHeight,
+                        rx: 0, ry: 0, strokeWidth: 0, stroke: '#000000',
+                        isCustomShapeImage: true, // Flag to show Image Shape controls
+                        patternImgUrl: f.target.result,
+                        patternScale: 1, patternBaseScale: scale,
+                        patternOffsetX: 0, patternOffsetY: 0,
+                        customOpacity: 1
+                    });
+                    
+                    canvas.add(rect); 
+                    canvas.centerObject(rect); 
+                    canvas.setActiveObject(rect); 
+                    applyPatternToShape(rect, true);
+                };
             }; 
             reader.readAsDataURL(file); 
         }
 
+        function setImageShape(type) {
+            const obj = canvas.getActiveObject();
+            if(!obj || !obj.isCustomShapeImage) return;
+
+            if (type === 'square') {
+                obj.set({ rx: 0, ry: 0 });
+            } else if (type === 'rounded') {
+                obj.set({ rx: Math.min(obj.width, obj.height) * 0.1, ry: Math.min(obj.width, obj.height) * 0.1 });
+            } else if (type === 'circle') {
+                const minSide = Math.min(obj.width, obj.height);
+                obj.set({ rx: minSide / 2, ry: minSide / 2 });
+            }
+            canvas.renderAll();
+            saveHistory();
+        }
+
         function changeBgColor(color) { canvas.backgroundColor = color; canvas.renderAll(); saveHistory(); }
 
-        // --- SHAPE PATTERN LOGIC (Fixed Scaling & Offset) ---
+        // --- SHAPE PATTERN LOGIC ---
         function fillShapeWithImage(e) {
             const file = e.target.files[0]; 
             if(!file) return;
@@ -389,10 +516,7 @@
 
             const reader = new FileReader();
             reader.onload = function(f) {
-                obj.set({
-                    patternImgUrl: f.target.result,
-                    patternScale: 1, patternOffsetX: 0, patternOffsetY: 0
-                });
+                obj.set({ patternImgUrl: f.target.result, patternScale: 1, patternOffsetX: 0, patternOffsetY: 0 });
                 applyPatternToShape(obj);
             };
             reader.readAsDataURL(file); 
@@ -402,58 +526,58 @@
             const obj = canvas.getActiveObject();
             if(obj && obj.patternImgUrl) {
                 if(prop === 'scale') { obj.set('patternScale', parseFloat(val)); document.getElementById('scaleVal').innerText = val + 'x'; }
-                if(prop === 'x') obj.set('patternOffsetX', parseInt(val));
-                if(prop === 'y') obj.set('patternOffsetY', parseInt(val));
                 applyPatternToShape(obj);
             }
         }
 
-        function applyPatternToShape(obj) {
+        // --- ORIGINAL QUALITY PRESERVED ---
+        function applyPatternToShape(obj, isInit = false) {
             if(!obj.patternImgUrl) return;
             const imgEl = new Image();
             imgEl.onload = function() {
                 let op = obj.customOpacity !== undefined ? obj.customOpacity : 1;
                 let scale = obj.patternScale || 1;
                 
-                // Perfect scaling formula for shapes
-                let baseScale = Math.max(obj.width / imgEl.width, obj.height / imgEl.height) * scale;
-                let newWidth = imgEl.width * baseScale;
-                let newHeight = imgEl.height * baseScale;
-
-                if(newWidth <= 0 || newHeight <= 0) return;
-
+                // Draw Original High-Res Image on Temp Canvas to apply Opacity independently of Stroke
                 let tempCanvas = document.createElement('canvas');
-                tempCanvas.width = newWidth; 
-                tempCanvas.height = newHeight;
+                tempCanvas.width = imgEl.width; tempCanvas.height = imgEl.height;
                 let ctx = tempCanvas.getContext('2d');
-                ctx.globalAlpha = op; // Apply opacity to pattern only
-                ctx.drawImage(imgEl, 0, 0, newWidth, newHeight);
+                ctx.globalAlpha = op; 
+                ctx.drawImage(imgEl, 0, 0);
 
-                let offsetX = (obj.width - newWidth) / 2 + (obj.patternOffsetX || 0);
-                let offsetY = (obj.height - newHeight) / 2 + (obj.patternOffsetY || 0);
+                let baseScale = obj.patternBaseScale;
+                if(!baseScale) {
+                    baseScale = Math.max(obj.width / imgEl.width, obj.height / imgEl.height);
+                    obj.patternBaseScale = baseScale;
+                }
+                
+                let totalScale = baseScale * scale;
 
                 const pattern = new fabric.Pattern({
                     source: tempCanvas,
-                    repeat: 'no-repeat',
-                    offsetX: offsetX,
-                    offsetY: offsetY
+                    repeat: 'no-repeat'
                 });
                 
-                obj.set('fill', pattern);
-                obj.set('opacity', 1); // Protect stroke opacity
+                // Position pattern at center initially or use offsets
+                let cx = (obj.width - (imgEl.width * totalScale)) / 2;
+                let cy = (obj.height - (imgEl.height * totalScale)) / 2;
                 
-                configureSmartProperties(obj); 
+                pattern.matrix = [totalScale, 0, 0, totalScale, cx + (obj.patternOffsetX || 0), cy + (obj.patternOffsetY || 0)];
+                
+                obj.set('fill', pattern);
+                obj.set('opacity', 1); // Protect stroke opacity!
+                
+                if(!isInit) configureSmartProperties(obj); 
                 canvas.renderAll();
-                saveHistory();
+                if(isInit) saveHistory();
             };
             imgEl.src = obj.patternImgUrl;
         }
 
-        // --- Properties Updates (Fixed Opacity & Color) ---
         function changeColor(hex) {
             const obj = canvas.getActiveObject();
             if(obj) { 
-                obj.set('patternImgUrl', undefined); // Remove pattern if color clicked
+                obj.set('patternImgUrl', undefined); // Remove pattern if solid color clicked
                 obj.set('baseFillColor', hex);
                 let op = obj.customOpacity !== undefined ? obj.customOpacity : 1;
                 obj.set('fill', op < 1 ? hexToRgba(hex, op) : hex);
@@ -467,10 +591,10 @@
             const obj = canvas.getActiveObject(); if(!obj) return;
             obj.set('customOpacity', parseFloat(val));
             
-            if (obj.type === 'image' || obj.type === 'i-text') {
+            if (obj.type === 'i-text') {
                 obj.set('opacity', parseFloat(val));
             } else if (obj.patternImgUrl) {
-                applyPatternToShape(obj); 
+                applyPatternToShape(obj); // Re-draw high-res pattern with new opacity
             } else {
                 let baseColor = obj.baseFillColor || obj.fill;
                 if(typeof baseColor === 'string' && baseColor.startsWith('#')) {
