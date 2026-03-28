@@ -11,19 +11,14 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; touch-action: manipulation; background-color: #f1f5f9; }
         .canvas-container { margin: 0 auto; box-shadow: 0 12px 35px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; background: white; transition: all 0.3s ease; }
-        
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-        
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch { border: 2px solid #e2e8f0; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-        
         input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; outline: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #4f46e5; cursor: pointer; margin-top: -5px; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.4); border: 2px solid white; transition: transform 0.1s; }
         input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #e2e8f0; border-radius: 4px; }
-        
-        /* Pulse Animation for Reposition Mode */
         @keyframes pulse-border { 0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); } 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); } }
         .pan-active { animation: pulse-border 2s infinite; border: 2px solid #4f46e5 !important; background-color: #eef2ff !important; }
     </style>
@@ -120,7 +115,8 @@
 
         <main id="workspace" class="flex-1 relative flex justify-center items-center overflow-hidden w-full p-4 bg-[#eef2f6]">
             <div id="panToast" class="absolute top-4 bg-indigo-600 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg transition-transform duration-300 -translate-y-20 z-50 flex items-center gap-2">
-                <i class="fas fa-hand-pointer"></i> Drag inside image to adjust. Click outside to finish.
+                <i class="fas fa-hand-pointer"></i> Touch & Drag to reposition.
+                <button onclick="togglePanMode(false)" class="ml-2 bg-white/20 hover:bg-white/40 px-2 py-1 rounded text-[10px]">Done</button>
             </div>
 
             <canvas id="bannerCanvas"></canvas>
@@ -244,7 +240,7 @@
 
     <script>
         let canvas, undoStack = [], redoStack = [], objectInitialState = null, isProgrammaticSelection = false;
-        let isPanMode = false, panLastX = null, panLastY = null;
+        let isPanMode = false, panLastX = null, panLastY = null, lastPanTap = 0;
 
         const homeScreen = document.getElementById('homeScreen');
         const editorScreen = document.getElementById('editorScreen');
@@ -277,7 +273,7 @@
         function initCanvas() {
             if(!canvas) {
                 let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 32;
-                let canvasHeight = canvasWidth * 0.5625; // default 16:9
+                let canvasHeight = canvasWidth * 0.5625;
 
                 canvas = new fabric.Canvas('bannerCanvas', {
                     width: canvasWidth, height: canvasHeight, backgroundColor: '#ffffff', preserveObjectStacking: true
@@ -290,9 +286,15 @@
                 canvas.on('object:rotating', updateFloatingPosition);
                 canvas.on('selection:cleared', handleDeselection);
                 
-                // --- 100% FIXED PAN MODE EVENTS ---
+                // --- 100% FIXED PAN MODE LOGIC ---
                 canvas.on('mouse:down', function(opt) {
+                    const now = new Date().getTime();
                     const obj = canvas.getActiveObject();
+                    
+                    // Double tap activation
+                    if(now - lastPanTap < 300 && obj && obj.patternImgUrl && !isPanMode) togglePanMode(true);
+                    lastPanTap = now;
+
                     if(isPanMode && obj && opt.target === obj) {
                         var pointer = canvas.getPointer(opt.e);
                         panLastX = pointer.x; panLastY = pointer.y;
@@ -301,22 +303,26 @@
 
                 canvas.on('mouse:move', function(opt) {
                     const obj = canvas.getActiveObject();
-                    // Crucial Bug Fix: Using !== null to ensure coordinate 0 works
                     if(isPanMode && obj && panLastX !== null && panLastY !== null && obj.fill && obj.fill.matrix) {
                         var pointer = canvas.getPointer(opt.e);
+                        // Scale delta down to match object scale for 1:1 finger tracking
                         var deltaX = (pointer.x - panLastX) / (obj.scaleX || 1);
                         var deltaY = (pointer.y - panLastY) / (obj.scaleY || 1);
                         
                         obj.patternOffsetX = (obj.patternOffsetX || 0) + deltaX;
                         obj.patternOffsetY = (obj.patternOffsetY || 0) + deltaY;
                         
-                        applyPatternToShape(obj); // Directly apply matrix logic smoothly
+                        // Update matrix directly without re-loading image! (Butter smooth)
+                        obj.fill.matrix[4] += deltaX;
+                        obj.fill.matrix[5] += deltaY;
+                        
+                        canvas.requestRenderAll();
                         panLastX = pointer.x; panLastY = pointer.y;
                     }
                 });
 
                 canvas.on('mouse:up', function(opt) { 
-                    if(isPanMode && panLastX !== null) saveHistory(); 
+                    if(isPanMode && panLastX !== null) { saveHistory(); } 
                     panLastX = null; panLastY = null; 
                 });
 
@@ -324,7 +330,6 @@
             }
         }
 
-        // --- CANVAS RESIZE FUNCTION ---
         function setCanvasSize(ratio) {
             if(!canvas) return;
             let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 32;
@@ -484,7 +489,7 @@
             canvas.add(shape); canvas.setActiveObject(shape); toggleShapeMenu(false);
         }
 
-        // --- FIXED 100% QUALITY DIRECT IMAGE UPLOAD ---
+        // --- 100% ZOOM FIX FOR DIRECT IMAGE UPLOAD ---
         function addMainImage(e) {
             const file = e.target.files[0]; 
             if (!file) return;
@@ -493,9 +498,19 @@
                 const imgEl = new Image();
                 imgEl.src = f.target.result;
                 imgEl.onload = function() {
-                    const visualWidth = canvas.width / 2.5;
-                    const scale = visualWidth / imgEl.width;
-                    const visualHeight = imgEl.height * scale;
+                    
+                    // Maintain original aspect ratio of the uploaded image
+                    const imgAspect = imgEl.width / imgEl.height;
+                    let visualWidth, visualHeight;
+                    
+                    // Fit within canvas gracefully
+                    if (imgAspect > 1) { // Landscape
+                        visualWidth = canvas.width * 0.6;
+                        visualHeight = visualWidth / imgAspect;
+                    } else { // Portrait or Square
+                        visualHeight = canvas.height * 0.6;
+                        visualWidth = visualHeight * imgAspect;
+                    }
 
                     const rect = new fabric.Rect({
                         width: visualWidth, height: visualHeight,
@@ -548,7 +563,6 @@
             }
         }
 
-        // --- 100% PERFECT ZOOM/FIT MATH ---
         function applyPatternToShape(obj, isInit = false) {
             if(!obj.patternImgUrl) return;
             const imgEl = new Image();
@@ -556,27 +570,25 @@
                 let op = obj.customOpacity !== undefined ? obj.customOpacity : 1;
                 let scale = obj.patternScale || 1;
                 
-                // Downscale huge images slightly to prevent mobile crashing, but keep very high quality
-                let cw = imgEl.width, ch = imgEl.height;
-                const MAX = 1800;
-                if(cw > MAX || ch > MAX) { let ratio = Math.min(MAX/cw, MAX/ch); cw *= ratio; ch *= ratio; }
-
                 let tempCanvas = document.createElement('canvas');
-                tempCanvas.width = cw; tempCanvas.height = ch;
+                tempCanvas.width = imgEl.width; tempCanvas.height = imgEl.height;
                 let ctx = tempCanvas.getContext('2d');
                 ctx.globalAlpha = op; 
-                ctx.drawImage(imgEl, 0, 0, cw, ch);
+                ctx.drawImage(imgEl, 0, 0);
 
-                // FIT LOGIC: For direct images use 'contain' (min), for shapes use 'cover' (max)
                 let baseScale;
-                if(obj.isCustomShapeImage) baseScale = Math.min(obj.width / cw, obj.height / ch);
-                else baseScale = Math.max(obj.width / cw, obj.height / ch);
+                // If it's a direct upload, match scale exactly (100% fit). If it's a shape fill, cover the shape.
+                if (obj.isCustomShapeImage) {
+                    baseScale = Math.min(obj.width / imgEl.width, obj.height / imgEl.height);
+                } else {
+                    baseScale = Math.max(obj.width / imgEl.width, obj.height / imgEl.height);
+                }
                 
                 let totalScale = baseScale * scale;
                 const pattern = new fabric.Pattern({ source: tempCanvas, repeat: 'no-repeat' });
                 
-                let cx = (obj.width - (cw * totalScale)) / 2;
-                let cy = (obj.height - (ch * totalScale)) / 2;
+                let cx = (obj.width - (imgEl.width * totalScale)) / 2;
+                let cy = (obj.height - (imgEl.height * totalScale)) / 2;
                 
                 pattern.matrix = [totalScale, 0, 0, totalScale, cx + (obj.patternOffsetX || 0), cy + (obj.patternOffsetY || 0)];
                 
