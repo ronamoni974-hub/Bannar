@@ -41,16 +41,10 @@
         </div>
 
         <div class="max-w-6xl mx-auto w-full px-4 mt-10 pb-10">
-            <h3 class="text-lg font-bold mb-4 text-gray-700">Categories</h3>
-            <div class="flex gap-3 overflow-x-auto pb-2 hide-scroll">
-                <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fas fa-laptop mr-2 text-indigo-500"></i>Web Banner</button>
-                <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fab fa-youtube mr-2 text-red-500"></i>Thumbnail</button>
-                <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fab fa-facebook mr-2 text-blue-600"></i>FB Cover</button>
-                <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fab fa-instagram mr-2 text-pink-500"></i>Insta Post</button>
+            <div class="flex items-center justify-between mb-4 mt-6">
+                <h3 class="text-lg font-bold text-gray-700">Trending Templates</h3>
             </div>
-
-            <h3 class="text-lg font-bold mt-10 mb-4 text-gray-700">Trending Templates</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
                 <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 h-32 md:h-40 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group" onclick="openEditor()">
                     <i class="fas fa-plus text-3xl text-indigo-400 mb-2 group-hover:scale-110 transition"></i>
                     <span class="text-indigo-600 font-bold text-sm">Blank Canvas</span>
@@ -67,6 +61,14 @@
                     <i class="fas fa-leaf text-3xl text-emerald-400 mb-2 group-hover:scale-110 transition"></i>
                     <span class="text-emerald-700 font-bold text-sm">Nature/Eco</span>
                 </div>
+            </div>
+
+            <h3 class="text-lg font-bold mb-4 text-gray-700">Categories</h3>
+            <div class="flex gap-3 overflow-x-auto pb-2 hide-scroll">
+                <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fas fa-laptop mr-2 text-indigo-500"></i>Web Banner</button>
+                <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fab fa-youtube mr-2 text-red-500"></i>Thumbnail</button>
+                <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fab fa-facebook mr-2 text-blue-600"></i>FB Cover</button>
+                <button class="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-indigo-50 hover:border-indigo-100 whitespace-nowrap text-sm font-semibold transition shadow-sm"><i class="fab fa-instagram mr-2 text-pink-500"></i>Insta Post</button>
             </div>
         </div>
     </div>
@@ -105,7 +107,7 @@
 
             <div id="propShapeImage" class="flex-col items-center shrink-0 hidden">
                 <span class="text-[9px] font-extrabold text-indigo-500 mb-1.5 uppercase tracking-widest">Image Fill</span>
-                <input type="file" id="shapeImgInput" class="hidden" accept="image/*" onchange="fillShapeWithImage(event)">
+                <input type="file" id="shapeImgInput" class="hidden" accept="image/*" onclick="this.value=null" onchange="fillShapeWithImage(event)">
                 <button onclick="document.getElementById('shapeImgInput').click()" class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded flex items-center justify-center hover:bg-indigo-100 border border-indigo-100 transition"><i class="fas fa-image text-sm"></i></button>
             </div>
 
@@ -136,7 +138,7 @@
 
             <div id="propStroke" class="flex items-center gap-3 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-100">
                 <div class="flex-col items-center">
-                    <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest block text-center">Border</span>
+                    <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest block text-center">Border Color</span>
                     <input type="color" id="strokeColor" onchange="changeStroke(this.value, null)" class="w-6 h-6 cursor-pointer bg-transparent mx-auto block">
                 </div>
                 <div class="flex-col w-20">
@@ -163,7 +165,7 @@
                     <span class="text-[10px] font-bold">Text</span>
                 </button>
                 
-                <input type="file" id="mainImageInput" class="hidden" accept="image/*" onchange="addMainImage(event)">
+                <input type="file" id="mainImageInput" class="hidden" accept="image/*" onclick="this.value=null" onchange="addMainImage(event)">
                 <button onclick="document.getElementById('mainImageInput').click()" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-2 w-16 transition group">
                     <div class="w-10 h-10 rounded-2xl bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition-all"><i class="fas fa-image text-lg"></i></div>
                     <span class="text-[10px] font-bold">Image</span>
@@ -173,6 +175,7 @@
                     <div class="w-10 h-10 rounded-2xl bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition-all"><i class="fas fa-shapes text-lg"></i></div>
                     <span class="text-[10px] font-bold">Shapes</span>
                 </button>
+                
                 <div class="flex flex-col items-center text-gray-500 p-2 w-16 relative group">
                     <input type="color" onchange="changeBgColor(this.value)" value="#ffffff" class="w-10 h-10 rounded-2xl cursor-pointer border-0 p-0 absolute top-2 opacity-0 z-10">
                     <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-400 to-indigo-500 mb-1 flex items-center justify-center text-white transition transform group-hover:scale-110 shadow-sm border border-white"><i class="fas fa-fill-drip text-sm"></i></div>
@@ -206,7 +209,6 @@
         const mainMenu = document.getElementById('mainMenu');
         const shapeMenu = document.getElementById('shapeMenu');
 
-        // Navigation
         function openEditor() {
             homeScreen.classList.add('opacity-0');
             setTimeout(() => {
@@ -260,13 +262,11 @@
             }
         }
 
-        // History
         function saveHistory() { if(redoStack.length > 0) redoStack = []; undoStack.push(JSON.stringify(canvas)); }
         function undo() { if (undoStack.length > 1) { redoStack.push(undoStack.pop()); loadCanvasState(undoStack[undoStack.length - 1]); } }
         function redo() { if (redoStack.length > 0) { const next = redoStack.pop(); undoStack.push(next); loadCanvasState(next); } }
         function loadCanvasState(json) { isProgrammaticSelection = true; canvas.loadFromJSON(json, function() { canvas.renderAll(); isProgrammaticSelection = false; }); }
 
-        // Selection
         function handleSelection() {
             if(isProgrammaticSelection) return;
             const obj = canvas.getActiveObject();
@@ -300,11 +300,9 @@
 
         function configureSmartProperties(obj) {
             const isText = obj.type === 'i-text';
-            const isImage = obj.type === 'image';
             const isShape = ['rect', 'circle', 'triangle', 'polygon'].includes(obj.type);
             const hasPattern = obj.patternImgUrl !== undefined; 
 
-            // Reset UI
             ['propColor', 'propShapeImage', 'propPatternControls', 'divSeparator', 'propOpacity', 'propStroke', 'propDelete'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
                 document.getElementById(id).classList.remove('flex');
@@ -333,7 +331,6 @@
             document.getElementById('propOpacity').classList.replace('hidden', 'flex');
             document.getElementById('propDelete').classList.replace('hidden', 'flex');
 
-            // Values Update
             if(typeof obj.baseFillColor === 'string') document.getElementById('itemColor').value = obj.baseFillColor;
             else if(typeof obj.fill === 'string' && obj.fill.startsWith('#')) document.getElementById('itemColor').value = obj.fill;
             
@@ -348,7 +345,6 @@
         function confirmChanges() { saveHistory(); canvas.discardActiveObject(); canvas.renderAll(); }
         function discardChanges() { const obj = canvas.getActiveObject(); if(obj && objectInitialState) obj.set(JSON.parse(objectInitialState)); canvas.discardActiveObject(); canvas.renderAll(); }
 
-        // Tools
         function addText() { const text = new fabric.IText('Your Text', { left: canvas.width/2 - 60, top: canvas.height/2 - 20, fontFamily: 'Inter', fill: '#1e293b', fontSize: 36, fontWeight: '800' }); canvas.add(text); canvas.setActiveObject(text); }
 
         function addShape(type) {
@@ -363,7 +359,7 @@
             canvas.add(shape); canvas.setActiveObject(shape); toggleShapeMenu(false);
         }
 
-        // --- BUG FIX: MAIN IMAGE UPLOAD ---
+        // --- MAIN IMAGE UPLOAD (Fixed) ---
         function addMainImage(e) {
             const file = e.target.files[0]; 
             if (!file) return;
@@ -380,12 +376,11 @@
                 });
             }; 
             reader.readAsDataURL(file); 
-            e.target.value = ''; // Reset input
         }
 
         function changeBgColor(color) { canvas.backgroundColor = color; canvas.renderAll(); saveHistory(); }
 
-        // --- SHAPE PATTERN LOGIC (Position, Scale, Opacity) ---
+        // --- SHAPE PATTERN LOGIC (Fixed Scaling & Offset) ---
         function fillShapeWithImage(e) {
             const file = e.target.files[0]; 
             if(!file) return;
@@ -401,7 +396,6 @@
                 applyPatternToShape(obj);
             };
             reader.readAsDataURL(file); 
-            e.target.value = ''; 
         }
 
         function changePatternProps(prop, val) {
@@ -417,35 +411,45 @@
         function applyPatternToShape(obj) {
             if(!obj.patternImgUrl) return;
             const imgEl = new Image();
-            imgEl.src = obj.patternImgUrl;
             imgEl.onload = function() {
-                // Apply Opacity to pattern source image
                 let op = obj.customOpacity !== undefined ? obj.customOpacity : 1;
-                let tempCanvas = document.createElement('canvas');
-                tempCanvas.width = imgEl.width; tempCanvas.height = imgEl.height;
-                let ctx = tempCanvas.getContext('2d');
-                ctx.globalAlpha = op;
-                ctx.drawImage(imgEl, 0, 0);
-
                 let scale = obj.patternScale || 1;
-                let baseScale = (obj.width / imgEl.width) * scale;
+                
+                // Perfect scaling formula for shapes
+                let baseScale = Math.max(obj.width / imgEl.width, obj.height / imgEl.height) * scale;
+                let newWidth = imgEl.width * baseScale;
+                let newHeight = imgEl.height * baseScale;
+
+                if(newWidth <= 0 || newHeight <= 0) return;
+
+                let tempCanvas = document.createElement('canvas');
+                tempCanvas.width = newWidth; 
+                tempCanvas.height = newHeight;
+                let ctx = tempCanvas.getContext('2d');
+                ctx.globalAlpha = op; // Apply opacity to pattern only
+                ctx.drawImage(imgEl, 0, 0, newWidth, newHeight);
+
+                let offsetX = (obj.width - newWidth) / 2 + (obj.patternOffsetX || 0);
+                let offsetY = (obj.height - newHeight) / 2 + (obj.patternOffsetY || 0);
 
                 const pattern = new fabric.Pattern({
                     source: tempCanvas,
-                    repeat: 'no-repeat'
+                    repeat: 'no-repeat',
+                    offsetX: offsetX,
+                    offsetY: offsetY
                 });
                 
-                pattern.matrix = [baseScale, 0, 0, baseScale, obj.patternOffsetX || 0, obj.patternOffsetY || 0];
                 obj.set('fill', pattern);
-                obj.set('opacity', 1); // Keep stroke full opacity
+                obj.set('opacity', 1); // Protect stroke opacity
                 
                 configureSmartProperties(obj); 
                 canvas.renderAll();
-                saveHistory(); // Async save
+                saveHistory();
             };
+            imgEl.src = obj.patternImgUrl;
         }
 
-        // --- Smart Properties Updates ---
+        // --- Properties Updates (Fixed Opacity & Color) ---
         function changeColor(hex) {
             const obj = canvas.getActiveObject();
             if(obj) { 
@@ -466,12 +470,12 @@
             if (obj.type === 'image' || obj.type === 'i-text') {
                 obj.set('opacity', parseFloat(val));
             } else if (obj.patternImgUrl) {
-                applyPatternToShape(obj); // Re-draw pattern with new opacity
+                applyPatternToShape(obj); 
             } else {
                 let baseColor = obj.baseFillColor || obj.fill;
                 if(typeof baseColor === 'string' && baseColor.startsWith('#')) {
                     obj.set('fill', hexToRgba(baseColor, parseFloat(val)));
-                    obj.set('opacity', 1); 
+                    obj.set('opacity', 1); // Keep stroke visible
                 }
             }
             canvas.renderAll();
@@ -480,7 +484,7 @@
         function changeStroke(color, width) {
             const obj = canvas.getActiveObject();
             if(obj) {
-                if(color !== null) { obj.set('stroke', color); if(!obj.strokeWidth) obj.set('strokeWidth', 2); }
+                if(color !== null) { obj.set('stroke', color); if(!obj.strokeWidth) obj.set('strokeWidth', 2); document.getElementById('strokeVal').innerText = obj.strokeWidth; document.getElementById('strokeWidth').value = obj.strokeWidth; }
                 if(width !== null) obj.set('strokeWidth', parseInt(width));
                 canvas.renderAll();
             }
