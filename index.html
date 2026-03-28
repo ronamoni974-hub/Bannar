@@ -11,14 +11,18 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; touch-action: manipulation; background-color: #f1f5f9; }
         .canvas-container { margin: 0 auto; box-shadow: 0 12px 35px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; background: white; transition: all 0.3s ease; }
+        
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch { border: 2px solid #e2e8f0; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        
         input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; outline: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #4f46e5; cursor: pointer; margin-top: -5px; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.4); border: 2px solid white; transition: transform 0.1s; }
         input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #e2e8f0; border-radius: 4px; }
+        
         @keyframes pulse-border { 0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); } 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); } }
         .pan-active { animation: pulse-border 2s infinite; border: 2px solid #4f46e5 !important; background-color: #eef2ff !important; }
     </style>
@@ -114,9 +118,8 @@
         </header>
 
         <main id="workspace" class="flex-1 relative flex justify-center items-center overflow-hidden w-full p-4 bg-[#eef2f6]">
-            <div id="panToast" class="absolute top-4 bg-indigo-600 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg transition-transform duration-300 -translate-y-20 z-50 flex items-center gap-2">
-                <i class="fas fa-hand-pointer"></i> Touch & Drag to reposition.
-                <button onclick="togglePanMode(false)" class="ml-2 bg-white/20 hover:bg-white/40 px-2 py-1 rounded text-[10px]">Done</button>
+            <div id="panToast" class="absolute top-4 bg-indigo-600 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg transition-transform duration-300 -translate-y-20 z-50 flex items-center gap-2 pointer-events-none">
+                <i class="fas fa-hand-pointer"></i> Drag inside shape to adjust image.
             </div>
 
             <canvas id="bannerCanvas"></canvas>
@@ -273,7 +276,7 @@
         function initCanvas() {
             if(!canvas) {
                 let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 32;
-                let canvasHeight = canvasWidth * 0.5625;
+                let canvasHeight = canvasWidth * 0.5625; // default 16:9
 
                 canvas = new fabric.Canvas('bannerCanvas', {
                     width: canvasWidth, height: canvasHeight, backgroundColor: '#ffffff', preserveObjectStacking: true
@@ -286,12 +289,12 @@
                 canvas.on('object:rotating', updateFloatingPosition);
                 canvas.on('selection:cleared', handleDeselection);
                 
-                // --- 100% FIXED PAN MODE LOGIC ---
+                // --- 100% BUG FREE PAN MODE FOR PATTERNS ---
                 canvas.on('mouse:down', function(opt) {
                     const now = new Date().getTime();
                     const obj = canvas.getActiveObject();
                     
-                    // Double tap activation
+                    // Double tap to enter Pan Mode (Only for Shapes with Patterns)
                     if(now - lastPanTap < 300 && obj && obj.patternImgUrl && !isPanMode) togglePanMode(true);
                     lastPanTap = now;
 
@@ -312,11 +315,8 @@
                         obj.patternOffsetX = (obj.patternOffsetX || 0) + deltaX;
                         obj.patternOffsetY = (obj.patternOffsetY || 0) + deltaY;
                         
-                        // Update matrix directly without re-loading image! (Butter smooth)
-                        obj.fill.matrix[4] += deltaX;
-                        obj.fill.matrix[5] += deltaY;
-                        
-                        canvas.requestRenderAll();
+                        // Rebuild pattern matrix correctly
+                        applyPatternToShape(obj);
                         panLastX = pointer.x; panLastY = pointer.y;
                     }
                 });
@@ -423,8 +423,8 @@
 
         function configureSmartProperties(obj) {
             const isText = obj.type === 'i-text';
+            const isMainImage = obj.isMainImage === true; 
             const isShape = ['rect', 'circle', 'triangle', 'polygon'].includes(obj.type);
-            const isCustomImageShape = obj.isCustomShapeImage; 
             const hasPattern = obj.patternImgUrl !== undefined; 
 
             ['propColor', 'propShapeImage', 'propImageShape', 'propReposition', 'propZoom', 'divSep1', 'divSep2', 'propOpacity', 'propStroke', 'propDelete'].forEach(id => {
@@ -436,13 +436,14 @@
                 document.getElementById('propColor').classList.replace('hidden', 'flex');
                 document.getElementById('propStroke').classList.replace('hidden', 'flex');
                 document.getElementById('divSep1').classList.replace('hidden', 'block');
+            } else if (isMainImage) {
+                // Direct Image Mode
+                document.getElementById('propImageShape').classList.replace('hidden', 'flex');
+                document.getElementById('propStroke').classList.replace('hidden', 'flex');
+                document.getElementById('divSep1').classList.replace('hidden', 'block');
             } else if (isShape) {
-                
-                if (isCustomImageShape) document.getElementById('propImageShape').classList.replace('hidden', 'flex');
-                else {
-                    document.getElementById('propColor').classList.replace('hidden', 'flex');
-                    document.getElementById('propShapeImage').classList.replace('hidden', 'flex');
-                }
+                document.getElementById('propColor').classList.replace('hidden', 'flex');
+                document.getElementById('propShapeImage').classList.replace('hidden', 'flex');
                 
                 if(hasPattern) {
                     document.getElementById('divSep1').classList.replace('hidden', 'block');
@@ -489,58 +490,55 @@
             canvas.add(shape); canvas.setActiveObject(shape); toggleShapeMenu(false);
         }
 
-        // --- 100% ZOOM FIX FOR DIRECT IMAGE UPLOAD ---
+        // --- 100% FIXED: NATIVE DIRECT IMAGE UPLOAD (NO ZOOM BUG) ---
         function addMainImage(e) {
             const file = e.target.files[0]; 
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(f) {
-                const imgEl = new Image();
-                imgEl.src = f.target.result;
-                imgEl.onload = function() {
-                    
-                    // Maintain original aspect ratio of the uploaded image
-                    const imgAspect = imgEl.width / imgEl.height;
-                    let visualWidth, visualHeight;
-                    
-                    // Fit within canvas gracefully
-                    if (imgAspect > 1) { // Landscape
-                        visualWidth = canvas.width * 0.6;
-                        visualHeight = visualWidth / imgAspect;
-                    } else { // Portrait or Square
-                        visualHeight = canvas.height * 0.6;
-                        visualWidth = visualHeight * imgAspect;
-                    }
-
-                    const rect = new fabric.Rect({
-                        width: visualWidth, height: visualHeight,
-                        rx: 0, ry: 0, strokeWidth: 0, stroke: '#000000',
-                        isCustomShapeImage: true, 
-                        patternImgUrl: f.target.result,
-                        patternScale: 1, patternOffsetX: 0, patternOffsetY: 0,
-                        customOpacity: 1
+                // Use Native Fabric Image
+                fabric.Image.fromURL(f.target.result, function(img) {
+                    // Scale it so it fits nicely on canvas
+                    img.scaleToWidth(canvas.width / 2.5);
+                    img.set({ 
+                        selectable: true, evented: true, 
+                        isMainImage: true, // Identify as direct image
+                        customOpacity: 1 
                     });
-                    
-                    canvas.add(rect); canvas.centerObject(rect); canvas.setActiveObject(rect); 
-                    applyPatternToShape(rect, true);
-                };
+                    canvas.add(img); 
+                    canvas.centerObject(img); 
+                    canvas.setActiveObject(img); 
+                    saveHistory();
+                });
             }; 
             reader.readAsDataURL(file); 
         }
 
         function setImageShape(type) {
             const obj = canvas.getActiveObject();
-            if(!obj || !obj.isCustomShapeImage) return;
+            if(!obj || !obj.isMainImage) return;
 
-            if (type === 'square') { obj.set({ rx: 0, ry: 0 }); } 
-            else if (type === 'rounded') { obj.set({ rx: Math.min(obj.width, obj.height) * 0.15, ry: Math.min(obj.width, obj.height) * 0.15 }); } 
-            else if (type === 'circle') { const minSide = Math.min(obj.width, obj.height); obj.set({ width: minSide, height: minSide, rx: minSide / 2, ry: minSide / 2 }); applyPatternToShape(obj); }
+            // Use clipPath for native images to apply shapes without breaking scaling
+            if (type === 'square') { 
+                obj.set('clipPath', null); 
+            } 
+            else if (type === 'rounded') { 
+                const rx = obj.width * 0.1;
+                const clipPath = new fabric.Rect({ width: obj.width, height: obj.height, rx: rx, ry: rx, originX: 'center', originY: 'center' });
+                obj.set('clipPath', clipPath); 
+            } 
+            else if (type === 'circle') { 
+                const r = Math.min(obj.width, obj.height) / 2;
+                const clipPath = new fabric.Circle({ radius: r, originX: 'center', originY: 'center' });
+                obj.set('clipPath', clipPath); 
+            }
             
             canvas.renderAll(); saveHistory();
         }
 
         function changeBgColor(color) { canvas.backgroundColor = color; canvas.renderAll(); saveHistory(); }
 
+        // --- SHAPE PATTERN LOGIC ---
         function fillShapeWithImage(e) {
             const file = e.target.files[0]; 
             if(!file) return;
@@ -576,20 +574,14 @@
                 ctx.globalAlpha = op; 
                 ctx.drawImage(imgEl, 0, 0);
 
-                let baseScale;
-                // If it's a direct upload, match scale exactly (100% fit). If it's a shape fill, cover the shape.
-                if (obj.isCustomShapeImage) {
-                    baseScale = Math.min(obj.width / imgEl.width, obj.height / imgEl.height);
-                } else {
-                    baseScale = Math.max(obj.width / imgEl.width, obj.height / imgEl.height);
-                }
-                
+                // Math to cover shape
+                let baseScale = Math.max(obj.width / imgEl.width, obj.height / imgEl.height);
                 let totalScale = baseScale * scale;
-                const pattern = new fabric.Pattern({ source: tempCanvas, repeat: 'no-repeat' });
                 
                 let cx = (obj.width - (imgEl.width * totalScale)) / 2;
                 let cy = (obj.height - (imgEl.height * totalScale)) / 2;
-                
+
+                const pattern = new fabric.Pattern({ source: tempCanvas, repeat: 'no-repeat' });
                 pattern.matrix = [totalScale, 0, 0, totalScale, cx + (obj.patternOffsetX || 0), cy + (obj.patternOffsetY || 0)];
                 
                 obj.set('fill', pattern);
@@ -616,9 +608,11 @@
             const obj = canvas.getActiveObject(); if(!obj) return;
             obj.set('customOpacity', parseFloat(val));
             
-            if (obj.type === 'i-text') { obj.set('opacity', parseFloat(val)); } 
-            else if (obj.patternImgUrl) { applyPatternToShape(obj); } 
-            else {
+            if (obj.isMainImage || obj.type === 'i-text') { 
+                obj.set('opacity', parseFloat(val)); 
+            } else if (obj.patternImgUrl) { 
+                applyPatternToShape(obj); 
+            } else {
                 let baseColor = obj.baseFillColor || obj.fill;
                 if(typeof baseColor === 'string' && baseColor.startsWith('#')) {
                     obj.set('fill', hexToRgba(baseColor, parseFloat(val))); obj.set('opacity', 1); 
