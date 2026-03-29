@@ -25,7 +25,6 @@
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #4f46e5; cursor: pointer; margin-top: -5px; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.4); border: 2px solid white; transition: transform 0.1s; }
         input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #e2e8f0; border-radius: 4px; }
-        .glass { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
         .loader { border: 3px solid #e2e8f0; border-radius: 50%; border-top: 3px solid #4f46e5; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -33,20 +32,6 @@
 <body class="h-[100dvh] w-full overflow-hidden text-gray-800 flex flex-col selection:bg-indigo-100 relative">
 
     <div id="toastContainer" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none w-[90%] max-w-sm"></div>
-
-    <div id="confirmModal" class="fixed inset-0 bg-gray-900/60 z-[10000] hidden flex-col items-center justify-center backdrop-blur-sm transition-opacity opacity-0">
-        <div class="bg-white rounded-2xl w-80 shadow-2xl overflow-hidden transform scale-95 transition-transform" id="confirmBox">
-            <div class="p-6 text-center">
-                <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-exclamation-triangle text-2xl"></i></div>
-                <h3 id="confirmTitle" class="font-bold text-xl text-gray-800 mb-2">Are you sure?</h3>
-                <p id="confirmMessage" class="text-sm text-gray-500 mb-6">This action cannot be undone.</p>
-                <div class="flex gap-3">
-                    <button onclick="closeConfirmModal(false)" class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition">Cancel</button>
-                    <button id="confirmYesBtn" class="flex-1 px-4 py-2.5 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition shadow-md">Yes</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div id="fullLoader" class="fixed inset-0 bg-white z-[999] flex flex-col items-center justify-center transition-opacity duration-300">
         <h1 class="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 tracking-tight mb-4">ProBanner</h1>
@@ -131,8 +116,10 @@
                 <button onclick="openEditor(true, null, null)" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold shadow-md hover:bg-indigo-700 transition text-sm">Open Template Editor</button>
             </div>
             
-            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3">User History</h3>
-            <div id="adminUserList" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden divide-y mb-10"></div>
+            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3">User List & History</h3>
+            <div id="adminUserList" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden divide-y mb-10">
+                <div class="p-4 text-center text-sm text-gray-400">Loading users...</div>
+            </div>
         </div>
     </div>
 
@@ -156,20 +143,20 @@
             <div class="p-4 border-b bg-indigo-50/50">
                 <h4 class="text-xs font-bold text-indigo-800 mb-2 uppercase tracking-widest">Custom Size (px)</h4>
                 <div class="flex items-center gap-2">
-                    <input type="number" id="customWidth" placeholder="W" class="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-sm outline-none">
+                    <input type="number" id="customWidth" placeholder="Width" class="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-sm outline-none focus:border-indigo-500">
                     <span class="text-gray-500 font-bold">X</span>
-                    <input type="number" id="customHeight" placeholder="H" class="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-sm outline-none">
+                    <input type="number" id="customHeight" placeholder="Height" class="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-sm outline-none focus:border-indigo-500">
                     <button onclick="applyCustomSize()" class="bg-indigo-600 text-white px-3 py-1.5 rounded font-bold text-sm hover:bg-indigo-700">Apply</button>
                 </div>
             </div>
 
             <div class="p-4 grid grid-cols-3 gap-3 max-h-[50vh] overflow-y-auto">
-                <button onclick="setCanvasSize(16/9)" class="bg-white border border-gray-200 hover:border-indigo-500 p-2 rounded-xl flex flex-col items-center gap-1"><div class="w-10 h-5 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">16:9 YT</span></button>
-                <button onclick="setCanvasSize(1/1)" class="bg-white border border-gray-200 hover:border-indigo-500 p-2 rounded-xl flex flex-col items-center gap-1"><div class="w-8 h-8 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">1:1 Insta</span></button>
-                <button onclick="setCanvasSize(9/16)" class="bg-white border border-gray-200 hover:border-indigo-500 p-2 rounded-xl flex flex-col items-center gap-1"><div class="w-5 h-10 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">9:16 Story</span></button>
-                <button onclick="setCanvasSize(4/3)" class="bg-white border border-gray-200 hover:border-indigo-500 p-2 rounded-xl flex flex-col items-center gap-1"><div class="w-10 h-7 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">4:3 Post</span></button>
-                <button onclick="setCanvasSize(21/9)" class="bg-white border border-gray-200 hover:border-indigo-500 p-2 rounded-xl flex flex-col items-center gap-1"><div class="w-12 h-5 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">21:9 Cover</span></button>
-                <button onclick="setCanvasSize(3/2)" class="bg-white border border-gray-200 hover:border-indigo-500 p-2 rounded-xl flex flex-col items-center gap-1"><div class="w-9 h-6 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">3:2 Web</span></button>
+                <button onclick="setCanvasSize(16/9)" class="bg-white border border-gray-200 hover:border-indigo-500 p-2 rounded-xl flex flex-col items-center gap-1 transition"><div class="w-10 h-5 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">16:9 YT</span></button>
+                <button onclick="setCanvasSize(1/1)" class="bg-white border border-gray-200 hover:border-indigo-500 p-2 rounded-xl flex flex-col items-center gap-1 transition"><div class="w-8 h-8 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">1:1 Insta</span></button>
+                <button onclick="setCanvasSize(9/16)" class="bg-white border border-gray-200 hover:border-indigo-500 p-2 rounded-xl flex flex-col items-center gap-1 transition"><div class="w-5 h-10 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">9:16 Story</span></button>
+                <button onclick="setCanvasSize(4/3)" class="bg-white border border-gray-200 hover:border-indigo-500 p-2 rounded-xl flex flex-col items-center gap-1 transition"><div class="w-10 h-7 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">4:3 Post</span></button>
+                <button onclick="setCanvasSize(21/9)" class="bg-white border border-gray-200 hover:border-indigo-500 p-2 rounded-xl flex flex-col items-center gap-1 transition"><div class="w-12 h-5 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">21:9 Cover</span></button>
+                <button onclick="setCanvasSize(3/2)" class="bg-white border border-gray-200 hover:border-indigo-500 p-2 rounded-xl flex flex-col items-center gap-1 transition"><div class="w-9 h-6 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">3:2 Web</span></button>
             </div>
         </div>
     </div>
@@ -188,6 +175,20 @@
         </div>
     </div>
 
+    <div id="confirmModal" class="fixed inset-0 bg-gray-900/60 z-[10000] hidden flex-col items-center justify-center backdrop-blur-sm transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-80 shadow-2xl overflow-hidden transform scale-95 transition-transform" id="confirmBox">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-exclamation-triangle text-2xl"></i></div>
+                <h3 id="confirmTitle" class="font-bold text-xl text-gray-800 mb-2">Are you sure?</h3>
+                <p id="confirmMessage" class="text-sm text-gray-500 mb-6">This action cannot be undone.</p>
+                <div class="flex gap-3">
+                    <button onclick="closeConfirmModal(false)" class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition">Cancel</button>
+                    <button id="confirmYesBtn" class="flex-1 px-4 py-2.5 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition shadow-md">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="editorScreen" class="absolute inset-0 flex flex-col bg-gray-100 z-30 hidden opacity-0 transition-opacity duration-300">
         
         <header class="h-14 bg-white/95 backdrop-blur-md border-b flex items-center justify-between px-3 md:px-4 shadow-sm shrink-0 z-30">
@@ -200,7 +201,9 @@
                 <button onclick="undo()" class="text-gray-500 hover:text-indigo-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition"><i class="fas fa-undo text-sm"></i></button>
                 <button onclick="redo()" class="text-gray-500 hover:text-indigo-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition"><i class="fas fa-redo text-sm"></i></button>
                 <div class="w-px h-5 bg-gray-300 mx-1"></div>
-                <button onclick="document.getElementById('resizeModal').classList.remove('hidden')" class="text-gray-600 hover:text-indigo-600 bg-gray-100 hover:bg-indigo-50 px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition"><i class="fas fa-expand"></i> <span class="hidden sm:inline">Size</span></button>
+                <button onclick="document.getElementById('resizeModal').classList.remove('hidden')" class="text-gray-600 hover:text-indigo-600 bg-gray-100 hover:bg-indigo-50 px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition">
+                    <i class="fas fa-expand"></i> <span class="hidden sm:inline">Size</span>
+                </button>
                 <button id="saveCloudBtn" onclick="saveToCloud()" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-200 font-bold text-xs transition"><i class="fas fa-cloud-upload-alt mr-1"></i> Save</button>
                 <button onclick="exportBanner()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 font-bold shadow-md shadow-indigo-200 text-xs transition"><i class="fas fa-download md:mr-1"></i> <span class="hidden md:inline">Export</span></button>
             </div>
@@ -208,7 +211,7 @@
 
         <div id="savingOverlay" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center">
             <div class="loader mb-3"></div>
-            <p id="savingText" class="font-bold text-indigo-600 text-sm">Uploading assets...</p>
+            <p id="savingText" class="font-bold text-indigo-600 text-sm">Uploading assets to Cloud...</p>
         </div>
 
         <main id="workspace" class="flex-1 relative flex justify-center items-center overflow-hidden w-full p-4 bg-[#eef2f6] touch-none">
@@ -219,7 +222,7 @@
             
             <div id="propGroup" class="flex-col shrink-0 hidden">
                 <span class="text-[9px] font-extrabold text-indigo-500 mb-1 uppercase tracking-widest pl-1">Action</span>
-                <button onclick="groupSelection()" class="bg-indigo-100 text-indigo-700 font-bold px-4 py-1.5 rounded-lg text-xs hover:bg-indigo-200 transition"><i class="fas fa-object-group mr-1"></i> Group</button>
+                <button onclick="groupSelection()" class="bg-indigo-100 text-indigo-700 font-bold px-4 py-1.5 rounded-lg text-xs hover:bg-indigo-200 transition"><i class="fas fa-object-group mr-1"></i> Group Items</button>
             </div>
             <div id="propUngroup" class="flex-col shrink-0 hidden">
                 <span class="text-[9px] font-extrabold text-orange-500 mb-1 uppercase tracking-widest pl-1">Action</span>
@@ -238,7 +241,9 @@
 
             <div id="propFont" class="flex-col shrink-0 hidden w-[90px]">
                 <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest pl-1">Font Style</span>
-                <button onclick="openFontModal()" id="currentFontBtn" class="w-full bg-gray-50 border border-gray-200 hover:border-indigo-300 text-gray-700 text-[11px] font-bold rounded-lg px-2 py-1.5 outline-none transition truncate flex justify-between items-center"><span>Inter</span> <i class="fas fa-chevron-down text-[9px] text-gray-400"></i></button>
+                <button onclick="openFontModal()" id="currentFontBtn" class="w-full bg-gray-50 border border-gray-200 hover:border-indigo-300 text-gray-700 text-[11px] font-bold rounded-lg px-2 py-1.5 outline-none transition truncate flex justify-between items-center">
+                    <span>Inter</span> <i class="fas fa-chevron-down text-[9px] text-gray-400"></i>
+                </button>
             </div>
 
             <div id="divSepText" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
@@ -286,7 +291,7 @@
             <div id="propStroke" class="flex items-center gap-2 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-200">
                 <div class="flex-col items-center">
                     <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest block text-center">Border</span>
-                    <input type="color" id="strokeColor" oninput="changeStroke(this.value, null)" class="w-5 h-5 cursor-pointer bg-transparent mx-auto block">
+                    <input type="color" id="strokeColor" oninput="changeStroke(this.value, null)" onchange="saveHistory()" class="w-5 h-5 cursor-pointer bg-transparent mx-auto block">
                 </div>
                 <div class="flex-col w-16">
                     <div class="flex justify-between w-full mb-1">
@@ -299,19 +304,12 @@
 
             <div id="divSep3" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
 
-            <div id="propOpacity" class="flex-col shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-200">
-                <span class="text-[9px] font-extrabold text-gray-500 mb-1 uppercase tracking-widest text-center block">Opacity</span>
-                <div class="flex items-center gap-1.5">
-                    <select id="opacityDirection" class="text-[9px] py-1 px-1 bg-white border border-gray-300 rounded outline-none text-gray-700 font-bold">
-                        <option value="full">Full (Normal)</option>
-                        <option value="right">Left to Right</option>
-                        <option value="left">Right to Left</option>
-                        <option value="bottom">Top to Bottom</option>
-                        <option value="top">Bottom to Top</option>
-                    </select>
-                    <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" oninput="applyOpacityDirection()" class="w-12 accent-gray-500">
-                    <button onclick="applyOpacityDirection()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded text-[9px] font-bold">Apply</button>
+            <div id="propOpacity" class="flex-col shrink-0 w-20 hidden">
+                <div class="flex justify-between w-full mb-1">
+                    <span class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">Opacity</span>
+                    <span id="opVal" class="text-[9px] font-bold text-indigo-600">100%</span>
                 </div>
+                <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" oninput="changeOpacity(this.value)" onchange="saveHistory()" class="w-full">
             </div>
 
             <div id="propFade" class="flex-col shrink-0 hidden bg-indigo-50 p-1.5 rounded-lg border border-indigo-100">
@@ -403,6 +401,7 @@
                 <button onclick="addShape('triangle')" class="hover:scale-110 shrink-0 transition p-2"><i class="fas fa-caret-up text-4xl text-yellow-500"></i></button>
                 <button onclick="addShape('star')" class="hover:scale-110 shrink-0 transition p-2"><i class="fas fa-star text-3xl text-purple-500 drop-shadow-sm"></i></button>
                 <button onclick="addShape('hexagon')" class="hover:scale-110 shrink-0 transition p-2"><i class="fas fa-cube text-3xl text-emerald-500 drop-shadow-sm"></i></button>
+                
                 <button onclick="addShape('heart')" class="hover:scale-110 shrink-0 transition p-2"><i class="fas fa-heart text-3xl text-red-500 drop-shadow-sm"></i></button>
                 <button onclick="addShape('arrow')" class="hover:scale-110 shrink-0 transition p-2"><i class="fas fa-arrow-right text-3xl text-indigo-500 drop-shadow-sm"></i></button>
             </nav>
@@ -434,40 +433,37 @@
         }
         document.getElementById('confirmYesBtn').addEventListener('click', () => closeConfirmModal(true));
 
-
-        // --- 1. FIREBASE & CLOUDINARY CONFIG ---
-        let firebaseApp;
-        try {
-            const firebaseConfig = { apiKey: "AIzaSyCkjZKtJoCqszL0ahK62rIdrbqZPluXvd0", authDomain: "bannerx.firebaseapp.com", projectId: "bannerx", messagingSenderId: "748978540713", appId: "1:748978540713:web:4e972da64bbfe3d16fd9b8" };
-            firebaseApp = firebase.initializeApp(firebaseConfig);
-        } catch(e) {
-            console.error("Firebase init failed", e);
-        }
-        
+        // --- 1. FIREBASE CONFIG ---
+        const firebaseConfig = { apiKey: "AIzaSyCkjZKtJoCqszL0ahK62rIdrbqZPluXvd0", authDomain: "bannerx.firebaseapp.com", projectId: "bannerx", messagingSenderId: "748978540713", appId: "1:748978540713:web:4e972da64bbfe3d16fd9b8" };
+        firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth(); const db = firebase.firestore();
         const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dsmvmq076/image/upload";
         const CLOUDINARY_PRESET = "BannerX"; 
 
+        // REMOVE.BG API KEY PLACEHOLDER
         let REMOVE_BG_API_KEY = localStorage.getItem('removeBgKey') || null;
 
         let currentUser = null; let isAdmin = false; const ADMIN_EMAIL = "mdwld2005@gmail.com";
         let isEditingTemplate = false; let currentEditingId = null;
         window.cachedProjects = {}; window.dynamicFonts = [];
 
-        // === SAFETY FALLBACK (If Firebase is blocked by adblockers, skip loader) ===
-        let authTimeout = setTimeout(() => {
-            const loader = document.getElementById('fullLoader');
-            if (loader && !loader.classList.contains('hidden')) {
-                loader.classList.add('opacity-0');
-                setTimeout(() => loader.classList.add('hidden'), 300);
-                document.getElementById('loginScreen').classList.remove('hidden');
-                setTimeout(() => document.getElementById('loginScreen').classList.remove('opacity-0'), 50);
-                showToast("Network is slow. Proceeding...", "info");
+        // SAFETY TIMEOUT FOR FIREBASE LOGIN
+        let authChecked = false;
+        setTimeout(() => {
+            if (!authChecked) {
+                const loader = document.getElementById('fullLoader');
+                if (loader && !loader.classList.contains('hidden')) {
+                    loader.classList.add('opacity-0');
+                    setTimeout(() => loader.classList.add('hidden'), 300);
+                    document.getElementById('loginScreen').classList.remove('hidden');
+                    setTimeout(() => document.getElementById('loginScreen').classList.remove('opacity-0'), 50);
+                    showToast("Network is slow. Proceeding to login.", "error");
+                }
             }
-        }, 5000);
+        }, 6000);
 
         // --- 2. DYNAMIC FONT LIBRARY ---
-        const defaultFonts = [ { name: "Inter", url: "" }, { name: "Hind Siliguri", url: "" }, { name: "Poppins", url: "" } ];
+        const defaultFonts = [ { name: "Inter", url: "" } ];
 
         function loadDynamicFonts() {
             db.collection('fonts').get().then(snapshot => {
@@ -500,7 +496,7 @@
 
         // --- 3. AUTH & NAVIGATION ---
         auth.onAuthStateChanged(user => {
-            clearTimeout(authTimeout); // Clear safety timeout
+            authChecked = true;
             document.getElementById('fullLoader').classList.add('opacity-0'); setTimeout(() => document.getElementById('fullLoader').classList.add('hidden'), 300);
             if (user) {
                 currentUser = user; isAdmin = (user.email === ADMIN_EMAIL);
@@ -628,8 +624,7 @@
                 fabric.Image.fromURL(f.target.result, function(img) {
                     if(!img) return; let scale = (canvas.width * 0.6) / img.width; if(scale > 1) scale = 1; 
                     img.set({ scaleX: scale, scaleY: scale, selectable: true, evented: true, isMainImage: true, customStrokeWidth: 0, customStroke: '#000000', strokeWidth: 0 });
-                    canvas.add(img); canvas.centerObject(img); canvas.setActiveObject(img); 
-                    saveHistory();
+                    canvas.add(img); canvas.centerObject(img); canvas.setActiveObject(img); saveHistory();
                 });
             }; reader.readAsDataURL(file); 
         }
@@ -802,12 +797,12 @@
                 document.getElementById('propUngroup').classList.replace('hidden', 'flex');
             } else {
                 if(isText) {
-                    document.getElementById('propTextEdit').classList.replace('hidden', 'flex'); document.getElementById('propFont').classList.replace('hidden', 'flex'); document.getElementById('divSepText').classList.replace('hidden', 'block'); document.getElementById('propColor').classList.replace('hidden', 'flex'); document.getElementById('propGradient').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block'); document.getElementById('propShadow').classList.replace('hidden', 'flex'); document.getElementById('propOpacity').classList.replace('hidden', 'flex'); document.getElementById('propFade').classList.replace('hidden', 'flex');
+                    document.getElementById('propTextEdit').classList.replace('hidden', 'flex'); document.getElementById('propFont').classList.replace('hidden', 'flex'); document.getElementById('divSepText').classList.replace('hidden', 'block'); document.getElementById('propColor').classList.replace('hidden', 'flex'); document.getElementById('propGradient').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block'); document.getElementById('propShadow').classList.replace('hidden', 'flex'); document.getElementById('propFade').classList.replace('hidden', 'flex'); document.getElementById('propOpacity').classList.replace('hidden', 'flex');
                     document.getElementById('textEditInput').value = obj.text; document.getElementById('currentFontBtn').innerHTML = `${obj.fontFamily || 'Inter'} <i class="fas fa-chevron-down text-[10px] text-gray-400"></i>`;
                 } else if (isImage) {
-                    document.getElementById('propRemoveBg').classList.replace('hidden', 'flex'); document.getElementById('propImageShape').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block'); document.getElementById('propShadow').classList.replace('hidden', 'flex'); document.getElementById('propOpacity').classList.replace('hidden', 'flex'); document.getElementById('propFade').classList.replace('hidden', 'flex');
+                    document.getElementById('propRemoveBg').classList.replace('hidden', 'flex'); document.getElementById('propImageShape').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block'); document.getElementById('propShadow').classList.replace('hidden', 'flex'); document.getElementById('propFade').classList.replace('hidden', 'flex'); document.getElementById('propOpacity').classList.replace('hidden', 'flex');
                 } else if (isShape) {
-                    document.getElementById('propColor').classList.replace('hidden', 'flex'); document.getElementById('propGradient').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block'); document.getElementById('propShadow').classList.replace('hidden', 'flex'); document.getElementById('propOpacity').classList.replace('hidden', 'flex'); document.getElementById('propFade').classList.replace('hidden', 'flex');
+                    document.getElementById('propColor').classList.replace('hidden', 'flex'); document.getElementById('propGradient').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block'); document.getElementById('propShadow').classList.replace('hidden', 'flex'); document.getElementById('propFade').classList.replace('hidden', 'flex'); document.getElementById('propOpacity').classList.replace('hidden', 'flex');
                 }
                 
                 if(typeof obj.fill === 'string' && obj.fill.startsWith('#')) document.getElementById('itemColor').value = obj.fill;
@@ -924,53 +919,15 @@
             }
         }
 
-        // --- DIRECTIONAL OPACITY LOGIC ---
         function hexToRgba(hex, alpha) {
             let r = parseInt(hex.slice(1, 3), 16) || 0, g = parseInt(hex.slice(3, 5), 16) || 0, b = parseInt(hex.slice(5, 7), 16) || 0; return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         }
 
-        function applyOpacityDirection() {
-            const obj = canvas.getActiveObject(); if(!obj) return;
-            const dir = document.getElementById('opacityDirection').value;
-            const amount = parseFloat(document.getElementById('itemOpacity').value);
-            
-            if(!obj.id) obj.id = 'obj_' + Date.now();
-            removeLinkedOverlay(obj.id, 'opacity'); // Clear previous opacity overlay
-
-            if (dir === 'full') {
-                obj.set('opacity', amount); canvas.renderAll(); return;
-            }
-
-            obj.set('opacity', 1); // Keep base object solid
-            let bgCol = typeof canvas.backgroundColor === 'string' ? canvas.backgroundColor : '#ffffff';
-
-            let x1 = 0, y1 = 0, x2 = 0, y2 = 0;
-            if (dir === 'right') { x1 = 0; x2 = 1; }
-            else if (dir === 'left') { x1 = 1; x2 = 0; }
-            else if (dir === 'bottom') { y1 = 0; y2 = 1; }
-            else if (dir === 'top') { y1 = 1; y2 = 0; }
-
-            // Opacity works by overlaying background color over the object
-            const alphaBg = hexToRgba(bgCol, 0);
-            const grad = new fabric.Gradient({
-                type: 'linear', gradientUnits: 'percentage',
-                coords: { x1, y1, x2, y2 },
-                colorStops: [ { offset: 0, color: alphaBg }, { offset: 1 - amount, color: bgCol } ]
-            });
-
-            const overlay = new fabric.Rect({
-                left: obj.left, top: obj.top, width: obj.width, height: obj.height,
-                scaleX: obj.scaleX, scaleY: obj.scaleY, angle: obj.angle,
-                originX: obj.originX, originY: obj.originY,
-                fill: grad, selectable: false, evented: false,
-                isOverlay: true, targetId: obj.id, overlayType: 'opacity'
-            });
-
-            canvas.add(overlay); let objIndex = canvas.getObjects().indexOf(obj); overlay.moveTo(objIndex + 1);
-            canvas.renderAll(); saveHistory();
+        function changeOpacity(val) { 
+            const obj = canvas.getActiveObject(); if(!obj) return; 
+            obj.set('opacity', parseFloat(val)); canvas.renderAll(); 
         }
 
-        // --- COLORIZED FADE LOGIC ---
         function applyFadeToTransparent() {
             const obj = canvas.getActiveObject(); if(!obj) return;
             const dir = document.getElementById('fadeDirection').value;
@@ -978,7 +935,7 @@
             const fadeColor = document.getElementById('fadeColor').value;
             
             if(!obj.id) obj.id = 'obj_' + Date.now();
-            removeLinkedOverlay(obj.id, 'fade'); // Clear previous fade overlay
+            removeLinkedOverlay(obj.id);
 
             if (dir === 'none') { canvas.renderAll(); return; }
 
@@ -1000,15 +957,17 @@
                 scaleX: obj.scaleX, scaleY: obj.scaleY, angle: obj.angle,
                 originX: obj.originX, originY: obj.originY,
                 fill: grad, selectable: false, evented: false,
-                isOverlay: true, targetId: obj.id, overlayType: 'fade'
+                isOverlay: true, targetId: obj.id
             });
 
-            canvas.add(overlay); let objIndex = canvas.getObjects().indexOf(obj); overlay.moveTo(objIndex + 1);
+            canvas.add(overlay);
+            let objIndex = canvas.getObjects().indexOf(obj);
+            overlay.moveTo(objIndex + 1);
             canvas.renderAll(); saveHistory(); showToast("Fade applied", "info");
         }
 
-        function removeLinkedOverlay(targetId, type) {
-            let overlays = canvas.getObjects().filter(o => o.isOverlay && o.targetId === targetId && (type ? o.overlayType === type : true));
+        function removeLinkedOverlay(targetId) {
+            let overlays = canvas.getObjects().filter(o => o.isOverlay && o.targetId === targetId);
             overlays.forEach(o => canvas.remove(o));
         }
 
