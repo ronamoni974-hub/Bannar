@@ -35,6 +35,7 @@
     <div id="fullLoader" class="fixed inset-0 bg-white z-[999] flex flex-col items-center justify-center transition-opacity duration-300">
         <h1 class="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 tracking-tight mb-4">ProBanner</h1>
         <div class="loader w-10 h-10 border-4"></div>
+        <p id="loaderText" class="mt-4 text-sm font-bold text-indigo-500 hidden">Uploading Image...</p>
     </div>
 
     <div id="loginScreen" class="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
@@ -65,7 +66,7 @@
         <div class="max-w-6xl mx-auto w-full px-4 mt-8 pb-10">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-extrabold text-gray-800">What will you design today?</h2>
-                <button onclick="openEditor()" class="bg-indigo-600 text-white px-5 py-2 rounded-full font-bold hover:bg-indigo-700 transition shadow-md text-sm"><i class="fas fa-plus mr-1"></i> Blank</button>
+                <button onclick="openEditor(false, null, null)" class="bg-indigo-600 text-white px-5 py-2 rounded-full font-bold hover:bg-indigo-700 transition shadow-md text-sm"><i class="fas fa-plus mr-1"></i> Blank</button>
             </div>
             
             <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Pro Templates</h3>
@@ -105,8 +106,8 @@
         <div class="p-4">
             <div class="bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-100">
                 <h3 class="font-bold text-gray-800 mb-2">Create New Template</h3>
-                <p class="text-xs text-gray-500 mb-4">Open editor, design your template, and hit 'Save' to publish it to Cloudinary & Firebase.</p>
-                <button onclick="openEditor(true)" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold shadow-md hover:bg-indigo-700 transition text-sm">Open Template Editor</button>
+                <p class="text-xs text-gray-500 mb-4">Open editor, design your template, and hit 'Save' to publish it to everyone.</p>
+                <button onclick="openEditor(true, null, null)" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold shadow-md hover:bg-indigo-700 transition text-sm">Open Template Editor</button>
             </div>
             
             <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3">User List & History</h3>
@@ -126,6 +127,21 @@
         </div>
     </div>
 
+    <div id="fontModal" class="fixed inset-0 bg-black/60 z-[100] hidden flex justify-center items-center backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-2xl w-[90%] max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[75vh]">
+            <header class="p-4 border-b flex justify-between items-center shadow-sm bg-gray-50 shrink-0">
+                <h2 class="font-extrabold text-base text-gray-800"><i class="fas fa-font mr-2 text-indigo-500"></i>Select Font</h2>
+                <button onclick="closeFontModal()" class="w-8 h-8 rounded-full bg-white border hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
+            </header>
+            <div class="p-3 border-b bg-white shadow-sm z-10 shrink-0 relative">
+                <i class="fas fa-search absolute left-6 top-5 text-gray-400 text-sm"></i>
+                <input type="text" id="fontSearch" onkeyup="filterFonts()" placeholder="Search 50+ premium fonts..." class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-4 py-2 text-xs outline-none focus:border-indigo-500 font-semibold">
+            </div>
+            <div id="fontListContainer" class="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-3 bg-[#f8fafc]">
+                </div>
+        </div>
+    </div>
+
     <div id="resizeModal" class="fixed inset-0 bg-gray-900/50 z-[100] hidden flex justify-center items-center backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-2xl w-[90%] max-w-md shadow-2xl overflow-hidden">
             <div class="p-4 border-b flex justify-between items-center bg-gray-50">
@@ -133,33 +149,12 @@
                 <button onclick="document.getElementById('resizeModal').classList.add('hidden')" class="text-gray-400 hover:text-red-500 w-8 h-8 rounded-full hover:bg-red-50"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-4 grid grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto">
-                <button onclick="setCanvasSize(16/9)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
-                    <div class="w-10 h-5 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">16:9 YT</span>
-                </button>
-                <button onclick="setCanvasSize(1/1)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
-                    <div class="w-8 h-8 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">1:1 Insta</span>
-                </button>
-                <button onclick="setCanvasSize(9/16)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
-                    <div class="w-5 h-10 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">9:16 Story</span>
-                </button>
-                <button onclick="setCanvasSize(4/3)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
-                    <div class="w-10 h-7 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">4:3 Post</span>
-                </button>
+                <button onclick="setCanvasSize(16/9)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition"><div class="w-10 h-5 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">16:9 YT</span></button>
+                <button onclick="setCanvasSize(1/1)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition"><div class="w-8 h-8 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">1:1 Insta</span></button>
+                <button onclick="setCanvasSize(9/16)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition"><div class="w-5 h-10 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">9:16 Story</span></button>
+                <button onclick="setCanvasSize(4/3)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition"><div class="w-10 h-7 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">4:3 Post</span></button>
             </div>
         </div>
-    </div>
-
-    <div id="fontModal" class="fixed inset-0 bg-white z-[100] hidden flex-col transition-transform transform translate-y-full duration-300">
-        <header class="p-4 border-b flex justify-between items-center shadow-sm bg-gray-50">
-            <h2 class="font-extrabold text-lg text-gray-800"><i class="fas fa-font mr-2 text-indigo-500"></i>Select Font</h2>
-            <button onclick="closeFontModal()" class="w-8 h-8 rounded-full bg-white border hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
-        </header>
-        <div class="p-3 border-b bg-white shadow-sm z-10 relative">
-            <i class="fas fa-search absolute left-6 top-6 text-gray-400"></i>
-            <input type="text" id="fontSearch" onkeyup="filterFonts()" placeholder="Search from 40+ premium fonts..." class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2 text-sm outline-none focus:border-indigo-500 font-semibold">
-        </div>
-        <div id="fontListContainer" class="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-3 bg-[#f8fafc] content-start">
-            </div>
     </div>
 
     <div id="editorScreen" class="absolute inset-0 flex flex-col bg-gray-100 z-30 hidden opacity-0 transition-opacity duration-300">
@@ -181,11 +176,6 @@
                 <button onclick="exportBanner()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 font-bold shadow-md shadow-indigo-200 text-xs transition"><i class="fas fa-download md:mr-1"></i> <span class="hidden md:inline">Export</span></button>
             </div>
         </header>
-
-        <div id="savingOverlay" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center">
-            <div class="loader mb-3"></div>
-            <p class="font-bold text-indigo-600 text-sm">Uploading to Cloudinary...</p>
-        </div>
 
         <main id="workspace" class="flex-1 relative flex justify-center items-center overflow-hidden w-full p-4 bg-[#eef2f6] touch-none">
             <canvas id="bannerCanvas"></canvas>
@@ -209,14 +199,14 @@
 
             <div id="propColor" class="flex-col items-center shrink-0 hidden">
                 <span class="text-[9px] font-extrabold text-gray-400 mb-1.5 uppercase tracking-widest text-center">Color</span>
-                <input type="color" id="itemColor" oninput="changeColor(this.value)" class="w-8 h-8 cursor-pointer bg-transparent mx-auto">
+                <input type="color" id="itemColor" oninput="changeColor(this.value)" onchange="saveHistory()" class="w-8 h-8 cursor-pointer bg-transparent mx-auto">
             </div>
 
             <div id="propGradient" class="flex-col items-center shrink-0 hidden">
                 <span class="text-[9px] font-extrabold text-indigo-500 mb-1.5 uppercase tracking-widest text-center">Gradient Fill</span>
                 <div class="flex items-center gap-1.5 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
-                    <input type="color" id="grad1" value="#00c6ff" oninput="applyCustomGradient()" class="w-6 h-6 cursor-pointer bg-transparent">
-                    <input type="color" id="grad2" value="#0072ff" oninput="applyCustomGradient()" class="w-6 h-6 cursor-pointer bg-transparent">
+                    <input type="color" id="grad1" value="#00c6ff" oninput="applyCustomGradient()" onchange="saveHistory()" class="w-6 h-6 cursor-pointer bg-transparent">
+                    <input type="color" id="grad2" value="#0072ff" oninput="applyCustomGradient()" onchange="saveHistory()" class="w-6 h-6 cursor-pointer bg-transparent">
                 </div>
             </div>
 
@@ -234,18 +224,36 @@
 
             <div id="divSep2" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
 
-            <div id="propStroke" class="flex items-center gap-3 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+            <div id="propShadow" class="flex items-center gap-3 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-200">
                 <div class="flex-col items-center">
-                    <span class="text-[9px] font-extrabold text-gray-400 mb-1.5 uppercase tracking-widest block text-center">Border</span>
-                    <input type="color" id="strokeColor" oninput="changeStroke(this.value, null)" onchange="saveHistory()" class="w-5 h-5 cursor-pointer bg-transparent mx-auto block">
+                    <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest block text-center">Shadow</span>
+                    <input type="color" id="shadowColor" oninput="changeShadow()" onchange="saveHistory()" value="#000000" class="w-5 h-5 cursor-pointer bg-transparent mx-auto block">
                 </div>
                 <div class="flex-col w-20">
+                    <div class="flex justify-between w-full mb-1">
+                        <span class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">Blur</span>
+                    </div>
+                    <input type="range" id="shadowBlur" min="0" max="30" step="1" value="0" oninput="changeShadow()" onchange="saveHistory()" class="w-full accent-gray-500">
+                </div>
+            </div>
+
+            <div id="propStroke" class="flex items-center gap-3 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+                <div class="flex-col items-center">
+                    <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest block text-center">Border</span>
+                    <input type="color" id="strokeColor" oninput="changeStroke(this.value, null)" onchange="saveHistory()" class="w-5 h-5 cursor-pointer bg-transparent mx-auto block">
+                </div>
+                <div class="flex-col w-16">
                     <div class="flex justify-between w-full mb-1">
                         <span class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">Width</span>
                         <span id="strokeVal" class="text-[9px] font-bold text-gray-600">0</span>
                     </div>
-                    <input type="range" id="strokeWidth" min="0" max="40" step="1" value="0" oninput="changeStroke(null, this.value)" class="w-full accent-gray-500">
+                    <input type="range" id="strokeWidth" min="0" max="40" step="1" value="0" oninput="changeStroke(null, this.value)" onchange="saveHistory()" class="w-full accent-gray-500">
                 </div>
+            </div>
+
+            <div id="propFade" class="flex-col shrink-0 hidden">
+                <span class="text-[9px] font-extrabold text-indigo-500 mb-1.5 uppercase tracking-widest text-center block">Effect</span>
+                <button onclick="applyFadeToTransparent()" class="bg-gradient-to-r from-indigo-500 to-transparent text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-sm border border-indigo-200">Fade Mask</button>
             </div>
 
             <div id="propOpacity" class="flex-col shrink-0 w-20 hidden">
@@ -253,7 +261,7 @@
                     <span class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">Opacity</span>
                     <span id="opVal" class="text-[9px] font-bold text-indigo-600">100%</span>
                 </div>
-                <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" oninput="changeOpacity(this.value)" class="w-full">
+                <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" oninput="changeOpacity(this.value)" onchange="saveHistory()" class="w-full">
             </div>
 
             <div id="propDelete" class="flex-col items-center shrink-0 pr-4 hidden ml-auto">
@@ -295,7 +303,7 @@
                     <span class="text-[9px] font-bold">Text</span>
                 </button>
                 
-                <input type="file" id="mainImageInput" class="hidden" accept="image/*" onclick="this.value=null" onchange="addMainImage(event)">
+                <input type="file" id="mainImageInput" class="hidden" accept="image/*" onclick="this.value=null" onchange="uploadAndAddImage(event)">
                 <button onclick="document.getElementById('mainImageInput').click()" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-1.5 w-14 transition group">
                     <div class="w-9 h-9 rounded-xl bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition-all"><i class="fas fa-image text-base"></i></div>
                     <span class="text-[9px] font-bold">Image</span>
@@ -312,7 +320,7 @@
                 </button>
                 
                 <div class="flex flex-col items-center text-gray-500 p-1.5 w-14 relative group cursor-pointer" onclick="openBgPanel()">
-                    <input type="color" id="universalColorPicker" oninput="applyUniversalColor(this.value)" class="absolute w-0 h-0 opacity-0">
+                    <input type="color" id="universalColorPicker" oninput="applyUniversalColor(this.value)" onchange="saveHistory()" class="absolute w-0 h-0 opacity-0">
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-400 to-indigo-500 mb-1 flex items-center justify-center text-white transition transform group-hover:scale-110 shadow-sm border border-white"><i class="fas fa-fill-drip text-xs"></i></div>
                     <span class="text-[9px] font-bold">Color/BG</span>
                 </div>
@@ -334,112 +342,51 @@
     </div>
 
     <script>
-        // --- 1. FIREBASE CONFIGURATION ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyCkjZKtJoCqszL0ahK62rIdrbqZPluXvd0",
-            authDomain: "bannerx.firebaseapp.com",
-            projectId: "bannerx",
-            messagingSenderId: "748978540713",
-            appId: "1:748978540713:web:4e972da64bbfe3d16fd9b8"
-        };
+        // --- 1. FIREBASE & CLOUDINARY CONFIG ---
+        const firebaseConfig = { apiKey: "AIzaSyCkjZKtJoCqszL0ahK62rIdrbqZPluXvd0", authDomain: "bannerx.firebaseapp.com", projectId: "bannerx", messagingSenderId: "748978540713", appId: "1:748978540713:web:4e972da64bbfe3d16fd9b8" };
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        // --- 2. CLOUDINARY CONFIG ---
+        const auth = firebase.auth(); const db = firebase.firestore();
         const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dsmvmq076/image/upload";
-        const CLOUDINARY_PRESET = "BannerX"; // User updated preset name
+        const CLOUDINARY_PRESET = "BannerX"; 
 
-        let currentUser = null;
-        let isAdmin = false;
-        const ADMIN_EMAIL = "mdwld2005@gmail.com";
-        let isEditingTemplate = false;
-        let currentEditingId = null;
+        let currentUser = null; let isAdmin = false; const ADMIN_EMAIL = "mdwld2005@gmail.com";
+        let isEditingTemplate = false; let currentEditingId = null;
+        window.cachedProjects = {}; // To fix the HTML onclick string bug
 
-        // --- 3. MEGA FONT LIBRARY ---
+        // --- 2. MEGA FONT LIBRARY ---
         const fonts = [
-            { name: "Inter", label: "Inter (Modern)" }, { name: "Poppins", label: "Poppins (Clean)" },
-            { name: "Montserrat", label: "Montserrat (Bold)" }, { name: "Roboto", label: "Roboto" },
-            { name: "Open Sans", label: "Open Sans" }, { name: "Lato", label: "Lato" },
-            { name: "Oswald", label: "Oswald" }, { name: "Raleway", label: "Raleway" },
-            { name: "Nunito", label: "Nunito" }, { name: "Ubuntu", label: "Ubuntu" },
-            { name: "Playfair Display", label: "Playfair (Serif)" }, { name: "Lora", label: "Lora (Serif)" },
-            { name: "Pacifico", label: "Pacifico (Cursive)" }, { name: "Dancing Script", label: "Dancing Script" },
-            { name: "Caveat", label: "Caveat (Handwriting)" }, { name: "Hind Siliguri", label: "Hind Siliguri (বাংলা)" },
-            { name: "Noto Sans Bengali", label: "Noto Sans (বাংলা)" }, { name: "Baloo Da 2", label: "Baloo Da 2 (বাংলা)" },
-            { name: "Anek Bangla", label: "Anek Bangla (বাংলা)" }, { name: "Mina", label: "Mina (বাংলা)" },
-            { name: "Tiro Bangla", label: "Tiro Bangla (বাংলা)" }, { name: "Atma", label: "Atma (বাংলা)" },
-            { name: "Galada", label: "Galada (বাংলা)" }
+            { name: "Inter", label: "Inter (Modern)" }, { name: "Poppins", label: "Poppins (Clean)" }, { name: "Montserrat", label: "Montserrat (Bold)" }, { name: "Roboto", label: "Roboto" }, { name: "Open Sans", label: "Open Sans" }, { name: "Lato", label: "Lato" }, { name: "Oswald", label: "Oswald" }, { name: "Raleway", label: "Raleway" }, { name: "Nunito", label: "Nunito" }, { name: "Ubuntu", label: "Ubuntu" }, { name: "Playfair Display", label: "Playfair (Serif)" }, { name: "Lora", label: "Lora (Serif)" }, { name: "Pacifico", label: "Pacifico (Cursive)" }, { name: "Dancing Script", label: "Dancing Script" }, { name: "Caveat", label: "Caveat (Handwriting)" }, { name: "Hind Siliguri", label: "Hind Siliguri (বাংলা)" }, { name: "Noto Sans Bengali", label: "Noto Sans (বাংলা)" }, { name: "Baloo Da 2", label: "Baloo Da 2 (বাংলা)" }, { name: "Anek Bangla", label: "Anek Bangla (বাংলা)" }, { name: "Mina", label: "Mina (বাংলা)" }, { name: "Tiro Bangla", label: "Tiro Bangla (বাংলা)" }, { name: "Atma", label: "Atma (বাংলা)" }, { name: "Galada", label: "Galada (বাংলা)" }
         ];
 
         function populateFonts(query = "") {
-            const container = document.getElementById('fontListContainer');
-            container.innerHTML = "";
+            const container = document.getElementById('fontListContainer'); container.innerHTML = "";
             fonts.filter(f => f.label.toLowerCase().includes(query.toLowerCase())).forEach(font => {
-                container.innerHTML += `
-                    <button onclick="changeFont('${font.name}'); closeFontModal()" class="bg-white border border-gray-200 hover:border-indigo-400 hover:bg-indigo-50 hover:shadow-sm rounded-xl p-3 text-left transition flex flex-col justify-center">
-                        <span class="text-xs text-gray-500 mb-1">${font.label}</span>
-                        <span class="text-xl text-gray-800" style="font-family: '${font.name}'">Ag 12</span>
-                    </button>`;
+                container.innerHTML += `<button onclick="changeFont('${font.name}'); closeFontModal()" class="bg-white border border-gray-200 hover:border-indigo-400 hover:bg-indigo-50 hover:shadow-sm rounded-xl p-3 text-left transition flex flex-col justify-center"><span class="text-xs text-gray-500 mb-1">${font.label}</span><span class="text-xl text-gray-800" style="font-family: '${font.name}'">Ag 12</span></button>`;
             });
         }
-
-        function openFontModal() {
-            document.getElementById('fontModal').classList.remove('hidden');
-            setTimeout(() => document.getElementById('fontModal').classList.remove('translate-y-full'), 50);
-            populateFonts();
-        }
-        function closeFontModal() {
-            document.getElementById('fontModal').classList.add('translate-y-full');
-            setTimeout(() => document.getElementById('fontModal').classList.add('hidden'), 300);
-        }
+        function openFontModal() { document.getElementById('fontModal').classList.remove('hidden'); setTimeout(() => document.getElementById('fontModal').classList.remove('translate-y-full'), 50); populateFonts(); }
+        function closeFontModal() { document.getElementById('fontModal').classList.add('translate-y-full'); setTimeout(() => document.getElementById('fontModal').classList.add('hidden'), 300); }
         function filterFonts() { populateFonts(document.getElementById('fontSearch').value); }
 
-        // --- 4. AUTHENTICATION & DATABASE FETCHING ---
+        // --- 3. AUTH & NAVIGATION ---
         auth.onAuthStateChanged(user => {
-            document.getElementById('fullLoader').classList.add('opacity-0');
-            setTimeout(() => document.getElementById('fullLoader').classList.add('hidden'), 300);
-
+            document.getElementById('fullLoader').classList.add('opacity-0'); setTimeout(() => document.getElementById('fullLoader').classList.add('hidden'), 300);
             if (user) {
-                currentUser = user;
-                isAdmin = (user.email === ADMIN_EMAIL);
-                
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('homeScreen').classList.remove('hidden');
-                setTimeout(() => document.getElementById('homeScreen').classList.remove('opacity-0'), 50);
-                
-                document.getElementById('userProfilePic').src = user.photoURL || 'https://via.placeholder.com/150';
-                document.getElementById('profPicLarge').src = user.photoURL || 'https://via.placeholder.com/150';
-                document.getElementById('profName').innerText = user.displayName || 'User';
-                document.getElementById('profEmail').innerText = user.email;
-
-                if(isAdmin) { document.getElementById('adminBtn').classList.remove('hidden'); document.getElementById('adminBtn').classList.add('inline-flex'); } 
-                else { document.getElementById('adminBtn').classList.add('hidden'); }
-
-                db.collection('users').doc(user.uid).set({
-                    name: user.displayName, email: user.email, photo: user.photoURL, lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-
+                currentUser = user; isAdmin = (user.email === ADMIN_EMAIL);
+                document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('homeScreen').classList.remove('hidden'); setTimeout(() => document.getElementById('homeScreen').classList.remove('opacity-0'), 50);
+                document.getElementById('userProfilePic').src = user.photoURL || 'https://via.placeholder.com/150'; document.getElementById('profPicLarge').src = user.photoURL || 'https://via.placeholder.com/150'; document.getElementById('profName').innerText = user.displayName || 'User'; document.getElementById('profEmail').innerText = user.email;
+                if(isAdmin) { document.getElementById('adminBtn').classList.remove('hidden'); document.getElementById('adminBtn').classList.add('inline-flex'); } else { document.getElementById('adminBtn').classList.add('hidden'); }
+                db.collection('users').doc(user.uid).set({ name: user.displayName, email: user.email, photo: user.photoURL, lastLogin: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
                 loadTemplates(); loadRecentProjects();
             } else {
-                currentUser = null;
-                document.getElementById('homeScreen').classList.add('hidden');
-                document.getElementById('loginScreen').classList.remove('hidden');
-                setTimeout(() => document.getElementById('loginScreen').classList.remove('opacity-0'), 50);
+                currentUser = null; document.getElementById('homeScreen').classList.add('hidden'); document.getElementById('loginScreen').classList.remove('hidden'); setTimeout(() => document.getElementById('loginScreen').classList.remove('opacity-0'), 50);
             }
         });
 
-        function signInWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(error => { alert("Login failed! " + error.message); });
-        }
+        function signInWithGoogle() { const provider = new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(provider).catch(error => { alert("Login failed! " + error.message); }); }
         function logout() { auth.signOut().then(() => { closeProfile(); closeAdmin(); closeEditor(); }); }
 
-        const profileScreen = document.getElementById('profileScreen');
-        const adminScreen = document.getElementById('adminScreen');
-        const homeScreen = document.getElementById('homeScreen');
-        const editorScreen = document.getElementById('editorScreen');
-
+        const profileScreen = document.getElementById('profileScreen'), adminScreen = document.getElementById('adminScreen'), homeScreen = document.getElementById('homeScreen'), editorScreen = document.getElementById('editorScreen');
         function openProfile() { profileScreen.classList.remove('hidden'); setTimeout(() => profileScreen.classList.remove('translate-x-full'), 50); loadAllProjects(); }
         function closeProfile() { profileScreen.classList.add('translate-x-full'); setTimeout(() => profileScreen.classList.add('hidden'), 300); }
         function openAdmin() { if(!isAdmin) return; adminScreen.classList.remove('hidden'); setTimeout(() => adminScreen.classList.remove('translate-x-full'), 50); loadUserList(); }
@@ -462,90 +409,51 @@
         function closeEditor() {
             editorScreen.classList.add('opacity-0');
             setTimeout(() => {
-                editorScreen.classList.add('hidden'); homeScreen.classList.remove('hidden');
-                setTimeout(() => homeScreen.classList.remove('opacity-0'), 50);
+                editorScreen.classList.add('hidden'); homeScreen.classList.remove('hidden'); setTimeout(() => homeScreen.classList.remove('opacity-0'), 50);
                 currentEditingId = null; isEditingTemplate = false; loadRecentProjects(); 
             }, 300);
         }
 
-        // --- FIREBASE BYPASS INDEXING FIX ---
+        // --- 4. FIREBASE DATA LOGIC (No Indexing Bug) ---
+        function openProject(id) { openEditor(false, window.cachedProjects[id], id); }
+        function openTemplate(id) { openEditor(false, window.cachedProjects[id], null); } // Opens as new project
+
         function loadTemplates() {
             const container = document.getElementById('templateContainer');
-            // Using direct get and JS sort to bypass any missing index errors
             db.collection('templates').get().then(snapshot => {
                 container.innerHTML = '';
                 if(snapshot.empty) { container.innerHTML = '<div class="col-span-full text-center text-gray-400 text-sm">No templates available.</div>'; return; }
-                
-                let templates = [];
-                snapshot.forEach(doc => templates.push({id: doc.id, ...doc.data()}));
-                templates.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0)); // Sort newest first
-
+                let templates = []; snapshot.forEach(doc => { templates.push({id: doc.id, ...doc.data()}); window.cachedProjects[doc.id] = doc.data().canvasData; });
+                templates.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
                 templates.slice(0, 8).forEach(data => {
-                    container.innerHTML += `
-                        <div onclick='openEditor(false, ${JSON.stringify(data.canvasData)})' class="bg-white border border-gray-200 h-32 rounded-xl cursor-pointer hover:shadow-lg transition relative overflow-hidden group">
-                            <img src="${data.thumbUrl}" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                <span class="text-white font-bold text-xs"><i class="fas fa-edit mr-1"></i> Use</span>
-                            </div>
-                        </div>`;
+                    container.innerHTML += `<div onclick="openTemplate('${data.id}')" class="bg-white border border-gray-200 h-32 rounded-xl cursor-pointer hover:shadow-lg transition relative overflow-hidden group"><img src="${data.thumbUrl}" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"><span class="text-white font-bold text-xs"><i class="fas fa-edit mr-1"></i> Use</span></div></div>`;
                 });
-            }).catch(err => {
-                container.innerHTML = `<div class="col-span-full text-red-500 text-xs text-center">Error loading templates: ${err.message}</div>`;
             });
         }
 
         function loadRecentProjects() {
-            if(!currentUser) return;
-            const container = document.getElementById('recentProjectsContainer');
-            // Fetch without orderBy, sort via JS to avoid Composite Index Error!
+            if(!currentUser) return; const container = document.getElementById('recentProjectsContainer');
             db.collection('projects').where('uid', '==', currentUser.uid).get().then(snapshot => {
                 container.innerHTML = '';
                 if(snapshot.empty) { container.innerHTML = '<div class="col-span-full text-center text-gray-400 text-sm">No recent projects.</div>'; return; }
-                
-                let projects = [];
-                snapshot.forEach(doc => projects.push({id: doc.id, ...doc.data()}));
+                let projects = []; snapshot.forEach(doc => { projects.push({id: doc.id, ...doc.data()}); window.cachedProjects[doc.id] = doc.data().canvasData; });
                 projects.sort((a, b) => (b.updatedAt?.toMillis() || 0) - (a.updatedAt?.toMillis() || 0));
-
                 projects.slice(0, 4).forEach(data => {
-                    container.innerHTML += `
-                        <div onclick='openEditor(false, ${JSON.stringify(data.canvasData)}, "${data.id}")' class="bg-white border border-gray-200 h-32 rounded-xl cursor-pointer hover:shadow-lg transition relative overflow-hidden group">
-                            <img src="${data.thumbUrl}" class="w-full h-full object-cover border-b">
-                            <div class="absolute bottom-0 w-full bg-white/90 backdrop-blur text-[10px] font-bold px-2 py-1 truncate">${data.name || 'Untitled'}</div>
-                        </div>`;
+                    container.innerHTML += `<div onclick="openProject('${data.id}')" class="bg-white border border-gray-200 h-32 rounded-xl cursor-pointer hover:shadow-lg transition relative overflow-hidden group"><img src="${data.thumbUrl}" class="w-full h-full object-cover border-b"><div class="absolute bottom-0 w-full bg-white/90 backdrop-blur text-[10px] font-bold px-2 py-1 truncate">${data.name || 'Untitled'}</div></div>`;
                 });
-            }).catch(err => console.log("Recent projects error:", err));
+            });
         }
 
         function loadAllProjects() {
-            if(!currentUser) return;
-            const container = document.getElementById('allProjectsContainer');
-            container.innerHTML = '<div class="col-span-full text-center"><div class="loader mx-auto"></div></div>';
-            
+            if(!currentUser) return; const container = document.getElementById('allProjectsContainer'); container.innerHTML = '<div class="col-span-full text-center"><div class="loader mx-auto"></div></div>';
             db.collection('projects').where('uid', '==', currentUser.uid).get().then(snapshot => {
                 container.innerHTML = '';
                 if(snapshot.empty) { container.innerHTML = '<div class="col-span-full text-center text-gray-400 text-sm">No saved projects.</div>'; return; }
-                
-                let projects = [];
-                snapshot.forEach(doc => projects.push({id: doc.id, ...doc.data()}));
+                let projects = []; snapshot.forEach(doc => { projects.push({id: doc.id, ...doc.data()}); window.cachedProjects[doc.id] = doc.data().canvasData; });
                 projects.sort((a, b) => (b.updatedAt?.toMillis() || 0) - (a.updatedAt?.toMillis() || 0));
-
                 projects.forEach(data => {
-                    container.innerHTML += `
-                        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
-                            <div onclick='openEditor(false, ${JSON.stringify(data.canvasData)}, "${data.id}")' class="h-28 cursor-pointer relative group bg-gray-100">
-                                <img src="${data.thumbUrl}" class="w-full h-full object-contain">
-                                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition"><i class="fas fa-pen text-white text-xl"></i></div>
-                            </div>
-                            <div class="p-2 flex justify-between items-center bg-gray-50 border-t">
-                                <span class="text-[10px] font-bold text-gray-700 truncate w-24">${data.name || 'Untitled'}</span>
-                                <div class="flex gap-2">
-                                    <button onclick="deleteProject('${data.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash text-xs"></i></button>
-                                </div>
-                            </div>
-                        </div>`;
+                    container.innerHTML += `<div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition"><div onclick="openProject('${data.id}')" class="h-28 cursor-pointer relative group bg-gray-100"><img src="${data.thumbUrl}" class="w-full h-full object-contain"><div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition"><i class="fas fa-pen text-white text-xl"></i></div></div><div class="p-2 flex justify-between items-center bg-gray-50 border-t"><span class="text-[10px] font-bold text-gray-700 truncate w-24">${data.name || 'Untitled'}</span><div class="flex gap-2"><button onclick="deleteProject('${data.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash text-xs"></i></button></div></div></div>`;
                 });
-            }).catch(err => {
-                container.innerHTML = `<div class="col-span-full text-red-500 text-xs text-center">Error loading: ${err.message}</div>`;
             });
         }
 
@@ -554,91 +462,90 @@
         function loadUserList() {
             const container = document.getElementById('adminUserList');
             db.collection('users').get().then(snapshot => {
-                container.innerHTML = '';
-                
-                let users = [];
-                snapshot.forEach(doc => users.push({id: doc.id, ...doc.data()}));
+                container.innerHTML = ''; let users = []; snapshot.forEach(doc => users.push({id: doc.id, ...doc.data()}));
                 users.sort((a, b) => (b.lastLogin?.toMillis() || 0) - (a.lastLogin?.toMillis() || 0));
-
                 users.forEach(data => {
-                    container.innerHTML += `
-                        <div class="p-3 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <img src="${data.photo || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full">
-                                <div><h4 class="text-sm font-bold text-gray-800 leading-tight">${data.name || 'Unknown'}</h4><p class="text-[10px] text-gray-500">${data.email}</p></div>
-                            </div>
-                            <button onclick="viewUserHistory('${data.id}', '${data.name}')" class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded hover:bg-indigo-100 font-bold">View History</button>
-                        </div>`;
+                    container.innerHTML += `<div class="p-3 flex items-center justify-between"><div class="flex items-center gap-3"><img src="${data.photo || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full"><div><h4 class="text-sm font-bold text-gray-800 leading-tight">${data.name || 'Unknown'}</h4><p class="text-[10px] text-gray-500">${data.email}</p></div></div><button onclick="viewUserHistory('${data.id}', '${data.name}')" class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded hover:bg-indigo-100 font-bold">View History</button></div>`;
                 });
             });
         }
 
         function viewUserHistory(uid, userName) {
-            document.getElementById('userHistoryModal').classList.remove('hidden');
-            document.getElementById('userHistoryModal').classList.add('flex');
-            document.getElementById('historyUserName').innerText = userName + "'s Projects";
-            const container = document.getElementById('userHistoryContainer');
-            container.innerHTML = '<div class="col-span-full text-center"><div class="loader mx-auto"></div></div>';
-
+            document.getElementById('userHistoryModal').classList.remove('hidden'); document.getElementById('userHistoryModal').classList.add('flex'); document.getElementById('historyUserName').innerText = userName + "'s Projects";
+            const container = document.getElementById('userHistoryContainer'); container.innerHTML = '<div class="col-span-full text-center"><div class="loader mx-auto"></div></div>';
             db.collection('projects').where('uid', '==', uid).get().then(snapshot => {
                 container.innerHTML = '';
                 if(snapshot.empty) { container.innerHTML = '<div class="col-span-full text-center text-gray-400 text-sm">No projects found for this user.</div>'; return; }
-                
-                let projects = [];
-                snapshot.forEach(doc => projects.push({id: doc.id, ...doc.data()}));
+                let projects = []; snapshot.forEach(doc => projects.push({id: doc.id, ...doc.data()}));
                 projects.sort((a, b) => (b.updatedAt?.toMillis() || 0) - (a.updatedAt?.toMillis() || 0));
-
-                projects.forEach(data => {
-                    container.innerHTML += `
-                        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                            <div class="h-28 relative bg-gray-100"><img src="${data.thumbUrl}" class="w-full h-full object-contain"></div>
-                            <div class="p-2 bg-gray-50 border-t"><span class="text-[10px] font-bold text-gray-700 truncate block">${data.name || 'Untitled'}</span></div>
-                        </div>`;
-                });
+                projects.forEach(data => { container.innerHTML += `<div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm"><div class="h-28 relative bg-gray-100"><img src="${data.thumbUrl}" class="w-full h-full object-contain"></div><div class="p-2 bg-gray-50 border-t"><span class="text-[10px] font-bold text-gray-700 truncate block">${data.name || 'Untitled'}</span></div></div>`; });
             });
         }
 
-        // --- 5. CLOUDINARY UPLOAD LOGIC ---
-        async function uploadToCloudinary(dataUrl) {
-            const formData = new FormData();
-            formData.append("file", dataUrl);
-            formData.append("upload_preset", CLOUDINARY_PRESET);
-            const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
-            const data = await res.json();
-            if(data.secure_url) return data.secure_url;
-            throw new Error(data.error?.message || "Cloudinary Upload Failed");
+        // --- 5. CLOUDINARY LOGIC (Upload first to prevent 1MB limit crash) ---
+        async function uploadToCloudinaryFile(dataUrl) {
+            const formData = new FormData(); formData.append("file", dataUrl); formData.append("upload_preset", CLOUDINARY_PRESET);
+            const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData }); const data = await res.json();
+            if(data.secure_url) return data.secure_url; throw new Error(data.error?.message || "Upload Failed");
+        }
+
+        async function uploadAndAddImage(e) {
+            const file = e.target.files[0]; if (!file) return;
+            document.getElementById('fullLoader').classList.remove('hidden', 'opacity-0');
+            document.getElementById('loaderText').classList.remove('hidden');
+            
+            const reader = new FileReader();
+            reader.onload = async function(f) {
+                try {
+                    const cloudUrl = await uploadToCloudinaryFile(f.target.result);
+                    // Crucial: crossOrigin to prevent canvas taint when exporting
+                    fabric.Image.fromURL(cloudUrl, function(img) {
+                        if(!img) return;
+                        let scale = (canvas.width * 0.6) / img.width; if(scale > 1) scale = 1; 
+                        img.set({ scaleX: scale, scaleY: scale, selectable: true, evented: true, isMainImage: true, customStrokeWidth: 0, customStroke: '#000000', strokeWidth: 0 });
+                        canvas.add(img); canvas.centerObject(img); canvas.setActiveObject(img); 
+                        saveHistory();
+                        document.getElementById('fullLoader').classList.add('hidden', 'opacity-0');
+                        document.getElementById('loaderText').classList.add('hidden');
+                    }, { crossOrigin: 'anonymous' });
+                } catch(err) {
+                    alert("Image Upload Failed: " + err.message);
+                    document.getElementById('fullLoader').classList.add('hidden', 'opacity-0');
+                    document.getElementById('loaderText').classList.add('hidden');
+                }
+            }; 
+            reader.readAsDataURL(file); 
         }
 
         async function saveToCloud() {
             if(!currentUser || !canvas) return;
             canvas.discardActiveObject(); canvas.renderAll();
-            
-            const overlay = document.getElementById('savingOverlay');
-            overlay.classList.remove('hidden'); overlay.classList.add('flex');
+            const overlay = document.getElementById('savingOverlay'); overlay.classList.remove('hidden'); overlay.classList.add('flex');
 
             try {
                 const dataUrl = canvas.toDataURL({ format: 'jpeg', quality: 0.8, multiplier: 0.5 });
-                const thumbUrl = await uploadToCloudinary(dataUrl);
+                const thumbUrl = await uploadToCloudinaryFile(dataUrl);
                 const canvasData = JSON.stringify(canvas);
 
                 if(isEditingTemplate && isAdmin) {
-                    await db.collection('templates').add({
-                        canvasData: canvasData, thumbUrl: thumbUrl, createdAt: firebase.firestore.FieldValue.serverTimestamp(), createdBy: currentUser.email
-                    });
+                    await db.collection('templates').add({ canvasData: canvasData, thumbUrl: thumbUrl, createdAt: firebase.firestore.FieldValue.serverTimestamp(), createdBy: currentUser.email });
                     alert("Template Published!");
                 } else {
-                    const projData = {
-                        uid: currentUser.uid, name: "Banner_" + new Date().toLocaleDateString(), canvasData: canvasData, thumbUrl: thumbUrl, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    };
-                    if(currentEditingId) await db.collection('projects').doc(currentEditingId).update(projData);
-                    else { const docRef = await db.collection('projects').add(projData); currentEditingId = docRef.id; }
+                    const projData = { uid: currentUser.uid, name: "Banner_" + new Date().toLocaleDateString(), canvasData: canvasData, thumbUrl: thumbUrl, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+                    
+                    if(currentEditingId) {
+                        // UPDATE EXISTING PROJECT
+                        await db.collection('projects').doc(currentEditingId).update(projData);
+                    } else {
+                        // CREATE NEW PROJECT
+                        const docRef = await db.collection('projects').add(projData); currentEditingId = docRef.id; 
+                    }
                 }
             } catch(e) { alert("Save failed: " + e.message); } 
             finally { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }
         }
 
         // ================= 6. EDITOR LOGIC (FABRIC.JS) =================
-        
         fabric.Image.prototype._render = (function(originalRender) {
             return function(ctx) {
                 originalRender.call(this, ctx);
@@ -657,11 +564,7 @@
         })(fabric.Image.prototype._render);
 
         let canvas, undoStack = [], redoStack = [], isProgrammaticSelection = false;
-        const workspace = document.getElementById('workspace');
-        const propertiesPanel = document.getElementById('propertiesPanel');
-        const mainMenu = document.getElementById('mainMenu');
-        const shapeMenu = document.getElementById('shapeMenu');
-        const layerMenu = document.getElementById('layerMenu');
+        const workspace = document.getElementById('workspace'), propertiesPanel = document.getElementById('propertiesPanel'), mainMenu = document.getElementById('mainMenu'), shapeMenu = document.getElementById('shapeMenu'), layerMenu = document.getElementById('layerMenu');
 
         function initCanvas() {
             if(!canvas) {
@@ -713,12 +616,12 @@
             Array.from(propertiesPanel.children).forEach(child => { child.classList.add('hidden'); child.classList.remove('flex', 'block'); });
 
             if(isText) {
-                document.getElementById('propTextEdit').classList.replace('hidden', 'flex'); document.getElementById('propFont').classList.replace('hidden', 'flex'); document.getElementById('divSepText').classList.replace('hidden', 'block'); document.getElementById('propColor').classList.replace('hidden', 'flex'); document.getElementById('propGradient').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block');
+                document.getElementById('propTextEdit').classList.replace('hidden', 'flex'); document.getElementById('propFont').classList.replace('hidden', 'flex'); document.getElementById('divSepText').classList.replace('hidden', 'block'); document.getElementById('propColor').classList.replace('hidden', 'flex'); document.getElementById('propGradient').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block'); document.getElementById('propShadow').classList.replace('hidden', 'flex'); document.getElementById('propFade').classList.replace('hidden', 'flex');
                 document.getElementById('textEditInput').value = obj.text; document.getElementById('currentFontBtn').innerHTML = `${obj.fontFamily || 'Inter'} <i class="fas fa-chevron-down text-[10px] text-gray-400"></i>`;
             } else if (isImage) {
-                document.getElementById('propImageShape').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block');
+                document.getElementById('propImageShape').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block'); document.getElementById('propShadow').classList.replace('hidden', 'flex'); document.getElementById('propFade').classList.replace('hidden', 'flex');
             } else if (isShape) {
-                document.getElementById('propColor').classList.replace('hidden', 'flex'); document.getElementById('propGradient').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block');
+                document.getElementById('propColor').classList.replace('hidden', 'flex'); document.getElementById('propGradient').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block'); document.getElementById('propShadow').classList.replace('hidden', 'flex'); document.getElementById('propFade').classList.replace('hidden', 'flex');
             }
             
             document.getElementById('propOpacity').classList.replace('hidden', 'flex'); document.getElementById('propDelete').classList.replace('hidden', 'flex');
@@ -727,6 +630,8 @@
             
             let strokeC = obj.customStroke || obj.stroke || '#000000', strokeW = obj.customStrokeWidth !== undefined ? obj.customStrokeWidth : (obj.strokeWidth || 0);
             document.getElementById('strokeWidth').value = strokeW; document.getElementById('strokeVal').innerText = strokeW; if(strokeC) document.getElementById('strokeColor').value = strokeC;
+            
+            if(obj.shadow) { document.getElementById('shadowBlur').value = obj.shadow.blur; document.getElementById('shadowColor').value = obj.shadow.color; } else { document.getElementById('shadowBlur').value = 0; }
         }
 
         function updateTextContent(val) { const obj = canvas.getActiveObject(); if (obj && obj.type === 'i-text') { obj.set('text', val); canvas.renderAll(); } }
@@ -742,18 +647,6 @@
             else if (type === 'star') shape = new fabric.Polygon([{x: 40, y: 0}, {x: 49, y: 28}, {x: 78, y: 28}, {x: 54, y: 46}, {x: 63, y: 73}, {x: 40, y: 56}, {x: 17, y: 73}, {x: 26, y: 46}, {x: 2, y: 28}, {x: 31, y: 28}], { left: cx, top: cy, fill: '#a855f7' });
             else if (type === 'hexagon') shape = new fabric.Polygon([{x: 40, y: 0}, {x: 80, y: 20}, {x: 80, y: 60}, {x: 40, y: 80}, {x: 0, y: 60}, {x: 0, y: 20}], { left: cx, top: cy, fill: '#10b981' });
             shape.set({ strokeWidth: 0 }); canvas.add(shape); canvas.setActiveObject(shape); toggleShapeMenu(false); saveHistory();
-        }
-
-        function addMainImage(e) {
-            const file = e.target.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(f) {
-                fabric.Image.fromURL(f.target.result, function(img) {
-                    if(!img) return; let scale = (canvas.width * 0.6) / img.width; if(scale > 1) scale = 1; 
-                    img.set({ scaleX: scale, scaleY: scale, selectable: true, evented: true, isMainImage: true, customStrokeWidth: 0, customStroke: '#000000', strokeWidth: 0 });
-                    canvas.add(img); canvas.centerObject(img); canvas.setActiveObject(img); saveHistory();
-                });
-            }; reader.readAsDataURL(file); 
         }
 
         function setImageShape(type) {
@@ -779,16 +672,68 @@
         function changeStroke(color, width) {
             const obj = canvas.getActiveObject();
             if(obj) {
-                let c = color !== null ? color : (obj.customStroke || obj.stroke || '#000000');
-                let w = width !== null ? parseInt(width) : (obj.customStrokeWidth !== undefined ? obj.customStrokeWidth : obj.strokeWidth || 0);
-                if (obj.isMainImage) { obj.set({ customStroke: c, customStrokeWidth: w, strokeWidth: 0 }); obj.dirty = true; } 
-                else { obj.set({ stroke: c, strokeWidth: w, customStrokeWidth: 0 }); }
+                let c = color !== null ? color : (obj.customStroke || obj.stroke || '#000000'), w = width !== null ? parseInt(width) : (obj.customStrokeWidth !== undefined ? obj.customStrokeWidth : obj.strokeWidth || 0);
+                if (obj.isMainImage) { obj.set({ customStroke: c, customStrokeWidth: w, strokeWidth: 0 }); obj.dirty = true; } else { obj.set({ stroke: c, strokeWidth: w, customStrokeWidth: 0 }); }
                 document.getElementById('strokeVal').innerText = w; if(width !== null) document.getElementById('strokeWidth').value = w; canvas.renderAll();
             }
         }
 
+        // --- NEW: SHADOW LOGIC ---
+        function changeShadow() {
+            const obj = canvas.getActiveObject();
+            if(obj) {
+                let blur = parseInt(document.getElementById('shadowBlur').value);
+                let color = document.getElementById('shadowColor').value;
+                if(blur > 0) { obj.set('shadow', new fabric.Shadow({ color: color, blur: blur, offsetX: blur/2, offsetY: blur/2 })); } 
+                else { obj.set('shadow', null); }
+                canvas.renderAll();
+            }
+        }
+
+        // --- NEW: FADE TO TRANSPARENT LOGIC ---
+        function applyFadeToTransparent() {
+            const obj = canvas.getActiveObject();
+            if(!obj) return;
+            
+            if(obj.type === 'i-text' || ['rect', 'circle', 'triangle', 'polygon'].includes(obj.type)) {
+                let baseColor = obj.fill;
+                if(typeof baseColor !== 'string' || !baseColor.startsWith('#')) baseColor = '#000000'; // Default if already gradient
+                const grad = new fabric.Gradient({
+                    type: 'linear', gradientUnits: 'percentage',
+                    coords: { x1: 0, y1: 0, x2: 1, y2: 0 },
+                    colorStops: [ { offset: 0, color: baseColor }, { offset: 1, color: 'rgba(255,255,255,0)' } ]
+                });
+                obj.set('fill', grad); canvas.renderAll(); saveHistory();
+            } else if (obj.isMainImage) {
+                // Alpha gradient for image
+                const grad = new fabric.Gradient({
+                    type: 'linear', gradientUnits: 'percentage',
+                    coords: { x1: 0, y1: 0, x2: 1, y2: 0 },
+                    colorStops: [ { offset: 0, color: 'rgba(0,0,0,1)' }, { offset: 1, color: 'rgba(0,0,0,0)' } ]
+                });
+                // In a simple webapp context without complex alpha masks, we overlay a gradient matching the canvas background
+                let bgCol = typeof canvas.backgroundColor === 'string' ? canvas.backgroundColor : '#ffffff';
+                const fadeOverlay = new fabric.Rect({
+                    left: obj.left, top: obj.top, width: obj.width * obj.scaleX, height: obj.height * obj.scaleY,
+                    angle: obj.angle, originX: obj.originX, originY: obj.originY,
+                    fill: new fabric.Gradient({
+                        type: 'linear', gradientUnits: 'percentage', coords: { x1: 0, y1: 0, x2: 1, y2: 0 },
+                        colorStops: [ { offset: 0, color: 'rgba(255,255,255,0)' }, { offset: 1, color: bgCol } ]
+                    }),
+                    selectable: false, evented: false
+                });
+                canvas.add(fadeOverlay); canvas.renderAll(); saveHistory();
+                alert("Fade overlay applied over the image!");
+            }
+        }
+
         function deleteObject() { const activeObjects = canvas.getActiveObjects(); if (activeObjects.length) { canvas.discardActiveObject(); activeObjects.forEach(obj => canvas.remove(obj)); saveHistory(); handleDeselection(); } }
-        function exportBanner() { canvas.discardActiveObject(); canvas.renderAll(); const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 3 }); const link = document.createElement('a'); link.download = 'ProBanner-Export.png'; link.href = dataURL; document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+        
+        function exportBanner() { 
+            canvas.discardActiveObject(); canvas.renderAll(); 
+            const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 3 }); 
+            const link = document.createElement('a'); link.download = 'ProBanner-Export.png'; link.href = dataURL; document.body.appendChild(link); link.click(); document.body.removeChild(link); 
+        }
     </script>
 </body>
 </html>
