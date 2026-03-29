@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ProBanner - Professional SaaS Editor</title>
+    <title>ProBanner - Ultimate Cloud SaaS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <link href="https://fonts.googleapis.com/css2?family=Abel&family=Anek+Bangla:wght@400;700&family=Anton&family=Atma:wght@500;700&family=Baloo+Da+2:wght@500;700&family=Bebas+Neue&family=Caveat:wght@600&family=Cinzel:wght@600&family=Dancing+Script:wght@600&family=Exo+2:wght@600&family=Fjalla+One&family=Galada&family=Hind+Siliguri:wght@500;700&family=Inter:wght@400;600;800&family=Josefin+Sans:wght@600&family=Lato:wght@400;700&family=Lobster&family=Lora:ital,wght@0,600;1,600&family=Merriweather:wght@700&family=Mina:wght@400;700&family=Montserrat:wght@700;900&family=Mukta:wght@600&family=Noto+Sans+Bengali:wght@500;700&family=Noto+Serif+Bengali:wght@600&family=Nunito:wght@700&family=Open+Sans:wght@600&family=Oswald:wght@500&family=Pacifico&family=Playfair+Display:ital,wght@0,700;1,700&family=Poppins:wght@600&family=Quicksand:wght@600&family=Raleway:wght@700&family=Righteous&family=Roboto:wght@500&family=Rubik:wght@600&family=Teko:wght@600&family=Tiro+Bangla:ital@0;1&family=Titillium+Web:wght@600&family=Varela+Round&family=Work+Sans:wght@600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;700&family=Atma:wght@500;700&family=Baloo+Da+2:wght@500;700&family=Caveat:wght@600&family=Dancing+Script:wght@600&family=Galada&family=Hind+Siliguri:wght@500;700&family=Inter:wght@400;600;800&family=Lato:wght@400;700&family=Lora:ital,wght@0,600;1,600&family=Mina:wght@400;700&family=Montserrat:wght@700;900&family=Noto+Sans+Bengali:wght@500;700&family=Nunito:wght@700&family=Open+Sans:wght@600&family=Oswald:wght@500&family=Pacifico&family=Playfair+Display:ital,wght@0,700;1,700&family=Poppins:wght@500;700&family=Quicksand:wght@600&family=Raleway:wght@700&family=Roboto:wght@500;700&family=Tiro+Bangla:ital@0;1&family=Ubuntu:wght@500;700&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -26,7 +26,7 @@
         input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #e2e8f0; border-radius: 4px; }
         .glass { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
-        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #4f46e5; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        .loader { border: 3px solid #e2e8f0; border-radius: 50%; border-top: 3px solid #4f46e5; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -75,7 +75,7 @@
 
             <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Your Recent Projects</h3>
             <div id="recentProjectsContainer" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="col-span-full text-center text-gray-400 text-sm py-4">No recent projects found.</div>
+                <div class="col-span-full flex justify-center py-8"><div class="loader"></div></div>
             </div>
         </div>
     </div>
@@ -109,10 +109,20 @@
                 <button onclick="openEditor(true)" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold shadow-md hover:bg-indigo-700 transition text-sm">Open Template Editor</button>
             </div>
             
-            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3">User List</h3>
-            <div id="adminUserList" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden divide-y">
+            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3">User List & History</h3>
+            <div id="adminUserList" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden divide-y mb-10">
                 <div class="p-4 text-center text-sm text-gray-400">Loading users...</div>
             </div>
+        </div>
+    </div>
+
+    <div id="userHistoryModal" class="fixed inset-0 bg-gray-900/80 z-[100] hidden flex-col transition-opacity">
+        <header class="p-4 bg-white shadow-sm flex items-center justify-between">
+            <h2 id="historyUserName" class="font-bold text-lg text-gray-800">User's Projects</h2>
+            <button onclick="document.getElementById('userHistoryModal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-red-100 hover:text-red-500 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
+        </header>
+        <div class="flex-1 overflow-y-auto p-4 bg-[#f8fafc]">
+            <div id="userHistoryContainer" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
         </div>
     </div>
 
@@ -135,18 +145,6 @@
                 <button onclick="setCanvasSize(4/3)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
                     <div class="w-10 h-7 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">4:3 Post</span>
                 </button>
-                <button onclick="setCanvasSize(3/4)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
-                    <div class="w-7 h-10 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">3:4 Portrait</span>
-                </button>
-                <button onclick="setCanvasSize(21/9)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
-                    <div class="w-12 h-5 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">21:9 Cover</span>
-                </button>
-                <button onclick="setCanvasSize(1/1.414)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
-                    <div class="w-7 h-10 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">A4 Document</span>
-                </button>
-                <button onclick="setCanvasSize(3/2)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
-                    <div class="w-9 h-6 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">3:2 Web</span>
-                </button>
             </div>
         </div>
     </div>
@@ -158,7 +156,7 @@
         </header>
         <div class="p-3 border-b bg-white shadow-sm z-10 relative">
             <i class="fas fa-search absolute left-6 top-6 text-gray-400"></i>
-            <input type="text" id="fontSearch" onkeyup="filterFonts()" placeholder="Search from 50+ fonts..." class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2 text-sm outline-none focus:border-indigo-500 font-semibold">
+            <input type="text" id="fontSearch" onkeyup="filterFonts()" placeholder="Search from 40+ premium fonts..." class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2 text-sm outline-none focus:border-indigo-500 font-semibold">
         </div>
         <div id="fontListContainer" class="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-3 bg-[#f8fafc] content-start">
             </div>
@@ -239,7 +237,7 @@
             <div id="propStroke" class="flex items-center gap-3 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-200">
                 <div class="flex-col items-center">
                     <span class="text-[9px] font-extrabold text-gray-400 mb-1.5 uppercase tracking-widest block text-center">Border</span>
-                    <input type="color" id="strokeColor" oninput="changeStroke(this.value, null)" class="w-5 h-5 cursor-pointer bg-transparent mx-auto block">
+                    <input type="color" id="strokeColor" oninput="changeStroke(this.value, null)" onchange="saveHistory()" class="w-5 h-5 cursor-pointer bg-transparent mx-auto block">
                 </div>
                 <div class="flex-col w-20">
                     <div class="flex justify-between w-full mb-1">
@@ -314,6 +312,7 @@
                 </button>
                 
                 <div class="flex flex-col items-center text-gray-500 p-1.5 w-14 relative group cursor-pointer" onclick="openBgPanel()">
+                    <input type="color" id="universalColorPicker" oninput="applyUniversalColor(this.value)" class="absolute w-0 h-0 opacity-0">
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-400 to-indigo-500 mb-1 flex items-center justify-center text-white transition transform group-hover:scale-110 shadow-sm border border-white"><i class="fas fa-fill-drip text-xs"></i></div>
                     <span class="text-[9px] font-bold">Color/BG</span>
                 </div>
@@ -335,7 +334,7 @@
     </div>
 
     <script>
-        // --- FIREBASE CONFIGURATION (Using Cloudinary for Storage) ---
+        // --- 1. FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyCkjZKtJoCqszL0ahK62rIdrbqZPluXvd0",
             authDomain: "bannerx.firebaseapp.com",
@@ -347,9 +346,9 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- CLOUDINARY CONFIG ---
+        // --- 2. CLOUDINARY CONFIG ---
         const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dsmvmq076/image/upload";
-        const CLOUDINARY_PRESET = "BannerX";
+        const CLOUDINARY_PRESET = "BannerX"; // User updated preset name
 
         let currentUser = null;
         let isAdmin = false;
@@ -357,28 +356,20 @@
         let isEditingTemplate = false;
         let currentEditingId = null;
 
-        // --- MEGA FONT LIBRARY (50+ Fonts) ---
+        // --- 3. MEGA FONT LIBRARY ---
         const fonts = [
-            { name: "Inter", label: "Inter (Modern)" }, { name: "Montserrat", label: "Montserrat (Bold)" },
-            { name: "Roboto", label: "Roboto" }, { name: "Open Sans", label: "Open Sans" },
-            { name: "Lato", label: "Lato" }, { name: "Poppins", label: "Poppins" },
+            { name: "Inter", label: "Inter (Modern)" }, { name: "Poppins", label: "Poppins (Clean)" },
+            { name: "Montserrat", label: "Montserrat (Bold)" }, { name: "Roboto", label: "Roboto" },
+            { name: "Open Sans", label: "Open Sans" }, { name: "Lato", label: "Lato" },
             { name: "Oswald", label: "Oswald" }, { name: "Raleway", label: "Raleway" },
-            { name: "Nunito", label: "Nunito" }, { name: "Playfair Display", label: "Playfair (Serif)" },
-            { name: "Merriweather", label: "Merriweather" }, { name: "Rubik", label: "Rubik" },
-            { name: "Lora", label: "Lora" }, { name: "Anton", label: "Anton" },
-            { name: "Bebas Neue", label: "Bebas Neue" }, { name: "Caveat", label: "Caveat (Handwriting)" },
+            { name: "Nunito", label: "Nunito" }, { name: "Ubuntu", label: "Ubuntu" },
+            { name: "Playfair Display", label: "Playfair (Serif)" }, { name: "Lora", label: "Lora (Serif)" },
             { name: "Pacifico", label: "Pacifico (Cursive)" }, { name: "Dancing Script", label: "Dancing Script" },
-            { name: "Righteous", label: "Righteous" }, { name: "Cinzel", label: "Cinzel (Serif)" },
-            { name: "Exo 2", label: "Exo 2" }, { name: "Josefin Sans", label: "Josefin Sans" },
-            { name: "Fjalla One", label: "Fjalla One" }, { name: "Lobster", label: "Lobster" },
-            { name: "Abel", label: "Abel" }, { name: "Mukta", label: "Mukta" },
-            { name: "Teko", label: "Teko" }, { name: "Titillium Web", label: "Titillium Web" },
-            { name: "Varela Round", label: "Varela Round" }, { name: "Work Sans", label: "Work Sans" },
-            { name: "Hind Siliguri", label: "Hind Siliguri (বাংলা)" }, { name: "Mina", label: "Mina (বাংলা)" },
+            { name: "Caveat", label: "Caveat (Handwriting)" }, { name: "Hind Siliguri", label: "Hind Siliguri (বাংলা)" },
+            { name: "Noto Sans Bengali", label: "Noto Sans (বাংলা)" }, { name: "Baloo Da 2", label: "Baloo Da 2 (বাংলা)" },
+            { name: "Anek Bangla", label: "Anek Bangla (বাংলা)" }, { name: "Mina", label: "Mina (বাংলা)" },
             { name: "Tiro Bangla", label: "Tiro Bangla (বাংলা)" }, { name: "Atma", label: "Atma (বাংলা)" },
-            { name: "Galada", label: "Galada (বাংলা)" }, { name: "Noto Sans Bengali", label: "Noto Sans (বাংলা)" },
-            { name: "Noto Serif Bengali", label: "Noto Serif (বাংলা)" }, { name: "Anek Bangla", label: "Anek Bangla (বাংলা)" },
-            { name: "Baloo Da 2", label: "Baloo Da 2 (বাংলা)" }
+            { name: "Galada", label: "Galada (বাংলা)" }
         ];
 
         function populateFonts(query = "") {
@@ -404,7 +395,7 @@
         }
         function filterFonts() { populateFonts(document.getElementById('fontSearch').value); }
 
-        // --- AUTHENTICATION ---
+        // --- 4. AUTHENTICATION & DATABASE FETCHING ---
         auth.onAuthStateChanged(user => {
             document.getElementById('fullLoader').classList.add('opacity-0');
             setTimeout(() => document.getElementById('fullLoader').classList.add('hidden'), 300);
@@ -444,7 +435,6 @@
         }
         function logout() { auth.signOut().then(() => { closeProfile(); closeAdmin(); closeEditor(); }); }
 
-        // --- UI NAVIGATION ---
         const profileScreen = document.getElementById('profileScreen');
         const adminScreen = document.getElementById('adminScreen');
         const homeScreen = document.getElementById('homeScreen');
@@ -478,14 +468,19 @@
             }, 300);
         }
 
-        // --- FIREBASE DATA LOGIC ---
+        // --- FIREBASE BYPASS INDEXING FIX ---
         function loadTemplates() {
             const container = document.getElementById('templateContainer');
-            db.collection('templates').orderBy('createdAt', 'desc').limit(8).onSnapshot(snapshot => {
+            // Using direct get and JS sort to bypass any missing index errors
+            db.collection('templates').get().then(snapshot => {
                 container.innerHTML = '';
                 if(snapshot.empty) { container.innerHTML = '<div class="col-span-full text-center text-gray-400 text-sm">No templates available.</div>'; return; }
-                snapshot.forEach(doc => {
-                    const data = doc.data();
+                
+                let templates = [];
+                snapshot.forEach(doc => templates.push({id: doc.id, ...doc.data()}));
+                templates.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0)); // Sort newest first
+
+                templates.slice(0, 8).forEach(data => {
                     container.innerHTML += `
                         <div onclick='openEditor(false, ${JSON.stringify(data.canvasData)})' class="bg-white border border-gray-200 h-32 rounded-xl cursor-pointer hover:shadow-lg transition relative overflow-hidden group">
                             <img src="${data.thumbUrl}" class="w-full h-full object-cover">
@@ -494,69 +489,116 @@
                             </div>
                         </div>`;
                 });
+            }).catch(err => {
+                container.innerHTML = `<div class="col-span-full text-red-500 text-xs text-center">Error loading templates: ${err.message}</div>`;
             });
         }
 
         function loadRecentProjects() {
             if(!currentUser) return;
             const container = document.getElementById('recentProjectsContainer');
-            db.collection('projects').where('uid', '==', currentUser.uid).orderBy('updatedAt', 'desc').limit(4).get().then(snapshot => {
+            // Fetch without orderBy, sort via JS to avoid Composite Index Error!
+            db.collection('projects').where('uid', '==', currentUser.uid).get().then(snapshot => {
                 container.innerHTML = '';
                 if(snapshot.empty) { container.innerHTML = '<div class="col-span-full text-center text-gray-400 text-sm">No recent projects.</div>'; return; }
-                snapshot.forEach(doc => {
-                    const data = doc.data();
+                
+                let projects = [];
+                snapshot.forEach(doc => projects.push({id: doc.id, ...doc.data()}));
+                projects.sort((a, b) => (b.updatedAt?.toMillis() || 0) - (a.updatedAt?.toMillis() || 0));
+
+                projects.slice(0, 4).forEach(data => {
                     container.innerHTML += `
-                        <div onclick='openEditor(false, ${JSON.stringify(data.canvasData)}, "${doc.id}")' class="bg-white border border-gray-200 h-32 rounded-xl cursor-pointer hover:shadow-lg transition relative overflow-hidden group">
+                        <div onclick='openEditor(false, ${JSON.stringify(data.canvasData)}, "${data.id}")' class="bg-white border border-gray-200 h-32 rounded-xl cursor-pointer hover:shadow-lg transition relative overflow-hidden group">
                             <img src="${data.thumbUrl}" class="w-full h-full object-cover border-b">
                             <div class="absolute bottom-0 w-full bg-white/90 backdrop-blur text-[10px] font-bold px-2 py-1 truncate">${data.name || 'Untitled'}</div>
                         </div>`;
                 });
-            });
+            }).catch(err => console.log("Recent projects error:", err));
         }
 
         function loadAllProjects() {
             if(!currentUser) return;
             const container = document.getElementById('allProjectsContainer');
             container.innerHTML = '<div class="col-span-full text-center"><div class="loader mx-auto"></div></div>';
-            db.collection('projects').where('uid', '==', currentUser.uid).orderBy('updatedAt', 'desc').get().then(snapshot => {
+            
+            db.collection('projects').where('uid', '==', currentUser.uid).get().then(snapshot => {
                 container.innerHTML = '';
                 if(snapshot.empty) { container.innerHTML = '<div class="col-span-full text-center text-gray-400 text-sm">No saved projects.</div>'; return; }
-                snapshot.forEach(doc => {
-                    const data = doc.data();
+                
+                let projects = [];
+                snapshot.forEach(doc => projects.push({id: doc.id, ...doc.data()}));
+                projects.sort((a, b) => (b.updatedAt?.toMillis() || 0) - (a.updatedAt?.toMillis() || 0));
+
+                projects.forEach(data => {
                     container.innerHTML += `
                         <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
-                            <div onclick='openEditor(false, ${JSON.stringify(data.canvasData)}, "${doc.id}")' class="h-28 cursor-pointer relative group bg-gray-100">
+                            <div onclick='openEditor(false, ${JSON.stringify(data.canvasData)}, "${data.id}")' class="h-28 cursor-pointer relative group bg-gray-100">
                                 <img src="${data.thumbUrl}" class="w-full h-full object-contain">
                                 <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition"><i class="fas fa-pen text-white text-xl"></i></div>
                             </div>
                             <div class="p-2 flex justify-between items-center bg-gray-50 border-t">
                                 <span class="text-[10px] font-bold text-gray-700 truncate w-24">${data.name || 'Untitled'}</span>
                                 <div class="flex gap-2">
-                                    <button onclick="deleteProject('${doc.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash text-xs"></i></button>
+                                    <button onclick="deleteProject('${data.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash text-xs"></i></button>
                                 </div>
                             </div>
                         </div>`;
                 });
+            }).catch(err => {
+                container.innerHTML = `<div class="col-span-full text-red-500 text-xs text-center">Error loading: ${err.message}</div>`;
             });
         }
 
         function deleteProject(id) { if(confirm("Delete this project?")) { db.collection('projects').doc(id).delete().then(() => loadAllProjects()); } }
+        
         function loadUserList() {
             const container = document.getElementById('adminUserList');
-            db.collection('users').orderBy('lastLogin', 'desc').limit(20).get().then(snapshot => {
+            db.collection('users').get().then(snapshot => {
                 container.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const data = doc.data();
+                
+                let users = [];
+                snapshot.forEach(doc => users.push({id: doc.id, ...doc.data()}));
+                users.sort((a, b) => (b.lastLogin?.toMillis() || 0) - (a.lastLogin?.toMillis() || 0));
+
+                users.forEach(data => {
                     container.innerHTML += `
-                        <div class="p-3 flex items-center gap-3">
-                            <img src="${data.photo || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full">
-                            <div><h4 class="text-sm font-bold text-gray-800 leading-tight">${data.name || 'Unknown'}</h4><p class="text-[10px] text-gray-500">${data.email}</p></div>
+                        <div class="p-3 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <img src="${data.photo || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full">
+                                <div><h4 class="text-sm font-bold text-gray-800 leading-tight">${data.name || 'Unknown'}</h4><p class="text-[10px] text-gray-500">${data.email}</p></div>
+                            </div>
+                            <button onclick="viewUserHistory('${data.id}', '${data.name}')" class="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded hover:bg-indigo-100 font-bold">View History</button>
                         </div>`;
                 });
             });
         }
 
-        // --- CLOUDINARY UPLOAD LOGIC ---
+        function viewUserHistory(uid, userName) {
+            document.getElementById('userHistoryModal').classList.remove('hidden');
+            document.getElementById('userHistoryModal').classList.add('flex');
+            document.getElementById('historyUserName').innerText = userName + "'s Projects";
+            const container = document.getElementById('userHistoryContainer');
+            container.innerHTML = '<div class="col-span-full text-center"><div class="loader mx-auto"></div></div>';
+
+            db.collection('projects').where('uid', '==', uid).get().then(snapshot => {
+                container.innerHTML = '';
+                if(snapshot.empty) { container.innerHTML = '<div class="col-span-full text-center text-gray-400 text-sm">No projects found for this user.</div>'; return; }
+                
+                let projects = [];
+                snapshot.forEach(doc => projects.push({id: doc.id, ...doc.data()}));
+                projects.sort((a, b) => (b.updatedAt?.toMillis() || 0) - (a.updatedAt?.toMillis() || 0));
+
+                projects.forEach(data => {
+                    container.innerHTML += `
+                        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                            <div class="h-28 relative bg-gray-100"><img src="${data.thumbUrl}" class="w-full h-full object-contain"></div>
+                            <div class="p-2 bg-gray-50 border-t"><span class="text-[10px] font-bold text-gray-700 truncate block">${data.name || 'Untitled'}</span></div>
+                        </div>`;
+                });
+            });
+        }
+
+        // --- 5. CLOUDINARY UPLOAD LOGIC ---
         async function uploadToCloudinary(dataUrl) {
             const formData = new FormData();
             formData.append("file", dataUrl);
@@ -595,8 +637,7 @@
             finally { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }
         }
 
-
-        // ================= EDITOR LOGIC (FABRIC.JS) =================
+        // ================= 6. EDITOR LOGIC (FABRIC.JS) =================
         
         fabric.Image.prototype._render = (function(originalRender) {
             return function(ctx) {
@@ -673,7 +714,7 @@
 
             if(isText) {
                 document.getElementById('propTextEdit').classList.replace('hidden', 'flex'); document.getElementById('propFont').classList.replace('hidden', 'flex'); document.getElementById('divSepText').classList.replace('hidden', 'block'); document.getElementById('propColor').classList.replace('hidden', 'flex'); document.getElementById('propGradient').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block');
-                document.getElementById('textEditInput').value = obj.text; document.getElementById('currentFontBtn').innerText = obj.fontFamily || 'Inter';
+                document.getElementById('textEditInput').value = obj.text; document.getElementById('currentFontBtn').innerHTML = `${obj.fontFamily || 'Inter'} <i class="fas fa-chevron-down text-[10px] text-gray-400"></i>`;
             } else if (isImage) {
                 document.getElementById('propImageShape').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block');
             } else if (isShape) {
@@ -691,7 +732,7 @@
         function updateTextContent(val) { const obj = canvas.getActiveObject(); if (obj && obj.type === 'i-text') { obj.set('text', val); canvas.renderAll(); } }
         function changeFont(fontName) { const obj = canvas.getActiveObject(); if(obj && obj.type === 'i-text') { obj.set('fontFamily', fontName); document.getElementById('currentFontBtn').innerHTML = `${fontName} <i class="fas fa-chevron-down text-[10px] text-gray-400"></i>`; canvas.renderAll(); saveHistory(); } }
 
-        function addText() { const text = new fabric.IText('আপনার টেক্সট\nYour Text', { left: canvas.width/2 - 60, top: canvas.height/2 - 20, fontFamily: 'Inter', fill: '#1e293b', fontSize: 36, fontWeight: '700', textAlign: 'center' }); canvas.add(text); canvas.setActiveObject(text); saveHistory(); }
+        function addText() { const text = new fabric.IText('আপনার টেক্সট\nYour Text', { left: canvas.width/2 - 60, top: canvas.height/2 - 20, fontFamily: 'Hind Siliguri', fill: '#1e293b', fontSize: 36, fontWeight: '700', textAlign: 'center' }); canvas.add(text); canvas.setActiveObject(text); saveHistory(); }
 
         function addShape(type) {
             let shape; const cx = canvas.width/2 - 40, cy = canvas.height/2 - 40;
