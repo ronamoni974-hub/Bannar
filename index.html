@@ -32,10 +32,25 @@
 </head>
 <body class="h-[100dvh] w-full overflow-hidden text-gray-800 flex flex-col selection:bg-indigo-100 relative">
 
+    <div id="toastContainer" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none w-[90%] max-w-sm"></div>
+
+    <div id="confirmModal" class="fixed inset-0 bg-gray-900/60 z-[10000] hidden flex-col items-center justify-center backdrop-blur-sm transition-opacity opacity-0">
+        <div class="bg-white rounded-2xl w-80 shadow-2xl overflow-hidden transform scale-95 transition-transform" id="confirmBox">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-exclamation-triangle text-2xl"></i></div>
+                <h3 id="confirmTitle" class="font-bold text-xl text-gray-800 mb-2">Are you sure?</h3>
+                <p id="confirmMessage" class="text-sm text-gray-500 mb-6">This action cannot be undone.</p>
+                <div class="flex gap-3">
+                    <button onclick="closeConfirmModal(false)" class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition">Cancel</button>
+                    <button id="confirmYesBtn" class="flex-1 px-4 py-2.5 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition shadow-md">Yes, Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="fullLoader" class="fixed inset-0 bg-white z-[999] flex flex-col items-center justify-center transition-opacity duration-300">
         <h1 class="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 tracking-tight mb-4">ProBanner</h1>
         <div class="loader w-10 h-10 border-4"></div>
-        <p id="loaderText" class="mt-4 text-sm font-bold text-indigo-500 hidden">Uploading Image...</p>
     </div>
 
     <div id="loginScreen" class="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
@@ -177,21 +192,26 @@
             </div>
         </header>
 
+        <div id="savingOverlay" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center">
+            <div class="loader mb-3"></div>
+            <p id="savingText" class="font-bold text-indigo-600 text-sm">Uploading assets to Cloud...</p>
+        </div>
+
         <main id="workspace" class="flex-1 relative flex justify-center items-center overflow-hidden w-full p-4 bg-[#eef2f6] touch-none">
             <canvas id="bannerCanvas"></canvas>
         </main>
 
         <div id="propertiesPanel" class="h-auto py-3 bg-white border-t flex items-center px-3 gap-4 overflow-x-auto hide-scroll shrink-0 shadow-[0_-15px_30px_rgba(0,0,0,0.05)] transition-transform duration-300 translate-y-full absolute bottom-[72px] w-full z-20">
             
-            <div id="propTextEdit" class="flex-col shrink-0 hidden w-40">
+            <div id="propTextEdit" class="flex-col shrink-0 hidden w-32">
                 <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest pl-1">Edit Text</span>
                 <input type="text" id="textEditInput" oninput="updateTextContent(this.value)" placeholder="Type here..." class="w-full bg-gray-50 border border-gray-200 text-xs text-gray-700 font-semibold rounded-lg px-2 py-1.5 outline-none focus:border-indigo-500 shadow-inner">
             </div>
 
-            <div id="propFont" class="flex-col shrink-0 hidden w-[110px]">
+            <div id="propFont" class="flex-col shrink-0 hidden w-[90px]">
                 <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest pl-1">Font Style</span>
-                <button onclick="openFontModal()" id="currentFontBtn" class="w-full bg-gray-50 hover:bg-indigo-50 border border-gray-200 hover:border-indigo-300 text-gray-700 text-xs font-bold rounded-lg px-2 py-1.5 outline-none transition truncate flex justify-between items-center">
-                    <span>Inter</span> <i class="fas fa-chevron-down text-[10px] text-gray-400"></i>
+                <button onclick="openFontModal()" id="currentFontBtn" class="w-full bg-gray-50 hover:bg-indigo-50 border border-gray-200 hover:border-indigo-300 text-gray-700 text-[11px] font-bold rounded-lg px-2 py-1.5 outline-none transition truncate flex justify-between items-center">
+                    <span>Inter</span> <i class="fas fa-chevron-down text-[9px] text-gray-400"></i>
                 </button>
             </div>
 
@@ -199,22 +219,22 @@
 
             <div id="propColor" class="flex-col items-center shrink-0 hidden">
                 <span class="text-[9px] font-extrabold text-gray-400 mb-1.5 uppercase tracking-widest text-center">Color</span>
-                <input type="color" id="itemColor" oninput="changeColor(this.value)" onchange="saveHistory()" class="w-8 h-8 cursor-pointer bg-transparent mx-auto">
+                <input type="color" id="itemColor" oninput="changeColor(this.value)" class="w-7 h-7 cursor-pointer bg-transparent mx-auto">
             </div>
 
             <div id="propGradient" class="flex-col items-center shrink-0 hidden">
                 <span class="text-[9px] font-extrabold text-indigo-500 mb-1.5 uppercase tracking-widest text-center">Gradient Fill</span>
-                <div class="flex items-center gap-1.5 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
-                    <input type="color" id="grad1" value="#00c6ff" oninput="applyCustomGradient()" onchange="saveHistory()" class="w-6 h-6 cursor-pointer bg-transparent">
-                    <input type="color" id="grad2" value="#0072ff" oninput="applyCustomGradient()" onchange="saveHistory()" class="w-6 h-6 cursor-pointer bg-transparent">
+                <div class="flex items-center gap-1 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+                    <input type="color" id="grad1" value="#00c6ff" oninput="applyCustomGradient()" class="w-5 h-5 cursor-pointer bg-transparent">
+                    <input type="color" id="grad2" value="#0072ff" oninput="applyCustomGradient()" class="w-5 h-5 cursor-pointer bg-transparent">
                 </div>
             </div>
 
             <div id="divSep1" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
 
             <div id="propImageShape" class="flex-col items-center shrink-0 hidden">
-                <span class="text-[9px] font-extrabold text-gray-500 mb-1.5 uppercase tracking-widest text-center">Frame Shape</span>
-                <div class="flex items-center gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+                <span class="text-[9px] font-extrabold text-gray-500 mb-1 uppercase tracking-widest text-center">Frame Shape</span>
+                <div class="flex items-center gap-1 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
                     <button onclick="setImageShape('original')" class="w-6 h-6 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50 transition" title="Original"><i class="fas fa-image text-indigo-400 text-[10px]"></i></button>
                     <button onclick="setImageShape('square')" class="w-6 h-6 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50 transition" title="Square"><div class="w-3 h-3 bg-indigo-400 border border-indigo-600"></div></button>
                     <button onclick="setImageShape('rounded')" class="w-6 h-6 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50 transition" title="Rounded"><div class="w-3 h-3 bg-indigo-400 border border-indigo-600 rounded-sm"></div></button>
@@ -224,44 +244,53 @@
 
             <div id="divSep2" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
 
-            <div id="propShadow" class="flex items-center gap-3 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+            <div id="propShadow" class="flex items-center gap-2 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-200">
                 <div class="flex-col items-center">
                     <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest block text-center">Shadow</span>
-                    <input type="color" id="shadowColor" oninput="changeShadow()" onchange="saveHistory()" value="#000000" class="w-5 h-5 cursor-pointer bg-transparent mx-auto block">
+                    <input type="color" id="shadowColor" oninput="changeShadow()" value="#000000" class="w-5 h-5 cursor-pointer bg-transparent mx-auto block">
                 </div>
-                <div class="flex-col w-20">
+                <div class="flex-col w-16">
                     <div class="flex justify-between w-full mb-1">
                         <span class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">Blur</span>
                     </div>
-                    <input type="range" id="shadowBlur" min="0" max="30" step="1" value="0" oninput="changeShadow()" onchange="saveHistory()" class="w-full accent-gray-500">
+                    <input type="range" id="shadowBlur" min="0" max="30" step="1" value="0" oninput="changeShadow()" class="w-full accent-gray-500">
                 </div>
             </div>
 
-            <div id="propStroke" class="flex items-center gap-3 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+            <div id="propStroke" class="flex items-center gap-2 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-200">
                 <div class="flex-col items-center">
                     <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest block text-center">Border</span>
-                    <input type="color" id="strokeColor" oninput="changeStroke(this.value, null)" onchange="saveHistory()" class="w-5 h-5 cursor-pointer bg-transparent mx-auto block">
+                    <input type="color" id="strokeColor" oninput="changeStroke(this.value, null)" class="w-5 h-5 cursor-pointer bg-transparent mx-auto block">
                 </div>
                 <div class="flex-col w-16">
                     <div class="flex justify-between w-full mb-1">
                         <span class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">Width</span>
                         <span id="strokeVal" class="text-[9px] font-bold text-gray-600">0</span>
                     </div>
-                    <input type="range" id="strokeWidth" min="0" max="40" step="1" value="0" oninput="changeStroke(null, this.value)" onchange="saveHistory()" class="w-full accent-gray-500">
+                    <input type="range" id="strokeWidth" min="0" max="40" step="1" value="0" oninput="changeStroke(null, this.value)" class="w-full accent-gray-500">
                 </div>
             </div>
 
-            <div id="propFade" class="flex-col shrink-0 hidden">
-                <span class="text-[9px] font-extrabold text-indigo-500 mb-1.5 uppercase tracking-widest text-center block">Effect</span>
-                <button onclick="applyFadeToTransparent()" class="bg-gradient-to-r from-indigo-500 to-transparent text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-sm border border-indigo-200">Fade Mask</button>
+            <div id="propFade" class="flex-col shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+                <span class="text-[9px] font-extrabold text-indigo-500 mb-1 uppercase tracking-widest text-center block">Fade Effect</span>
+                <div class="flex items-center gap-2">
+                    <select id="fadeDirection" class="text-[10px] py-1 px-1 bg-white border border-gray-300 rounded outline-none text-gray-700">
+                        <option value="right">Right</option>
+                        <option value="left">Left</option>
+                        <option value="bottom">Bottom</option>
+                        <option value="top">Top</option>
+                    </select>
+                    <input type="range" id="fadeAmount" min="0" max="1" step="0.1" value="0.5" class="w-12 accent-indigo-500">
+                    <button onclick="applyFadeToTransparent()" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2 py-1 rounded text-[9px] font-bold transition">Apply</button>
+                </div>
             </div>
 
-            <div id="propOpacity" class="flex-col shrink-0 w-20 hidden">
+            <div id="propOpacity" class="flex-col shrink-0 w-16 hidden">
                 <div class="flex justify-between w-full mb-1">
                     <span class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">Opacity</span>
                     <span id="opVal" class="text-[9px] font-bold text-indigo-600">100%</span>
                 </div>
-                <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" oninput="changeOpacity(this.value)" onchange="saveHistory()" class="w-full">
+                <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" oninput="changeOpacity(this.value)" class="w-full">
             </div>
 
             <div id="propDelete" class="flex-col items-center shrink-0 pr-4 hidden ml-auto">
@@ -303,7 +332,7 @@
                     <span class="text-[9px] font-bold">Text</span>
                 </button>
                 
-                <input type="file" id="mainImageInput" class="hidden" accept="image/*" onclick="this.value=null" onchange="uploadAndAddImage(event)">
+                <input type="file" id="mainImageInput" class="hidden" accept="image/*" onclick="this.value=null" onchange="addMainImageLocal(event)">
                 <button onclick="document.getElementById('mainImageInput').click()" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 p-1.5 w-14 transition group">
                     <div class="w-9 h-9 rounded-xl bg-gray-50 group-hover:bg-indigo-50 flex items-center justify-center mb-1 transition-all"><i class="fas fa-image text-base"></i></div>
                     <span class="text-[9px] font-bold">Image</span>
@@ -320,7 +349,7 @@
                 </button>
                 
                 <div class="flex flex-col items-center text-gray-500 p-1.5 w-14 relative group cursor-pointer" onclick="openBgPanel()">
-                    <input type="color" id="universalColorPicker" oninput="applyUniversalColor(this.value)" onchange="saveHistory()" class="absolute w-0 h-0 opacity-0">
+                    <input type="color" id="universalColorPicker" oninput="applyUniversalColor(this.value)" class="absolute w-0 h-0 opacity-0">
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-400 to-indigo-500 mb-1 flex items-center justify-center text-white transition transform group-hover:scale-110 shadow-sm border border-white"><i class="fas fa-fill-drip text-xs"></i></div>
                     <span class="text-[9px] font-bold">Color/BG</span>
                 </div>
@@ -342,6 +371,42 @@
     </div>
 
     <script>
+        // --- CUSTOM TOAST & MODAL SYSTEM ---
+        function showToast(message, type="info") {
+            const toast = document.createElement('div');
+            const colors = type === 'success' ? 'bg-green-50 text-green-700 border-green-500' : type === 'error' ? 'bg-red-50 text-red-700 border-red-500' : 'bg-blue-50 text-blue-700 border-blue-500';
+            const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border-l-4 ${colors} transition-all duration-300 transform -translate-y-10 opacity-0`;
+            toast.innerHTML = `<i class="fas ${icon} text-lg"></i> <span class="text-sm font-bold">${message}</span>`;
+            document.getElementById('toastContainer').appendChild(toast);
+            setTimeout(() => { toast.classList.remove('-translate-y-10', 'opacity-0'); }, 10);
+            setTimeout(() => { toast.classList.add('-translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        let confirmCallback = null;
+        function showConfirm(title, message, callback) {
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMessage').innerText = message;
+            confirmCallback = callback;
+            document.getElementById('confirmModal').classList.remove('hidden');
+            document.getElementById('confirmModal').classList.add('flex');
+            setTimeout(() => {
+                document.getElementById('confirmModal').classList.remove('opacity-0');
+                document.getElementById('confirmBox').classList.remove('scale-95');
+            }, 10);
+        }
+        function closeConfirmModal(result) {
+            document.getElementById('confirmModal').classList.add('opacity-0');
+            document.getElementById('confirmBox').classList.add('scale-95');
+            setTimeout(() => {
+                document.getElementById('confirmModal').classList.add('hidden');
+                document.getElementById('confirmModal').classList.remove('flex');
+                if(result && confirmCallback) confirmCallback();
+            }, 300);
+        }
+        document.getElementById('confirmYesBtn').addEventListener('click', () => closeConfirmModal(true));
+
+
         // --- 1. FIREBASE & CLOUDINARY CONFIG ---
         const firebaseConfig = { apiKey: "AIzaSyCkjZKtJoCqszL0ahK62rIdrbqZPluXvd0", authDomain: "bannerx.firebaseapp.com", projectId: "bannerx", messagingSenderId: "748978540713", appId: "1:748978540713:web:4e972da64bbfe3d16fd9b8" };
         firebase.initializeApp(firebaseConfig);
@@ -351,7 +416,7 @@
 
         let currentUser = null; let isAdmin = false; const ADMIN_EMAIL = "mdwld2005@gmail.com";
         let isEditingTemplate = false; let currentEditingId = null;
-        window.cachedProjects = {}; // To fix the HTML onclick string bug
+        window.cachedProjects = {}; 
 
         // --- 2. MEGA FONT LIBRARY ---
         const fonts = [
@@ -375,7 +440,8 @@
                 currentUser = user; isAdmin = (user.email === ADMIN_EMAIL);
                 document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('homeScreen').classList.remove('hidden'); setTimeout(() => document.getElementById('homeScreen').classList.remove('opacity-0'), 50);
                 document.getElementById('userProfilePic').src = user.photoURL || 'https://via.placeholder.com/150'; document.getElementById('profPicLarge').src = user.photoURL || 'https://via.placeholder.com/150'; document.getElementById('profName').innerText = user.displayName || 'User'; document.getElementById('profEmail').innerText = user.email;
-                if(isAdmin) { document.getElementById('adminBtn').classList.remove('hidden'); document.getElementById('adminBtn').classList.add('inline-flex'); } else { document.getElementById('adminBtn').classList.add('hidden'); }
+                if(isAdmin) { document.getElementById('adminBtn').classList.remove('hidden'); document.getElementById('adminBtn').classList.add('inline-flex'); } 
+                else { document.getElementById('adminBtn').classList.add('hidden'); }
                 db.collection('users').doc(user.uid).set({ name: user.displayName, email: user.email, photo: user.photoURL, lastLogin: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
                 loadTemplates(); loadRecentProjects();
             } else {
@@ -383,8 +449,8 @@
             }
         });
 
-        function signInWithGoogle() { const provider = new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(provider).catch(error => { alert("Login failed! " + error.message); }); }
-        function logout() { auth.signOut().then(() => { closeProfile(); closeAdmin(); closeEditor(); }); }
+        function signInWithGoogle() { const provider = new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(provider).catch(error => { showToast("Login failed! " + error.message, "error"); }); }
+        function logout() { auth.signOut().then(() => { closeProfile(); closeAdmin(); closeEditor(); showToast("Logged out successfully.", "success"); }); }
 
         const profileScreen = document.getElementById('profileScreen'), adminScreen = document.getElementById('adminScreen'), homeScreen = document.getElementById('homeScreen'), editorScreen = document.getElementById('editorScreen');
         function openProfile() { profileScreen.classList.remove('hidden'); setTimeout(() => profileScreen.classList.remove('translate-x-full'), 50); loadAllProjects(); }
@@ -414,9 +480,9 @@
             }, 300);
         }
 
-        // --- 4. FIREBASE DATA LOGIC (No Indexing Bug) ---
+        // --- 4. FIREBASE DATA LOGIC ---
         function openProject(id) { openEditor(false, window.cachedProjects[id], id); }
-        function openTemplate(id) { openEditor(false, window.cachedProjects[id], null); } // Opens as new project
+        function openTemplate(id) { openEditor(false, window.cachedProjects[id], isAdmin ? id : null); } // If admin, keep id to overwrite template. If user, new project.
 
         function loadTemplates() {
             const container = document.getElementById('templateContainer');
@@ -426,9 +492,10 @@
                 let templates = []; snapshot.forEach(doc => { templates.push({id: doc.id, ...doc.data()}); window.cachedProjects[doc.id] = doc.data().canvasData; });
                 templates.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
                 templates.slice(0, 8).forEach(data => {
-                    container.innerHTML += `<div onclick="openTemplate('${data.id}')" class="bg-white border border-gray-200 h-32 rounded-xl cursor-pointer hover:shadow-lg transition relative overflow-hidden group"><img src="${data.thumbUrl}" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"><span class="text-white font-bold text-xs"><i class="fas fa-edit mr-1"></i> Use</span></div></div>`;
+                    let actionBtn = isAdmin ? `<div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2"><button onclick="event.stopPropagation(); openTemplate('${data.id}')" class="bg-indigo-500 text-white px-3 py-1 rounded text-xs font-bold"><i class="fas fa-edit"></i> Edit</button></div>` : `<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"><span class="text-white font-bold text-xs"><i class="fas fa-magic mr-1"></i> Use Template</span></div>`;
+                    container.innerHTML += `<div onclick="if(!${isAdmin}) openTemplate('${data.id}')" class="bg-white border border-gray-200 h-32 rounded-xl cursor-pointer hover:shadow-lg transition relative overflow-hidden group"><img src="${data.thumbUrl}" class="w-full h-full object-cover">${actionBtn}</div>`;
                 });
-            });
+            }).catch(err => { container.innerHTML = `<div class="col-span-full text-red-500 text-xs text-center">Error: ${err.message}</div>`; });
         }
 
         function loadRecentProjects() {
@@ -457,7 +524,7 @@
             });
         }
 
-        function deleteProject(id) { if(confirm("Delete this project?")) { db.collection('projects').doc(id).delete().then(() => loadAllProjects()); } }
+        function deleteProject(id) { showConfirm("Delete Project?", "Are you sure you want to permanently delete this project?", () => { db.collection('projects').doc(id).delete().then(() => { loadAllProjects(); showToast("Project deleted.", "success"); }); }); }
         
         function loadUserList() {
             const container = document.getElementById('adminUserList');
@@ -475,77 +542,100 @@
             const container = document.getElementById('userHistoryContainer'); container.innerHTML = '<div class="col-span-full text-center"><div class="loader mx-auto"></div></div>';
             db.collection('projects').where('uid', '==', uid).get().then(snapshot => {
                 container.innerHTML = '';
-                if(snapshot.empty) { container.innerHTML = '<div class="col-span-full text-center text-gray-400 text-sm">No projects found for this user.</div>'; return; }
+                if(snapshot.empty) { container.innerHTML = '<div class="col-span-full text-center text-gray-400 text-sm">No projects found.</div>'; return; }
                 let projects = []; snapshot.forEach(doc => projects.push({id: doc.id, ...doc.data()}));
                 projects.sort((a, b) => (b.updatedAt?.toMillis() || 0) - (a.updatedAt?.toMillis() || 0));
                 projects.forEach(data => { container.innerHTML += `<div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm"><div class="h-28 relative bg-gray-100"><img src="${data.thumbUrl}" class="w-full h-full object-contain"></div><div class="p-2 bg-gray-50 border-t"><span class="text-[10px] font-bold text-gray-700 truncate block">${data.name || 'Untitled'}</span></div></div>`; });
             });
         }
 
-        // --- 5. CLOUDINARY LOGIC (Upload first to prevent 1MB limit crash) ---
+        // --- 5. DEFERRED CLOUDINARY UPLOAD LOGIC (FIX FOR 1MB LIMIT) ---
         async function uploadToCloudinaryFile(dataUrl) {
             const formData = new FormData(); formData.append("file", dataUrl); formData.append("upload_preset", CLOUDINARY_PRESET);
             const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData }); const data = await res.json();
             if(data.secure_url) return data.secure_url; throw new Error(data.error?.message || "Upload Failed");
         }
 
-        async function uploadAndAddImage(e) {
+        // Local Upload to Canvas (Deferred Cloud)
+        function addMainImageLocal(e) {
             const file = e.target.files[0]; if (!file) return;
-            document.getElementById('fullLoader').classList.remove('hidden', 'opacity-0');
-            document.getElementById('loaderText').classList.remove('hidden');
-            
             const reader = new FileReader();
-            reader.onload = async function(f) {
-                try {
-                    const cloudUrl = await uploadToCloudinaryFile(f.target.result);
-                    // Crucial: crossOrigin to prevent canvas taint when exporting
-                    fabric.Image.fromURL(cloudUrl, function(img) {
-                        if(!img) return;
-                        let scale = (canvas.width * 0.6) / img.width; if(scale > 1) scale = 1; 
-                        img.set({ scaleX: scale, scaleY: scale, selectable: true, evented: true, isMainImage: true, customStrokeWidth: 0, customStroke: '#000000', strokeWidth: 0 });
-                        canvas.add(img); canvas.centerObject(img); canvas.setActiveObject(img); 
-                        saveHistory();
-                        document.getElementById('fullLoader').classList.add('hidden', 'opacity-0');
-                        document.getElementById('loaderText').classList.add('hidden');
-                    }, { crossOrigin: 'anonymous' });
-                } catch(err) {
-                    alert("Image Upload Failed: " + err.message);
-                    document.getElementById('fullLoader').classList.add('hidden', 'opacity-0');
-                    document.getElementById('loaderText').classList.add('hidden');
-                }
-            }; 
-            reader.readAsDataURL(file); 
+            reader.onload = function(f) {
+                fabric.Image.fromURL(f.target.result, function(img) {
+                    if(!img) return;
+                    let scale = (canvas.width * 0.6) / img.width; if(scale > 1) scale = 1; 
+                    img.set({ scaleX: scale, scaleY: scale, selectable: true, evented: true, isMainImage: true, customStrokeWidth: 0, customStroke: '#000000', strokeWidth: 0 });
+                    canvas.add(img); canvas.centerObject(img); canvas.setActiveObject(img); 
+                    saveHistory();
+                });
+            }; reader.readAsDataURL(file); 
+        }
+
+        async function processJSONForUpload(jsonStr) {
+            // Find all local base64 strings in the JSON (Fabric saves local images as data:image/...)
+            const regex = /"data:image\/[^;]+;base64,[^"]+"/g;
+            const matches = jsonStr.match(regex);
+            if (!matches) return jsonStr; // No local images, safe to save
+            
+            let uniqueMatches = [...new Set(matches)];
+            let replacements = {};
+            
+            showToast(`Uploading ${uniqueMatches.length} local image(s) to Cloud...`, "info");
+            
+            for (let match of uniqueMatches) {
+                let base64Data = match.substring(1, match.length - 1); // remove quotes
+                let url = await uploadToCloudinaryFile(base64Data);
+                replacements[match] = `"${url}"`; // wrap in quotes for JSON
+            }
+            
+            let newJsonStr = jsonStr;
+            for (let match in replacements) {
+                newJsonStr = newJsonStr.split(match).join(replacements[match]);
+            }
+            return newJsonStr;
         }
 
         async function saveToCloud() {
             if(!currentUser || !canvas) return;
             canvas.discardActiveObject(); canvas.renderAll();
-            const overlay = document.getElementById('savingOverlay'); overlay.classList.remove('hidden'); overlay.classList.add('flex');
+            
+            const overlay = document.getElementById('savingOverlay');
+            overlay.classList.remove('hidden'); overlay.classList.add('flex');
+            document.getElementById('savingText').innerText = "Processing Assets...";
 
             try {
-                const dataUrl = canvas.toDataURL({ format: 'jpeg', quality: 0.8, multiplier: 0.5 });
+                // 1. Get raw JSON with local base64 images
+                const rawJsonStr = JSON.stringify(canvas);
+                
+                // 2. Upload all base64 images inside JSON to Cloudinary and replace with links (Fixes 1MB Limit)
+                document.getElementById('savingText').innerText = "Uploading to Cloudinary...";
+                const cleanCanvasData = await processJSONForUpload(rawJsonStr);
+                
+                // 3. Generate and Upload Thumbnail
+                document.getElementById('savingText').innerText = "Generating Thumbnail...";
+                const dataUrl = canvas.toDataURL({ format: 'jpeg', quality: 0.7, multiplier: 0.5 });
                 const thumbUrl = await uploadToCloudinaryFile(dataUrl);
-                const canvasData = JSON.stringify(canvas);
 
+                // 4. Save to Firebase (Overwrite if currentEditingId exists)
+                document.getElementById('savingText').innerText = "Saving to Database...";
                 if(isEditingTemplate && isAdmin) {
-                    await db.collection('templates').add({ canvasData: canvasData, thumbUrl: thumbUrl, createdAt: firebase.firestore.FieldValue.serverTimestamp(), createdBy: currentUser.email });
-                    alert("Template Published!");
+                    const tplData = { canvasData: cleanCanvasData, thumbUrl: thumbUrl, createdAt: firebase.firestore.FieldValue.serverTimestamp(), createdBy: currentUser.email };
+                    if(currentEditingId) { await db.collection('templates').doc(currentEditingId).update(tplData); showToast("Template Updated!", "success"); }
+                    else { const docRef = await db.collection('templates').add(tplData); currentEditingId = docRef.id; showToast("Template Published!", "success"); }
                 } else {
-                    const projData = { uid: currentUser.uid, name: "Banner_" + new Date().toLocaleDateString(), canvasData: canvasData, thumbUrl: thumbUrl, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
-                    
-                    if(currentEditingId) {
-                        // UPDATE EXISTING PROJECT
-                        await db.collection('projects').doc(currentEditingId).update(projData);
-                    } else {
-                        // CREATE NEW PROJECT
-                        const docRef = await db.collection('projects').add(projData); currentEditingId = docRef.id; 
-                    }
+                    const projData = { uid: currentUser.uid, name: "Banner_" + new Date().toLocaleDateString(), canvasData: cleanCanvasData, thumbUrl: thumbUrl, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+                    if(currentEditingId) { await db.collection('projects').doc(currentEditingId).update(projData); showToast("Project Updated!", "success"); }
+                    else { const docRef = await db.collection('projects').add(projData); currentEditingId = docRef.id; showToast("New Project Saved!", "success"); }
                 }
-            } catch(e) { alert("Save failed: " + e.message); } 
-            finally { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }
+            } catch(e) { 
+                showToast("Save failed: " + e.message, "error"); 
+            } finally { 
+                overlay.classList.add('hidden'); overlay.classList.remove('flex'); 
+            }
         }
 
         // ================= 6. EDITOR LOGIC (FABRIC.JS) =================
+        
         fabric.Image.prototype._render = (function(originalRender) {
             return function(ctx) {
                 originalRender.call(this, ctx);
@@ -673,66 +763,74 @@
             const obj = canvas.getActiveObject();
             if(obj) {
                 let c = color !== null ? color : (obj.customStroke || obj.stroke || '#000000'), w = width !== null ? parseInt(width) : (obj.customStrokeWidth !== undefined ? obj.customStrokeWidth : obj.strokeWidth || 0);
-                if (obj.isMainImage) { obj.set({ customStroke: c, customStrokeWidth: w, strokeWidth: 0 }); obj.dirty = true; } else { obj.set({ stroke: c, strokeWidth: w, customStrokeWidth: 0 }); }
+                if (obj.isMainImage) { obj.set({ customStroke: c, customStrokeWidth: w, strokeWidth: 0 }); obj.dirty = true; } 
+                else { obj.set({ stroke: c, strokeWidth: w, customStrokeWidth: 0 }); }
                 document.getElementById('strokeVal').innerText = w; if(width !== null) document.getElementById('strokeWidth').value = w; canvas.renderAll();
             }
         }
 
-        // --- NEW: SHADOW LOGIC ---
+        // --- SHADOW LOGIC ---
         function changeShadow() {
             const obj = canvas.getActiveObject();
             if(obj) {
-                let blur = parseInt(document.getElementById('shadowBlur').value);
-                let color = document.getElementById('shadowColor').value;
-                if(blur > 0) { obj.set('shadow', new fabric.Shadow({ color: color, blur: blur, offsetX: blur/2, offsetY: blur/2 })); } 
-                else { obj.set('shadow', null); }
+                let blur = parseInt(document.getElementById('shadowBlur').value), color = document.getElementById('shadowColor').value;
+                if(blur > 0) { obj.set('shadow', new fabric.Shadow({ color: color, blur: blur, offsetX: blur/2, offsetY: blur/2 })); } else { obj.set('shadow', null); }
                 canvas.renderAll();
             }
         }
 
-        // --- NEW: FADE TO TRANSPARENT LOGIC ---
+        // --- NEW: FADE TO TRANSPARENT LOGIC (Direction & Amount) ---
         function applyFadeToTransparent() {
             const obj = canvas.getActiveObject();
             if(!obj) return;
             
+            const dir = document.getElementById('fadeDirection').value;
+            const amount = parseFloat(document.getElementById('fadeAmount').value);
+            
+            let bgCol = typeof canvas.backgroundColor === 'string' ? canvas.backgroundColor : '#ffffff';
+            let x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+
+            if (dir === 'right') { x1 = 0; x2 = 1; }
+            else if (dir === 'left') { x1 = 1; x2 = 0; }
+            else if (dir === 'bottom') { y1 = 0; y2 = 1; }
+            else if (dir === 'top') { y1 = 1; y2 = 0; }
+
+            const grad = new fabric.Gradient({
+                type: 'linear', gradientUnits: 'percentage',
+                coords: { x1: x1, y1: y1, x2: x2, y2: y2 },
+                colorStops: [ { offset: 0, color: 'rgba(255,255,255,0)' }, { offset: amount, color: bgCol } ]
+            });
+
             if(obj.type === 'i-text' || ['rect', 'circle', 'triangle', 'polygon'].includes(obj.type)) {
+                // If solid color, try to fade it out
                 let baseColor = obj.fill;
-                if(typeof baseColor !== 'string' || !baseColor.startsWith('#')) baseColor = '#000000'; // Default if already gradient
-                const grad = new fabric.Gradient({
+                if(typeof baseColor !== 'string' || !baseColor.startsWith('#')) baseColor = '#000000'; 
+                const textGrad = new fabric.Gradient({
                     type: 'linear', gradientUnits: 'percentage',
-                    coords: { x1: 0, y1: 0, x2: 1, y2: 0 },
-                    colorStops: [ { offset: 0, color: baseColor }, { offset: 1, color: 'rgba(255,255,255,0)' } ]
+                    coords: { x1: x1, y1: y1, x2: x2, y2: y2 },
+                    colorStops: [ { offset: 0, color: baseColor }, { offset: amount, color: 'rgba(255,255,255,0)' } ]
                 });
-                obj.set('fill', grad); canvas.renderAll(); saveHistory();
+                obj.set('fill', textGrad); canvas.renderAll(); saveHistory();
             } else if (obj.isMainImage) {
-                // Alpha gradient for image
-                const grad = new fabric.Gradient({
-                    type: 'linear', gradientUnits: 'percentage',
-                    coords: { x1: 0, y1: 0, x2: 1, y2: 0 },
-                    colorStops: [ { offset: 0, color: 'rgba(0,0,0,1)' }, { offset: 1, color: 'rgba(0,0,0,0)' } ]
-                });
-                // In a simple webapp context without complex alpha masks, we overlay a gradient matching the canvas background
-                let bgCol = typeof canvas.backgroundColor === 'string' ? canvas.backgroundColor : '#ffffff';
+                // For images, we create an overlay rect blending into BG
                 const fadeOverlay = new fabric.Rect({
                     left: obj.left, top: obj.top, width: obj.width * obj.scaleX, height: obj.height * obj.scaleY,
                     angle: obj.angle, originX: obj.originX, originY: obj.originY,
-                    fill: new fabric.Gradient({
-                        type: 'linear', gradientUnits: 'percentage', coords: { x1: 0, y1: 0, x2: 1, y2: 0 },
-                        colorStops: [ { offset: 0, color: 'rgba(255,255,255,0)' }, { offset: 1, color: bgCol } ]
-                    }),
-                    selectable: false, evented: false
+                    fill: grad, selectable: false, evented: false,
+                    isFadeOverlay: true // mark to avoid selection
                 });
                 canvas.add(fadeOverlay); canvas.renderAll(); saveHistory();
-                alert("Fade overlay applied over the image!");
+                showToast("Fade effect applied over image!", "success");
             }
         }
 
-        function deleteObject() { const activeObjects = canvas.getActiveObjects(); if (activeObjects.length) { canvas.discardActiveObject(); activeObjects.forEach(obj => canvas.remove(obj)); saveHistory(); handleDeselection(); } }
+        function deleteObject() { const activeObjects = canvas.getActiveObjects(); if (activeObjects.length) { canvas.discardActiveObject(); activeObjects.forEach(obj => canvas.remove(obj)); saveHistory(); handleDeselection(); showToast("Deleted successfully", "success"); } }
         
         function exportBanner() { 
             canvas.discardActiveObject(); canvas.renderAll(); 
             const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 3 }); 
             const link = document.createElement('a'); link.download = 'ProBanner-Export.png'; link.href = dataURL; document.body.appendChild(link); link.click(); document.body.removeChild(link); 
+            showToast("Design Exported Successfully!", "success");
         }
     </script>
 </body>
