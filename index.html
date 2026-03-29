@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ProBanner - Ultimate Live Editor</title>
+    <title>ProBanner - Professional SaaS Editor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link href="https://fonts.googleapis.com/css2?family=Atma:wght@500;700&family=Dancing+Script:wght@600&family=Galada&family=Hind+Siliguri:wght@500;700&family=Inter:wght@400;600;800&family=Mina:wght@400;700&family=Montserrat:wght@700;900&family=Noto+Sans+Bengali:wght@500;700&family=Pacifico&family=Playfair+Display:ital,wght@0,700;1,700&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
     
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
     <style>
         body { font-family: 'Inter', sans-serif; touch-action: manipulation; background-color: #f8fafc; }
         .canvas-container { margin: 0 auto; box-shadow: 0 10px 40px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; background: white; transition: all 0.3s ease; }
@@ -22,54 +27,92 @@
         input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #e2e8f0; border-radius: 4px; }
         .glass { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #4f46e5; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="h-[100dvh] w-full overflow-hidden text-gray-800 flex flex-col selection:bg-indigo-100 relative">
 
-    <div id="homeScreen" class="absolute inset-0 bg-[#f8fafc] z-50 overflow-y-auto flex flex-col transition-opacity duration-300">
+    <div id="fullLoader" class="fixed inset-0 bg-white z-[999] flex flex-col items-center justify-center transition-opacity duration-300">
+        <h1 class="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 tracking-tight mb-4">ProBanner</h1>
+        <div class="loader w-10 h-10 border-4"></div>
+    </div>
+
+    <div id="loginScreen" class="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-[90%] max-w-md text-center border border-white/50">
+            <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+                <i class="fas fa-magic text-3xl text-indigo-600"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold text-gray-800 mb-2">ProBanner</h1>
+            <p class="text-gray-500 text-sm mb-8">The ultimate cloud-based design tool.</p>
+            <button onclick="signInWithGoogle()" class="w-full bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold py-3 px-4 rounded-xl shadow-sm flex items-center justify-center gap-3 transition transform hover:-translate-y-0.5">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
+                Continue with Google
+            </button>
+        </div>
+    </div>
+
+    <div id="homeScreen" class="absolute inset-0 bg-[#f8fafc] z-40 overflow-y-auto flex flex-col hidden opacity-0 transition-opacity duration-300">
         <header class="p-4 md:p-6 flex justify-between items-center bg-white shadow-sm sticky top-0 z-10">
             <h1 class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 tracking-tight">ProBanner</h1>
-            <button onclick="openEditor()" class="bg-indigo-600 text-white px-5 py-2 rounded-full font-bold hover:bg-indigo-700 transition shadow-md text-sm">Create Blank</button>
+            <div class="flex items-center gap-3">
+                <button id="adminBtn" onclick="openAdmin()" class="hidden bg-red-100 text-red-600 px-3 py-1.5 rounded-lg font-bold text-xs hover:bg-red-200 transition"><i class="fas fa-shield-alt mr-1"></i> Admin</button>
+                <div onclick="openProfile()" class="w-10 h-10 rounded-full bg-gray-200 cursor-pointer overflow-hidden border-2 border-indigo-100 hover:border-indigo-400 transition shadow-sm">
+                    <img id="userProfilePic" src="" alt="Profile" class="w-full h-full object-cover">
+                </div>
+            </div>
         </header>
 
         <div class="max-w-6xl mx-auto w-full px-4 mt-8 pb-10">
-            <h2 class="text-2xl font-extrabold mb-6 text-gray-800">What will you design today?</h2>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-extrabold text-gray-800">What will you design today?</h2>
+                <button onclick="openEditor()" class="bg-indigo-600 text-white px-5 py-2 rounded-full font-bold hover:bg-indigo-700 transition shadow-md text-sm"><i class="fas fa-plus mr-1"></i> Blank</button>
+            </div>
             
-            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Start Creating</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div onclick="openEditor()" class="bg-white border border-gray-100 h-32 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group shadow-sm">
-                    <div class="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition"><i class="fas fa-plus text-indigo-500 text-xl"></i></div>
-                    <span class="text-gray-700 font-bold text-xs">Blank Canvas</span>
-                </div>
-                <div onclick="openEditor()" class="bg-white border border-gray-100 h-32 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group shadow-sm">
-                    <div class="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition"><i class="fab fa-youtube text-red-500 text-xl"></i></div>
-                    <span class="text-gray-700 font-bold text-xs">YT Thumbnail</span>
-                </div>
-                <div onclick="openEditor()" class="bg-white border border-gray-100 h-32 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group shadow-sm">
-                    <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition"><i class="fab fa-facebook text-blue-500 text-xl"></i></div>
-                    <span class="text-gray-700 font-bold text-xs">FB Cover</span>
-                </div>
-                <div onclick="openEditor()" class="bg-white border border-gray-100 h-32 rounded-2xl cursor-pointer hover:shadow-lg transition flex flex-col items-center justify-center group shadow-sm">
-                    <div class="w-12 h-12 bg-pink-50 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition"><i class="fab fa-instagram text-pink-500 text-xl"></i></div>
-                    <span class="text-gray-700 font-bold text-xs">Insta Post</span>
-                </div>
+            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Pro Templates</h3>
+            <div id="templateContainer" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="col-span-full flex justify-center py-8"><div class="loader"></div></div>
             </div>
 
-            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Trending Custom Templates</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div onclick="openEditor()" class="bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 h-40 rounded-2xl cursor-pointer hover:opacity-90 transition shadow-md relative overflow-hidden group flex items-center justify-center">
-                    <div class="glass px-4 py-2 rounded-xl"><span class="text-white font-bold text-lg tracking-widest">GLASSIC</span></div>
-                </div>
-                <div onclick="openEditor()" class="bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-400 h-40 rounded-2xl cursor-pointer hover:opacity-90 transition shadow-md relative overflow-hidden group flex items-center justify-center">
-                    <span class="text-white font-extrabold text-2xl italic drop-shadow-md">OFFER</span>
-                </div>
-                <div onclick="openEditor()" class="bg-gradient-to-bl from-emerald-400 to-teal-700 h-40 rounded-2xl cursor-pointer hover:opacity-90 transition shadow-md relative overflow-hidden group flex items-center justify-center">
-                    <div class="border-2 border-white/50 px-3 py-1 rounded"><span class="text-white font-bold text-lg tracking-widest">NATURE</span></div>
-                </div>
-                <div onclick="openEditor()" class="bg-[#111827] h-40 rounded-2xl cursor-pointer hover:opacity-90 transition shadow-md relative overflow-hidden group flex items-center justify-center">
-                    <div class="w-full h-full absolute opacity-30 bg-gradient-to-t from-yellow-600 to-transparent"></div>
-                    <span class="text-yellow-500 font-serif text-xl z-10">Luxury</span>
-                </div>
+            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Your Recent Projects</h3>
+            <div id="recentProjectsContainer" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="col-span-full text-center text-gray-400 text-sm py-4">No recent projects found.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="profileScreen" class="absolute inset-0 bg-[#f8fafc] z-[60] overflow-y-auto flex flex-col hidden transition-transform transform translate-x-full duration-300">
+        <header class="p-4 bg-white shadow-sm sticky top-0 z-10 flex items-center gap-3">
+            <button onclick="closeProfile()" class="w-10 h-10 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 transition"><i class="fas fa-arrow-left"></i></button>
+            <h1 class="text-lg font-bold text-gray-800">My Profile</h1>
+        </header>
+        <div class="p-6 flex flex-col items-center bg-white border-b">
+            <img id="profPicLarge" src="" class="w-24 h-24 rounded-full border-4 border-indigo-50 shadow-md mb-3">
+            <h2 id="profName" class="text-xl font-bold text-gray-800">Name</h2>
+            <p id="profEmail" class="text-gray-500 text-sm mb-4">email@example.com</p>
+            <button onclick="logout()" class="px-6 py-2 bg-red-50 text-red-600 font-bold rounded-full hover:bg-red-100 transition text-sm">Sign Out</button>
+        </div>
+        <div class="p-4">
+            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">All Saved Projects</h3>
+            <div id="allProjectsContainer" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+        </div>
+    </div>
+
+    <div id="adminScreen" class="absolute inset-0 bg-[#f8fafc] z-[60] overflow-y-auto flex flex-col hidden transition-transform transform translate-x-full duration-300">
+        <header class="p-4 bg-red-600 text-white shadow-sm sticky top-0 z-10 flex items-center gap-3">
+            <button onclick="closeAdmin()" class="w-10 h-10 rounded-full bg-red-700 hover:bg-red-800 flex items-center justify-center transition"><i class="fas fa-arrow-left"></i></button>
+            <h1 class="text-lg font-bold">Admin Dashboard</h1>
+        </header>
+        <div class="p-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-100">
+                <h3 class="font-bold text-gray-800 mb-2">Create New Template</h3>
+                <p class="text-xs text-gray-500 mb-4">Open editor, design your template, and hit 'Save' to publish it to all users.</p>
+                <button onclick="openEditor(true)" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold shadow-md hover:bg-indigo-700 transition text-sm">Open Template Editor</button>
+            </div>
+            
+            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3">User List</h3>
+            <div id="adminUserList" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden divide-y">
+                <div class="p-4 text-center text-sm text-gray-400">Loading users...</div>
             </div>
         </div>
     </div>
@@ -99,22 +142,16 @@
                 <button onclick="setCanvasSize(21/9)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
                     <div class="w-12 h-5 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">21:9 Cover</span>
                 </button>
-                <button onclick="setCanvasSize(1/1.414)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
-                    <div class="w-7 h-10 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">A4 Document</span>
-                </button>
-                <button onclick="setCanvasSize(3/2)" class="bg-white border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 p-3 rounded-xl flex flex-col items-center gap-2 transition">
-                    <div class="w-9 h-6 bg-gray-200 rounded border border-gray-300"></div><span class="text-[10px] font-bold text-gray-600">3:2 Web</span>
-                </button>
             </div>
         </div>
     </div>
 
-    <div id="editorScreen" class="absolute inset-0 flex flex-col bg-gray-100 z-20 hidden opacity-0 transition-opacity duration-300">
+    <div id="editorScreen" class="absolute inset-0 flex flex-col bg-gray-100 z-30 hidden opacity-0 transition-opacity duration-300">
         
         <header class="h-14 bg-white/95 backdrop-blur-md border-b flex items-center justify-between px-3 md:px-4 shadow-sm shrink-0 z-30">
             <div class="flex items-center gap-2 md:gap-3">
                 <button onclick="closeEditor()" class="text-gray-500 hover:text-indigo-600 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition"><i class="fas fa-arrow-left"></i></button>
-                <h1 class="text-sm font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 hidden sm:block tracking-tight">ProEditor</h1>
+                <h1 class="text-sm font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 hidden sm:block tracking-tight">Editor</h1>
             </div>
             
             <div class="flex items-center gap-1 sm:gap-3">
@@ -124,54 +161,61 @@
                 <button onclick="document.getElementById('resizeModal').classList.remove('hidden')" class="text-gray-600 hover:text-indigo-600 bg-gray-100 hover:bg-indigo-50 px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition">
                     <i class="fas fa-expand"></i> <span class="hidden sm:inline">Size</span>
                 </button>
-                <button onclick="exportBanner()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-700 font-bold shadow-md shadow-indigo-200 text-xs transition">Export</button>
+                <button id="saveCloudBtn" onclick="saveToCloud()" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-200 font-bold text-xs transition"><i class="fas fa-cloud-upload-alt mr-1"></i> Save</button>
+                <button onclick="exportBanner()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 font-bold shadow-md shadow-indigo-200 text-xs transition"><i class="fas fa-download md:mr-1"></i> <span class="hidden md:inline">Export</span></button>
             </div>
         </header>
 
+        <div id="savingOverlay" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center">
+            <div class="loader mb-3"></div>
+            <p class="font-bold text-indigo-600 text-sm">Saving to Cloud...</p>
+        </div>
+
         <main id="workspace" class="flex-1 relative flex justify-center items-center overflow-hidden w-full p-4 bg-[#eef2f6] touch-none">
             <canvas id="bannerCanvas"></canvas>
-            </main>
+        </main>
 
         <div id="propertiesPanel" class="h-auto py-3 bg-white border-t flex items-center px-3 gap-4 overflow-x-auto hide-scroll shrink-0 shadow-[0_-15px_30px_rgba(0,0,0,0.05)] transition-transform duration-300 translate-y-full absolute bottom-[72px] w-full z-20">
             
             <div id="propTextEdit" class="flex-col shrink-0 hidden w-40">
                 <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest pl-1">Edit Text</span>
-                <input type="text" id="textEditInput" oninput="updateTextContent(this.value)" class="w-full bg-gray-50 border border-gray-200 text-xs text-gray-700 font-semibold rounded-lg px-2 py-1.5 outline-none focus:border-indigo-500 shadow-inner">
+                <input type="text" id="textEditInput" oninput="updateTextContent(this.value)" placeholder="Type here..." class="w-full bg-gray-50 border border-gray-200 text-xs text-gray-700 font-semibold rounded-lg px-2 py-1.5 outline-none focus:border-indigo-500 shadow-inner">
             </div>
 
-            <div id="propFont" class="flex-col shrink-0 hidden w-[220px]">
+            <div id="propFont" class="flex-col shrink-0 hidden w-[180px]">
                 <span class="text-[9px] font-extrabold text-gray-400 mb-1.5 uppercase tracking-widest pl-1">Font Style</span>
-                <div class="flex items-center gap-2 overflow-x-auto hide-scroll pb-1">
-                    <button onclick="changeFont('Inter')" class="px-3 py-1.5 bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg text-xs whitespace-nowrap font-bold transition">Inter</button>
-                    <button onclick="changeFont('Montserrat')" class="px-3 py-1.5 bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg text-xs whitespace-nowrap transition" style="font-family: 'Montserrat'">Montserrat</button>
-                    <button onclick="changeFont('Galada')" class="px-3 py-1.5 bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg text-xs whitespace-nowrap transition" style="font-family: 'Galada'">Galada</button>
-                    <button onclick="changeFont('Atma')" class="px-3 py-1.5 bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg text-xs whitespace-nowrap transition" style="font-family: 'Atma'">Atma</button>
-                    <button onclick="changeFont('Noto Sans Bengali')" class="px-3 py-1.5 bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg text-xs whitespace-nowrap transition" style="font-family: 'Noto Sans Bengali'">Noto Sans</button>
-                    <button onclick="changeFont('Tiro Bangla')" class="px-3 py-1.5 bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg text-xs whitespace-nowrap transition" style="font-family: 'Tiro Bangla'">Tiro Bangla</button>
-                    <button onclick="changeFont('Hind Siliguri')" class="px-3 py-1.5 bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg text-xs whitespace-nowrap transition" style="font-family: 'Hind Siliguri'">Siliguri</button>
-                    <button onclick="changeFont('Pacifico')" class="px-3 py-1.5 bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg text-xs whitespace-nowrap transition" style="font-family: 'Pacifico'">Pacifico</button>
-                </div>
+                <select id="fontSelect" onchange="changeFont(this.value)" class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg px-2 py-1.5 outline-none focus:border-indigo-500 font-semibold shadow-sm">
+                    <option value="Inter">Inter</option>
+                    <option value="Montserrat">Montserrat</option>
+                    <option value="Hind Siliguri">Hind Siliguri (বাংলা)</option>
+                    <option value="Mina">Mina (বাংলা)</option>
+                    <option value="Tiro Bangla">Tiro Bangla (বাংলা)</option>
+                    <option value="Atma">Atma</option>
+                    <option value="Galada">Galada</option>
+                    <option value="Pacifico">Pacifico</option>
+                    <option value="Dancing Script">Dancing Script</option>
+                </select>
             </div>
 
             <div id="divSepText" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
 
             <div id="propColor" class="flex-col items-center shrink-0 hidden">
                 <span class="text-[9px] font-extrabold text-gray-400 mb-1.5 uppercase tracking-widest text-center">Color</span>
-                <input type="color" id="itemColor" oninput="changeColor(this.value)" onchange="saveHistory()" class="w-8 h-8 cursor-pointer bg-transparent mx-auto">
+                <input type="color" id="itemColor" oninput="changeColor(this.value)" class="w-8 h-8 cursor-pointer bg-transparent mx-auto">
             </div>
 
             <div id="propGradient" class="flex-col items-center shrink-0 hidden">
-                <span class="text-[9px] font-extrabold text-indigo-500 mb-1.5 uppercase tracking-widest text-center">Gradient</span>
+                <span class="text-[9px] font-extrabold text-indigo-500 mb-1.5 uppercase tracking-widest text-center">Gradient Fill</span>
                 <div class="flex items-center gap-1.5 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
-                    <input type="color" id="grad1" value="#00c6ff" oninput="applyCustomGradient()" onchange="saveHistory()" class="w-6 h-6 cursor-pointer bg-transparent">
-                    <input type="color" id="grad2" value="#0072ff" oninput="applyCustomGradient()" onchange="saveHistory()" class="w-6 h-6 cursor-pointer bg-transparent">
+                    <input type="color" id="grad1" value="#00c6ff" oninput="applyCustomGradient()" class="w-6 h-6 cursor-pointer bg-transparent">
+                    <input type="color" id="grad2" value="#0072ff" oninput="applyCustomGradient()" class="w-6 h-6 cursor-pointer bg-transparent">
                 </div>
             </div>
 
             <div id="divSep1" class="w-px h-8 bg-gray-200 shrink-0 hidden"></div>
 
             <div id="propImageShape" class="flex-col items-center shrink-0 hidden">
-                <span class="text-[9px] font-extrabold text-gray-500 mb-1 uppercase tracking-widest text-center">Image Shape</span>
+                <span class="text-[9px] font-extrabold text-gray-500 mb-1.5 uppercase tracking-widest text-center">Frame Shape</span>
                 <div class="flex items-center gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
                     <button onclick="setImageShape('original')" class="w-6 h-6 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50 transition" title="Original"><i class="fas fa-image text-indigo-400 text-[10px]"></i></button>
                     <button onclick="setImageShape('square')" class="w-6 h-6 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center hover:bg-indigo-50 transition" title="Square"><div class="w-3 h-3 bg-indigo-400 border border-indigo-600"></div></button>
@@ -184,8 +228,8 @@
 
             <div id="propStroke" class="flex items-center gap-3 shrink-0 hidden bg-gray-50 p-1.5 rounded-lg border border-gray-200">
                 <div class="flex-col items-center">
-                    <span class="text-[9px] font-extrabold text-gray-400 mb-1 uppercase tracking-widest block text-center">Border</span>
-                    <input type="color" id="strokeColor" oninput="changeStroke(this.value, null)" onchange="saveHistory()" class="w-5 h-5 cursor-pointer bg-transparent mx-auto block">
+                    <span class="text-[9px] font-extrabold text-gray-400 mb-1.5 uppercase tracking-widest block text-center">Border</span>
+                    <input type="color" id="strokeColor" oninput="changeStroke(this.value, null)" class="w-5 h-5 cursor-pointer bg-transparent mx-auto block">
                 </div>
                 <div class="flex-col w-20">
                     <div class="flex justify-between w-full mb-1">
@@ -201,7 +245,7 @@
                     <span class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest">Opacity</span>
                     <span id="opVal" class="text-[9px] font-bold text-indigo-600">100%</span>
                 </div>
-                <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" oninput="changeOpacity(this.value)" onchange="saveHistory()" class="w-full">
+                <input type="range" id="itemOpacity" min="0" max="1" step="0.05" value="1" oninput="changeOpacity(this.value)" class="w-full">
             </div>
 
             <div id="propDelete" class="flex-col items-center shrink-0 pr-4 hidden ml-auto">
@@ -220,19 +264,19 @@
             <div class="w-px h-8 bg-gray-200 shrink-0"></div>
             <button onclick="layerAction('front')" class="flex flex-col items-center text-indigo-600 p-1 shrink-0 transition hover:scale-110">
                 <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-1"><i class="fas fa-angle-double-up text-lg"></i></div>
-                <span class="text-[9px] font-bold">Bring Front</span>
+                <span class="text-[9px] font-bold">Front</span>
             </button>
             <button onclick="layerAction('up')" class="flex flex-col items-center text-blue-500 p-1 shrink-0 transition hover:scale-110">
                 <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center mb-1"><i class="fas fa-angle-up text-lg"></i></div>
-                <span class="text-[9px] font-bold">Move Up</span>
+                <span class="text-[9px] font-bold">Up</span>
             </button>
             <button onclick="layerAction('down')" class="flex flex-col items-center text-orange-500 p-1 shrink-0 transition hover:scale-110">
                 <div class="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center mb-1"><i class="fas fa-angle-down text-lg"></i></div>
-                <span class="text-[9px] font-bold">Move Down</span>
+                <span class="text-[9px] font-bold">Down</span>
             </button>
             <button onclick="layerAction('back')" class="flex flex-col items-center text-red-500 p-1 shrink-0 transition hover:scale-110">
                 <div class="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center mb-1"><i class="fas fa-angle-double-down text-lg"></i></div>
-                <span class="text-[9px] font-bold">Send Back</span>
+                <span class="text-[9px] font-bold">Back</span>
             </button>
         </nav>
 
@@ -259,10 +303,11 @@
                     <span class="text-[9px] font-bold">Layers</span>
                 </button>
                 
-                <button onclick="openBgPanel()" class="flex flex-col items-center text-gray-500 p-1.5 w-14 transition group">
+                <div class="flex flex-col items-center text-gray-500 p-1.5 w-14 relative group cursor-pointer" onclick="openBgPanel()">
+                    <input type="color" id="universalColorPicker" oninput="applyUniversalColor(this.value)" class="absolute w-0 h-0 opacity-0">
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-400 to-indigo-500 mb-1 flex items-center justify-center text-white transition transform group-hover:scale-110 shadow-sm border border-white"><i class="fas fa-fill-drip text-xs"></i></div>
-                    <span class="text-[9px] font-bold">Canvas BG</span>
-                </button>
+                    <span class="text-[9px] font-bold">Color/BG</span>
+                </div>
             </nav>
 
             <nav id="shapeMenu" class="absolute inset-0 flex items-center justify-start gap-3 px-4 transition-transform duration-300 transform translate-x-full bg-white z-[34] overflow-x-auto hide-scroll">
@@ -281,17 +326,335 @@
     </div>
 
     <script>
-        // Native Fabric Image override to render stroke on clipPath properly
+        // --- 1. FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkjZKtJoCqszL0ahK62rIdrbqZPluXvd0",
+            authDomain: "bannerx.firebaseapp.com",
+            projectId: "bannerx",
+            storageBucket: "bannerx.firebasestorage.app",
+            messagingSenderId: "748978540713",
+            appId: "1:748978540713:web:4e972da64bbfe3d16fd9b8"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        let currentUser = null;
+        let isAdmin = false;
+        const ADMIN_EMAIL = "mdwld2005@gmail.com";
+        let isEditingTemplate = false;
+        let currentEditingId = null;
+
+        // --- 2. AUTHENTICATION ---
+        auth.onAuthStateChanged(user => {
+            document.getElementById('fullLoader').classList.add('opacity-0');
+            setTimeout(() => document.getElementById('fullLoader').classList.add('hidden'), 300);
+
+            if (user) {
+                currentUser = user;
+                isAdmin = (user.email === ADMIN_EMAIL);
+                
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('homeScreen').classList.remove('hidden');
+                setTimeout(() => document.getElementById('homeScreen').classList.remove('opacity-0'), 50);
+                
+                document.getElementById('userProfilePic').src = user.photoURL || 'https://via.placeholder.com/150';
+                document.getElementById('profPicLarge').src = user.photoURL || 'https://via.placeholder.com/150';
+                document.getElementById('profName').innerText = user.displayName || 'User';
+                document.getElementById('profEmail').innerText = user.email;
+
+                if(isAdmin) {
+                    document.getElementById('adminBtn').classList.remove('hidden');
+                    document.getElementById('adminBtn').classList.add('inline-flex');
+                } else {
+                    document.getElementById('adminBtn').classList.add('hidden');
+                }
+
+                // Save user to DB
+                db.collection('users').doc(user.uid).set({
+                    name: user.displayName,
+                    email: user.email,
+                    photo: user.photoURL,
+                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                loadTemplates();
+                loadRecentProjects();
+            } else {
+                currentUser = null;
+                document.getElementById('homeScreen').classList.add('hidden');
+                document.getElementById('loginScreen').classList.remove('hidden');
+                setTimeout(() => document.getElementById('loginScreen').classList.remove('opacity-0'), 50);
+            }
+        });
+
+        function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(error => {
+                console.error("Login failed:", error);
+                alert("Login failed! " + error.message);
+            });
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                closeProfile();
+                closeAdmin();
+                closeEditor();
+            });
+        }
+
+        // --- 3. UI NAVIGATION ---
+        const profileScreen = document.getElementById('profileScreen');
+        const adminScreen = document.getElementById('adminScreen');
+        const homeScreen = document.getElementById('homeScreen');
+        const editorScreen = document.getElementById('editorScreen');
+
+        function openProfile() {
+            profileScreen.classList.remove('hidden');
+            setTimeout(() => profileScreen.classList.remove('translate-x-full'), 50);
+            loadAllProjects();
+        }
+        function closeProfile() {
+            profileScreen.classList.add('translate-x-full');
+            setTimeout(() => profileScreen.classList.add('hidden'), 300);
+        }
+
+        function openAdmin() {
+            if(!isAdmin) return;
+            adminScreen.classList.remove('hidden');
+            setTimeout(() => adminScreen.classList.remove('translate-x-full'), 50);
+            loadUserList();
+        }
+        function closeAdmin() {
+            adminScreen.classList.add('translate-x-full');
+            setTimeout(() => adminScreen.classList.add('hidden'), 300);
+        }
+
+        function openEditor(asTemplate = false, loadData = null, projId = null) {
+            isEditingTemplate = asTemplate;
+            currentEditingId = projId;
+            
+            if(asTemplate) document.getElementById('saveCloudBtn').innerHTML = '<i class="fas fa-crown mr-1"></i> Save Template';
+            else document.getElementById('saveCloudBtn').innerHTML = '<i class="fas fa-cloud-upload-alt mr-1"></i> Save';
+
+            homeScreen.classList.add('opacity-0');
+            profileScreen.classList.add('translate-x-full');
+            adminScreen.classList.add('translate-x-full');
+            
+            setTimeout(() => {
+                homeScreen.classList.add('hidden');
+                profileScreen.classList.add('hidden');
+                adminScreen.classList.add('hidden');
+                
+                editorScreen.classList.remove('hidden');
+                setTimeout(() => editorScreen.classList.remove('opacity-0'), 50);
+                
+                initCanvas();
+                if(loadData) {
+                    canvas.loadFromJSON(loadData, function() {
+                        canvas.renderAll();
+                        saveHistory();
+                    });
+                } else if(!projId) {
+                    canvas.clear();
+                    canvas.backgroundColor = '#ffffff';
+                    saveHistory();
+                }
+            }, 300);
+        }
+
+        function closeEditor() {
+            editorScreen.classList.add('opacity-0');
+            setTimeout(() => {
+                editorScreen.classList.add('hidden');
+                homeScreen.classList.remove('hidden');
+                setTimeout(() => homeScreen.classList.remove('opacity-0'), 50);
+                currentEditingId = null;
+                isEditingTemplate = false;
+                loadRecentProjects(); // Refresh if saved
+            }, 300);
+        }
+
+        // --- 4. FIREBASE DATA LOGIC ---
+        function loadTemplates() {
+            const container = document.getElementById('templateContainer');
+            db.collection('templates').orderBy('createdAt', 'desc').limit(8).onSnapshot(snapshot => {
+                container.innerHTML = '';
+                if(snapshot.empty) {
+                    container.innerHTML = '<div class="col-span-full text-center text-gray-400 text-sm">No templates available.</div>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    container.innerHTML += `
+                        <div onclick='openEditor(false, ${JSON.stringify(data.canvasData)})' class="bg-white border border-gray-200 h-32 rounded-xl cursor-pointer hover:shadow-lg transition relative overflow-hidden group">
+                            <img src="${data.thumbUrl}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                <span class="text-white font-bold text-xs"><i class="fas fa-edit mr-1"></i> Use Template</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        function loadRecentProjects() {
+            if(!currentUser) return;
+            const container = document.getElementById('recentProjectsContainer');
+            db.collection('projects').where('uid', '==', currentUser.uid).orderBy('updatedAt', 'desc').limit(4).get().then(snapshot => {
+                container.innerHTML = '';
+                if(snapshot.empty) {
+                    container.innerHTML = '<div class="col-span-full text-center text-gray-400 text-sm">No recent projects.</div>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    container.innerHTML += `
+                        <div onclick='openEditor(false, ${JSON.stringify(data.canvasData)}, "${doc.id}")' class="bg-white border border-gray-200 h-32 rounded-xl cursor-pointer hover:shadow-lg transition relative overflow-hidden group">
+                            <img src="${data.thumbUrl}" class="w-full h-full object-cover border-b">
+                            <div class="absolute bottom-0 w-full bg-white/90 backdrop-blur text-[10px] font-bold px-2 py-1 truncate">${data.name || 'Untitled'}</div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        function loadAllProjects() {
+            if(!currentUser) return;
+            const container = document.getElementById('allProjectsContainer');
+            container.innerHTML = '<div class="col-span-full text-center"><div class="loader mx-auto"></div></div>';
+            db.collection('projects').where('uid', '==', currentUser.uid).orderBy('updatedAt', 'desc').get().then(snapshot => {
+                container.innerHTML = '';
+                if(snapshot.empty) {
+                    container.innerHTML = '<div class="col-span-full text-center text-gray-400 text-sm">You have no saved projects.</div>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    container.innerHTML += `
+                        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
+                            <div onclick='openEditor(false, ${JSON.stringify(data.canvasData)}, "${doc.id}")' class="h-28 cursor-pointer relative group bg-gray-100">
+                                <img src="${data.thumbUrl}" class="w-full h-full object-contain">
+                                <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                                    <i class="fas fa-pen text-white text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="p-2 flex justify-between items-center bg-gray-50 border-t">
+                                <span class="text-[10px] font-bold text-gray-700 truncate w-24">${data.name || 'Untitled'}</span>
+                                <div class="flex gap-2">
+                                    <button onclick='navigator.share({title:"My Banner", url:"${data.thumbUrl}"}).catch(e=>console.log(e))' class="text-blue-500 hover:text-blue-700"><i class="fas fa-share-alt text-xs"></i></button>
+                                    <button onclick="deleteProject('${doc.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash text-xs"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        function deleteProject(id) {
+            if(confirm("Are you sure you want to delete this project?")) {
+                db.collection('projects').doc(id).delete().then(() => {
+                    loadAllProjects();
+                });
+            }
+        }
+
+        function loadUserList() {
+            const container = document.getElementById('adminUserList');
+            db.collection('users').orderBy('lastLogin', 'desc').limit(20).get().then(snapshot => {
+                container.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    container.innerHTML += `
+                        <div class="p-3 flex items-center gap-3">
+                            <img src="${data.photo || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full">
+                            <div>
+                                <h4 class="text-sm font-bold text-gray-800 leading-tight">${data.name || 'Unknown'}</h4>
+                                <p class="text-[10px] text-gray-500">${data.email}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        // --- 5. SAVING TO FIREBASE ---
+        async function saveToCloud() {
+            if(!currentUser || !canvas) return;
+            
+            canvas.discardActiveObject();
+            canvas.renderAll();
+            
+            const overlay = document.getElementById('savingOverlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+
+            try {
+                // Generate Thumbnail
+                const dataUrl = canvas.toDataURL({ format: 'jpeg', quality: 0.7, multiplier: 0.5 });
+                const blob = await (await fetch(dataUrl)).blob();
+                
+                // Generate Canvas JSON
+                const canvasData = JSON.stringify(canvas);
+                
+                // Storage Path
+                const timeStr = new Date().getTime();
+                const path = isEditingTemplate ? `templates/temp_${timeStr}.jpg` : `users/${currentUser.uid}/proj_${timeStr}.jpg`;
+                
+                // Upload Image
+                const storageRef = storage.ref(path);
+                await storageRef.put(blob);
+                const thumbUrl = await storageRef.getDownloadURL();
+
+                // Save to DB
+                if(isEditingTemplate && isAdmin) {
+                    await db.collection('templates').add({
+                        canvasData: canvasData,
+                        thumbUrl: thumbUrl,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        createdBy: currentUser.email
+                    });
+                    alert("Template Published Successfully!");
+                } else {
+                    const projData = {
+                        uid: currentUser.uid,
+                        name: "Banner_" + new Date().toLocaleDateString(),
+                        canvasData: canvasData,
+                        thumbUrl: thumbUrl,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    if(currentEditingId) {
+                        await db.collection('projects').doc(currentEditingId).update(projData);
+                    } else {
+                        const docRef = await db.collection('projects').add(projData);
+                        currentEditingId = docRef.id; // Update ID so further saves overwrite
+                    }
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Failed to save: " + e.message);
+            } finally {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+        }
+
+
+        // ================= EDITOR LOGIC (FABRIC.JS) =================
+        
+        // Native Fabric Image override for clipPath stroke
         fabric.Image.prototype._render = (function(originalRender) {
             return function(ctx) {
                 originalRender.call(this, ctx);
-                // Draw custom stroke around clipPath or boundaries
                 if (this.customStrokeWidth > 0) {
                     ctx.save();
                     ctx.strokeStyle = this.customStroke || '#000000';
                     ctx.lineWidth = this.customStrokeWidth / Math.max(this.scaleX, this.scaleY);
                     ctx.beginPath();
-                    
                     if (this.clipPath) {
                         if (this.clipPath.type === 'circle') {
                             ctx.arc(0, 0, this.clipPath.radius, 0, Math.PI * 2);
@@ -311,7 +674,6 @@
                             ctx.closePath();
                         }
                     } else {
-                        // For square original image
                         let w = this.width, h = this.height;
                         let x = -w/2, y = -h/2;
                         ctx.rect(x, y, w, h);
@@ -322,49 +684,25 @@
             };
         })(fabric.Image.prototype._render);
 
-        let canvas, undoStack = [], redoStack = [], objectInitialState = null, isProgrammaticSelection = false;
-
-        const homeScreen = document.getElementById('homeScreen');
-        const editorScreen = document.getElementById('editorScreen');
+        let canvas, undoStack = [], redoStack = [], isProgrammaticSelection = false;
         const workspace = document.getElementById('workspace');
         const propertiesPanel = document.getElementById('propertiesPanel');
         const mainMenu = document.getElementById('mainMenu');
         const shapeMenu = document.getElementById('shapeMenu');
         const layerMenu = document.getElementById('layerMenu');
 
-        function openEditor() {
-            homeScreen.classList.add('opacity-0');
-            setTimeout(() => {
-                homeScreen.classList.add('hidden');
-                editorScreen.classList.remove('hidden');
-                setTimeout(() => editorScreen.classList.remove('opacity-0'), 50);
-                initCanvas();
-            }, 300);
-        }
-
-        function closeEditor() {
-            editorScreen.classList.add('opacity-0');
-            setTimeout(() => {
-                editorScreen.classList.add('hidden');
-                homeScreen.classList.remove('hidden');
-                setTimeout(() => homeScreen.classList.remove('opacity-0'), 50);
-            }, 300);
-        }
-
         function initCanvas() {
             if(!canvas) {
                 let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 32;
                 let canvasHeight = canvasWidth * 0.5625; 
-
                 canvas = new fabric.Canvas('bannerCanvas', {
                     width: canvasWidth, height: canvasHeight, backgroundColor: '#ffffff', preserveObjectStacking: true
                 });
-
                 canvas.on('selection:created', handleSelection);
                 canvas.on('selection:updated', handleSelection);
                 canvas.on('selection:cleared', handleDeselection);
-                
-                saveHistory();
+                // Save history on changes
+                canvas.on('object:modified', saveHistory);
             }
         }
 
@@ -372,15 +710,12 @@
             if(!canvas) return;
             let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 32;
             let canvasHeight = canvasWidth / ratio;
-            
             if(canvasHeight > window.innerHeight * 0.6) {
                 canvasHeight = window.innerHeight * 0.6;
                 canvasWidth = canvasHeight * ratio;
             }
-
             canvas.setDimensions({ width: canvasWidth, height: canvasHeight });
             document.getElementById('resizeModal').classList.add('hidden');
-            
             canvas.getObjects().forEach(obj => { canvas.centerObject(obj); obj.setCoords(); });
             canvas.renderAll();
             saveHistory();
@@ -434,25 +769,19 @@
             propertiesPanel.classList.add('translate-y-full');
         }
 
-        // Dedicated BG Panel Setup
         function openBgPanel() {
             canvas.discardActiveObject(); 
-            // Wait for deselection animation to trigger, then show specifically for BG
             setTimeout(() => {
                 Array.from(propertiesPanel.children).forEach(child => {
-                    child.classList.add('hidden');
-                    child.classList.remove('flex');
+                    child.classList.add('hidden'); child.classList.remove('flex', 'block');
                 });
-
                 document.getElementById('propColor').classList.replace('hidden', 'flex');
                 document.getElementById('propGradient').classList.replace('hidden', 'flex');
                 document.getElementById('divSep1').classList.replace('hidden', 'block');
                 
-                // Set default color picker value to current background if it's solid
                 if(typeof canvas.backgroundColor === 'string') {
                     document.getElementById('itemColor').value = canvas.backgroundColor;
                 }
-
                 propertiesPanel.classList.remove('translate-y-full');
             }, 50);
         }
@@ -460,17 +789,18 @@
         function configureSmartProperties(obj) {
             const isText = obj.type === 'i-text';
             const isShape = ['rect', 'circle', 'triangle', 'polygon'].includes(obj.type);
-            const isImageShape = obj.isMainImage === true; 
+            const isImage = obj.isMainImage === true;
 
-            ['propTextEdit', 'divSepText', 'propFont', 'propColor', 'propGradient', 'propImageShape', 'divSep1', 'divSep2', 'propOpacity', 'propStroke', 'propDelete'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-                document.getElementById(id).classList.remove('flex', 'block');
+            // Hide all first
+            Array.from(propertiesPanel.children).forEach(child => {
+                child.classList.add('hidden'); child.classList.remove('flex', 'block');
             });
 
+            // TEXT OPTIONS (FIXED: Added missing IDs to display logic)
             if(isText) {
                 document.getElementById('propTextEdit').classList.replace('hidden', 'flex');
-                document.getElementById('divSepText').classList.replace('hidden', 'block');
                 document.getElementById('propFont').classList.replace('hidden', 'flex');
+                document.getElementById('divSepText').classList.replace('hidden', 'block');
                 document.getElementById('propColor').classList.replace('hidden', 'flex');
                 document.getElementById('propGradient').classList.replace('hidden', 'flex');
                 document.getElementById('propStroke').classList.replace('hidden', 'flex');
@@ -478,11 +808,13 @@
                 
                 document.getElementById('textEditInput').value = obj.text;
                 document.getElementById('fontSelect').value = obj.fontFamily || 'Inter';
-            } else if (isImageShape) {
+            } 
+            else if (isImage) {
                 document.getElementById('propImageShape').classList.replace('hidden', 'flex');
                 document.getElementById('propStroke').classList.replace('hidden', 'flex');
                 document.getElementById('divSep1').classList.replace('hidden', 'block');
-            } else if (isShape) {
+            } 
+            else if (isShape) {
                 document.getElementById('propColor').classList.replace('hidden', 'flex');
                 document.getElementById('propGradient').classList.replace('hidden', 'flex');
                 document.getElementById('propStroke').classList.replace('hidden', 'flex');
@@ -492,9 +824,7 @@
             document.getElementById('propOpacity').classList.replace('hidden', 'flex');
             document.getElementById('propDelete').classList.replace('hidden', 'flex');
 
-            if(typeof obj.fill === 'string' && obj.fill.startsWith('#')) {
-                document.getElementById('itemColor').value = obj.fill;
-            }
+            if(typeof obj.fill === 'string' && obj.fill.startsWith('#')) document.getElementById('itemColor').value = obj.fill;
             
             document.getElementById('itemOpacity').value = obj.opacity !== undefined ? obj.opacity : 1;
             document.getElementById('opVal').innerText = Math.round((obj.opacity !== undefined ? obj.opacity : 1)*100)+'%';
@@ -507,7 +837,7 @@
             if(strokeC) document.getElementById('strokeColor').value = strokeC;
         }
 
-        // --- NEW: Live Text Edit Logic ---
+        // TEXT UPDATE LOGIC
         function updateTextContent(val) {
             const obj = canvas.getActiveObject();
             if (obj && obj.type === 'i-text') {
@@ -515,7 +845,6 @@
                 canvas.renderAll();
             }
         }
-
         function changeFont(fontName) {
             const obj = canvas.getActiveObject();
             if(obj && obj.type === 'i-text') {
@@ -526,11 +855,12 @@
         }
 
         function addText() { 
-            const text = new fabric.IText('Your Text', { 
+            const text = new fabric.IText('আপনার টেক্সট\nYour Text', { 
                 left: canvas.width/2 - 60, top: canvas.height/2 - 20, 
                 fontFamily: 'Hind Siliguri', fill: '#1e293b', fontSize: 36, fontWeight: '700', textAlign: 'center'
             }); 
             canvas.add(text); canvas.setActiveObject(text); 
+            saveHistory();
         }
 
         function addShape(type) {
@@ -543,6 +873,7 @@
             
             shape.set({ strokeWidth: 0 });
             canvas.add(shape); canvas.setActiveObject(shape); toggleShapeMenu(false);
+            saveHistory();
         }
 
         function addMainImage(e) {
@@ -576,9 +907,8 @@
 
             let w = obj.width, h = obj.height;
 
-            if (type === 'original') {
-                obj.set('clipPath', null); 
-            } else if (type === 'square') { 
+            if (type === 'original') obj.set('clipPath', null); 
+            else if (type === 'square') { 
                 let size = Math.min(w, h);
                 const clipPath = new fabric.Rect({ width: size, height: size, originX: 'center', originY: 'center' });
                 obj.set('clipPath', clipPath); 
@@ -592,10 +922,10 @@
                 obj.set('clipPath', clipPath); 
             }
             
+            obj.dirty = true;
             canvas.renderAll(); saveHistory();
         }
 
-        // --- UNIVERSAL COLOR (Works for BG & Objects) ---
         function changeColor(hex) {
             const obj = canvas.getActiveObject();
             if(obj && !obj.isMainImage) { 
@@ -607,7 +937,6 @@
             }
         }
 
-        // --- UNIVERSAL CUSTOM GRADIENT (Works for BG & Objects) ---
         function applyCustomGradient() {
             const obj = canvas.getActiveObject();
             const c1 = document.getElementById('grad1').value;
@@ -639,7 +968,6 @@
             canvas.renderAll();
         }
 
-        // --- LIVE BORDER WITH DIRTY TRIGGER ---
         function changeStroke(color, width) {
             const obj = canvas.getActiveObject();
             if(obj) {
@@ -648,7 +976,7 @@
 
                 if (obj.isMainImage) {
                     obj.set({ customStroke: c, customStrokeWidth: w, strokeWidth: 0 }); 
-                    obj.dirty = true; // CRITICAL FIX FOR LIVE IMAGE BORDER
+                    obj.dirty = true; // Live update fix
                 } else {
                     obj.set({ stroke: c, strokeWidth: w, customStrokeWidth: 0 }); 
                 }
