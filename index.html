@@ -536,10 +536,13 @@
                 
                 if(loadData) { 
                     let parsed = typeof loadData === 'string' ? JSON.parse(loadData) : loadData;
-                    if(parsed.canvasWidth && parsed.canvasHeight) {
-                        canvas.setWidth(parsed.canvasWidth); 
-                        canvas.setHeight(parsed.canvasHeight);
-                    }
+                    
+                    // Fixed: Load exact canvas dimensions dynamically
+                    window.baseWidth = parsed.baseWidth || parsed.canvasWidth || 800;
+                    window.baseHeight = parsed.baseHeight || parsed.canvasHeight || (window.baseWidth * 0.5625);
+                    
+                    fitCanvasToScreen(); // Rescales correctly according to loaded dimensions
+                    
                     canvas.loadFromJSON(parsed, function() { 
                         canvas.renderAll(); 
                         saveHistory(); 
@@ -547,6 +550,9 @@
                 } 
                 else if(!projId) { 
                     canvas.clear(); 
+                    window.baseWidth = 800;
+                    window.baseHeight = 450;
+                    fitCanvasToScreen();
                     canvas.backgroundColor = '#ffffff'; 
                     saveHistory(); 
                 }
@@ -642,9 +648,9 @@
             reader.onload = function(f) {
                 fabric.Image.fromURL(f.target.result, function(img) {
                     if(!img) return;
-                    let scale = (canvas.width * 0.6) / img.width; if(scale > 1) scale = 1; 
-                    img.set({ scaleX: scale, scaleY: scale, selectable: true, evented: true, isMainImage: true, customStrokeWidth: 0, customStroke: '#000000', strokeWidth: 0 });
-                    canvas.add(img); canvas.centerObject(img); canvas.setActiveObject(img); 
+                    let scale = (window.baseWidth * 0.6) / img.width; if(scale > 1) scale = 1; 
+                    img.set({ scaleX: scale, scaleY: scale, originX: 'center', originY: 'center', left: window.baseWidth/2, top: window.baseHeight/2, selectable: true, evented: true, customStrokeWidth: 0, customStroke: '#000000', strokeWidth: 0 });
+                    canvas.add(img); canvas.setActiveObject(img); 
                     saveHistory();
                 });
             }; reader.readAsDataURL(file); 
@@ -675,17 +681,18 @@
             document.getElementById('savingText').innerText = "Processing Assets...";
 
             try {
-                // FIXED: Exporting with CUSTOM_PROPS and Canvas Dimensions
+                // Fixed: Cloud saving accurately attaches baseWidth/Height
                 const jsonObj = canvas.toJSON(CUSTOM_PROPS);
-                jsonObj.canvasWidth = canvas.width;
-                jsonObj.canvasHeight = canvas.height;
+                jsonObj.baseWidth = window.baseWidth;
+                jsonObj.baseHeight = window.baseHeight;
                 const rawJsonStr = JSON.stringify(jsonObj);
 
                 document.getElementById('savingText').innerText = "Uploading to Cloudinary...";
                 const cleanCanvasData = await processJSONForUpload(rawJsonStr);
                 
                 document.getElementById('savingText').innerText = "Generating Thumbnail...";
-                const dataUrl = canvas.toDataURL({ format: 'jpeg', quality: 0.7, multiplier: 0.5 });
+                // Fixed Thumbnail Generation ratio due to Zoom
+                const dataUrl = canvas.toDataURL({ format: 'jpeg', quality: 0.7, multiplier: 0.5 / canvas.getZoom() });
                 const thumbUrl = await uploadToCloudinaryFile(dataUrl);
 
                 document.getElementById('savingText').innerText = "Saving to Database...";
@@ -709,8 +716,8 @@
         
         let canvas, undoStack = [], redoStack = [], isProgrammaticSelection = false;
         
-        // FIXED: Custom Properties Array so Image options do not disappear
-        const CUSTOM_PROPS = ['id', 'isMainImage', 'customStrokeWidth', 'customStroke', 'isOverlay', 'targetId', 'overlayType', 'selectable', 'evented'];
+        // Custom Properties Array to preserve image modifications
+        const CUSTOM_PROPS = ['id', 'customStrokeWidth', 'customStroke', 'selectable', 'evented'];
 
         // Custom Filter for Fade to Transparent (Alpha Gradient)
         fabric.Image.filters.AlphaFade = fabric.util.createClass(fabric.Image.filters.BaseFilter, {
@@ -763,29 +770,62 @@
             };
         })(fabric.Image.prototype._render);
 
-        const workspace = document.getElementById('workspace'), propertiesPanel = document.getElementById('propertiesPanel'), mainMenu = document.getElementById('mainMenu'), shapeMenu = document.getElementById('shapeMenu'), layerMenu = document.getElementById('layerMenu');
+        function fitCanvasToScreen() {
+            if(!canvas) return;
+            const workspace = document.getElementById('workspace');
+            const availableW = workspace.clientWidth - 32;
+            const availableH = workspace.clientHeight - 32;
+            
+            // Calculate scale to make internal dimensions fit screen perfectly
+            let scale = Math.min(availableW / window.baseWidth, availableH / window.baseHeight);
+            
+            canvas.setDimensions({
+                width: window.baseWidth * scale,
+                height: window.baseHeight * scale
+            });
+            canvas.setZoom(scale); // Scales internal coordinates down visually
+            canvas.calcOffset(); // Adjusts mouse coordinates
+        }
+
+        window.addEventListener('resize', () => {
+            if (!document.getElementById('editorScreen').classList.contains('hidden')) {
+                fitCanvasToScreen();
+            }
+        });
 
         function initCanvas() {
             if(!canvas) {
-                let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 32; let canvasHeight = canvasWidth * 0.5625; 
-                canvas = new fabric.Canvas('bannerCanvas', { width: canvasWidth, height: canvasHeight, backgroundColor: '#ffffff', preserveObjectStacking: true });
+                canvas = new fabric.Canvas('bannerCanvas', { backgroundColor: '#ffffff', preserveObjectStacking: true });
                 canvas.on('selection:created', handleSelection); canvas.on('selection:updated', handleSelection); canvas.on('selection:cleared', handleDeselection);
+                
+                window.baseWidth = 800;
+                window.baseHeight = 450;
+                fitCanvasToScreen();
             }
         }
 
         function setCanvasSize(ratio) {
             if(!canvas) return;
-            let canvasWidth = window.innerWidth > 800 ? 800 : window.innerWidth - 32; let canvasHeight = canvasWidth / ratio;
-            if(canvasHeight > window.innerHeight * 0.6) { canvasHeight = window.innerHeight * 0.6; canvasWidth = canvasHeight * ratio; }
-            canvas.setDimensions({ width: canvasWidth, height: canvasHeight }); document.getElementById('resizeModal').classList.add('hidden');
-            canvas.getObjects().forEach(obj => { canvas.centerObject(obj); obj.setCoords(); }); canvas.renderAll(); saveHistory();
+            let w = 1000;
+            let h = 1000 / ratio;
+            window.baseWidth = w;
+            window.baseHeight = h;
+            
+            fitCanvasToScreen();
+            
+            document.getElementById('resizeModal').classList.add('hidden');
+            canvas.renderAll(); saveHistory();
         }
 
         function applyCustomSize() {
             let w = parseInt(document.getElementById('customWidth').value);
             let h = parseInt(document.getElementById('customHeight').value);
             if(!w || !h || w < 50 || h < 50) return showToast("Please enter valid dimensions", "error");
-            setCanvasSize(w / h);
+            window.baseWidth = w;
+            window.baseHeight = h;
+            fitCanvasToScreen();
+            document.getElementById('resizeModal').classList.add('hidden');
+            canvas.renderAll(); saveHistory();
         }
 
         function toggleShapeMenu(show) {
@@ -809,7 +849,7 @@
 
         function selectAllObjects() {
             canvas.discardActiveObject();
-            var objs = canvas.getObjects().filter(o => !o.isOverlay);
+            var objs = canvas.getObjects();
             if (objs.length === 0) return;
             var sel = new fabric.ActiveSelection(objs, { canvas: canvas });
             canvas.setActiveObject(sel);
@@ -817,26 +857,26 @@
             configureSmartProperties(sel);
         }
 
-        // FIXED: History Saving logic now stores Canvas Dimensions and Custom properties
+        // Fixed History states with Base Dimensions
         function saveHistory() { 
             if(redoStack.length > 0) redoStack = []; 
             const jsonObj = canvas.toJSON(CUSTOM_PROPS);
-            jsonObj.canvasWidth = canvas.width;
-            jsonObj.canvasHeight = canvas.height;
+            jsonObj.baseWidth = window.baseWidth;
+            jsonObj.baseHeight = window.baseHeight;
             undoStack.push(JSON.stringify(jsonObj)); 
         }
 
         function undo() { if (undoStack.length > 1) { redoStack.push(undoStack.pop()); loadCanvasState(undoStack[undoStack.length - 1]); } }
         function redo() { if (redoStack.length > 0) { const next = redoStack.pop(); undoStack.push(next); loadCanvasState(next); } }
         
-        // FIXED: Restore Canvas State correctly matches the previous Canvas Dimensions
         function loadCanvasState(json) { 
             isProgrammaticSelection = true; 
             let parsed = typeof json === 'string' ? JSON.parse(json) : json;
             
-            if(parsed.canvasWidth && parsed.canvasHeight) {
-                canvas.setWidth(parsed.canvasWidth); 
-                canvas.setHeight(parsed.canvasHeight);
+            if(parsed.baseWidth && parsed.baseHeight) {
+                window.baseWidth = parsed.baseWidth; 
+                window.baseHeight = parsed.baseHeight;
+                fitCanvasToScreen();
             }
             
             canvas.loadFromJSON(parsed, function() { 
@@ -876,7 +916,8 @@
         }
 
         function configureSmartProperties(obj) {
-            const isText = obj.type === 'i-text', isShape = ['rect', 'circle', 'triangle', 'polygon', 'path'].includes(obj.type), isImage = obj.isMainImage === true;
+            // FIXED: 'obj.type === "image"' safely replaces complex or buggy isMainImage variables for good!
+            const isText = obj.type === 'i-text', isShape = ['rect', 'circle', 'triangle', 'polygon', 'path'].includes(obj.type), isImage = obj.type === 'image';
             const isSelection = obj.type === 'activeSelection', isGroup = obj.type === 'group';
 
             Array.from(propertiesPanel.children).forEach(child => { child.classList.add('hidden'); child.classList.remove('flex', 'block'); });
@@ -891,6 +932,7 @@
                 document.getElementById('propTextEdit').classList.replace('hidden', 'flex'); document.getElementById('propFont').classList.replace('hidden', 'flex'); document.getElementById('divSepText').classList.replace('hidden', 'block'); document.getElementById('propColor').classList.replace('hidden', 'flex'); document.getElementById('propGradient').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block'); document.getElementById('propShadow').classList.replace('hidden', 'flex'); document.getElementById('propOpacityPanel').classList.replace('hidden', 'flex');
                 document.getElementById('textEditInput').value = obj.text; document.getElementById('currentFontBtn').innerHTML = `${obj.fontFamily || 'Inter'} <i class="fas fa-chevron-down text-[10px] text-gray-400"></i>`;
             } else if (isImage && !isSelection && !isGroup) {
+                // Image Options!
                 document.getElementById('propImageActions').classList.replace('hidden', 'flex'); document.getElementById('propImageShape').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block'); document.getElementById('propShadow').classList.replace('hidden', 'flex'); document.getElementById('propOpacityPanel').classList.replace('hidden', 'flex');
             } else if (isShape && !isSelection && !isGroup) {
                 document.getElementById('propColor').classList.replace('hidden', 'flex'); document.getElementById('propGradient').classList.replace('hidden', 'flex'); document.getElementById('propStroke').classList.replace('hidden', 'flex'); document.getElementById('divSep1').classList.replace('hidden', 'block'); document.getElementById('propShadow').classList.replace('hidden', 'flex'); document.getElementById('propOpacityPanel').classList.replace('hidden', 'flex');
@@ -926,28 +968,34 @@
         function updateTextContent(val) { const obj = canvas.getActiveObject(); if (obj && obj.type === 'i-text') { obj.set('text', val); canvas.renderAll(); } }
         function changeFont(fontName) { const obj = canvas.getActiveObject(); if(obj && obj.type === 'i-text') { obj.set('fontFamily', fontName); document.getElementById('currentFontBtn').innerHTML = `${fontName} <i class="fas fa-chevron-down text-[10px] text-gray-400"></i>`; canvas.renderAll(); saveHistory(); } }
 
-        function addText() { const text = new fabric.IText('আপনার টেক্সট\nYour Text', { left: canvas.width/2 - 60, top: canvas.height/2 - 20, fontFamily: 'Hind Siliguri', fill: '#1e293b', fontSize: 36, fontWeight: '700', textAlign: 'center' }); canvas.add(text); canvas.setActiveObject(text); saveHistory(); }
+        function addText() { 
+            const text = new fabric.IText('আপনার টেক্সট\nYour Text', { 
+                left: window.baseWidth/2, top: window.baseHeight/2, originX: 'center', originY: 'center',
+                fontFamily: 'Hind Siliguri', fill: '#1e293b', fontSize: 36, fontWeight: '700', textAlign: 'center' 
+            }); 
+            canvas.add(text); canvas.setActiveObject(text); saveHistory(); 
+        }
 
         function addShape(type) {
-            let shape; const cx = canvas.width/2 - 40, cy = canvas.height/2 - 40;
+            let shape; const cx = window.baseWidth/2, cy = window.baseHeight/2;
             const defaultShadow = new fabric.Shadow({ color: 'rgba(0,0,0,0.15)', blur: 10, offsetX: 3, offsetY: 3 });
 
-            if(type === 'rect') shape = new fabric.Rect({ left: cx, top: cy, fill: '#3b82f6', width: 80, height: 80, shadow: defaultShadow });
-            else if (type === 'rounded-rect') shape = new fabric.Rect({ left: cx, top: cy, fill: '#06b6d4', width: 80, height: 80, rx: 15, ry: 15, shadow: defaultShadow });
-            else if (type === 'circle') shape = new fabric.Circle({ left: cx, top: cy, fill: '#ec4899', radius: 45, shadow: defaultShadow });
-            else if (type === 'triangle') shape = new fabric.Triangle({ left: cx, top: cy, fill: '#eab308', width: 80, height: 80, shadow: defaultShadow });
-            else if (type === 'star') shape = new fabric.Polygon([{x: 40, y: 0}, {x: 49, y: 28}, {x: 78, y: 28}, {x: 54, y: 46}, {x: 63, y: 73}, {x: 40, y: 56}, {x: 17, y: 73}, {x: 26, y: 46}, {x: 2, y: 28}, {x: 31, y: 28}], { left: cx, top: cy, fill: '#a855f7', shadow: defaultShadow });
-            else if (type === 'hexagon') shape = new fabric.Polygon([{x: 40, y: 0}, {x: 80, y: 20}, {x: 80, y: 60}, {x: 40, y: 80}, {x: 0, y: 60}, {x: 0, y: 20}], { left: cx, top: cy, fill: '#10b981', shadow: defaultShadow });
+            if(type === 'rect') shape = new fabric.Rect({ left: cx, top: cy, originX: 'center', originY: 'center', fill: '#3b82f6', width: 80, height: 80, shadow: defaultShadow });
+            else if (type === 'rounded-rect') shape = new fabric.Rect({ left: cx, top: cy, originX: 'center', originY: 'center', fill: '#06b6d4', width: 80, height: 80, rx: 15, ry: 15, shadow: defaultShadow });
+            else if (type === 'circle') shape = new fabric.Circle({ left: cx, top: cy, originX: 'center', originY: 'center', fill: '#ec4899', radius: 45, shadow: defaultShadow });
+            else if (type === 'triangle') shape = new fabric.Triangle({ left: cx, top: cy, originX: 'center', originY: 'center', fill: '#eab308', width: 80, height: 80, shadow: defaultShadow });
+            else if (type === 'star') shape = new fabric.Polygon([{x: 40, y: 0}, {x: 49, y: 28}, {x: 78, y: 28}, {x: 54, y: 46}, {x: 63, y: 73}, {x: 40, y: 56}, {x: 17, y: 73}, {x: 26, y: 46}, {x: 2, y: 28}, {x: 31, y: 28}], { left: cx, top: cy, originX: 'center', originY: 'center', fill: '#a855f7', shadow: defaultShadow });
+            else if (type === 'hexagon') shape = new fabric.Polygon([{x: 40, y: 0}, {x: 80, y: 20}, {x: 80, y: 60}, {x: 40, y: 80}, {x: 0, y: 60}, {x: 0, y: 20}], { left: cx, top: cy, originX: 'center', originY: 'center', fill: '#10b981', shadow: defaultShadow });
             else if (type === 'heart') {
                 const path = "M 273.514 142.111 C 273.514 142.111 270.81 120.402 248.875 102.59 C 226.941 84.778 198.814 84.778 181.258 101.916 C 181.258 101.916 169.102 113.844 159.25 125.771 C 149.398 113.844 137.242 101.916 137.242 101.916 C 119.686 84.778 91.559 84.778 69.625 102.59 C 47.69 120.402 44.986 142.111 44.986 142.111 C 44.986 142.111 36.884 191.094 65.571 230.134 C 94.258 269.174 159.25 311.968 159.25 311.968 C 159.25 311.968 224.242 269.174 252.929 230.134 C 281.616 191.094 273.514 142.111 273.514 142.111 Z";
-                shape = new fabric.Path(path, { left: cx, top: cy, fill: '#ef4444', scaleX: 0.3, scaleY: 0.3, shadow: defaultShadow });
+                shape = new fabric.Path(path, { left: cx, top: cy, originX: 'center', originY: 'center', fill: '#ef4444', scaleX: 0.3, scaleY: 0.3, shadow: defaultShadow });
             }
 
             shape.set({ strokeWidth: 0 }); canvas.add(shape); canvas.setActiveObject(shape); toggleShapeMenu(false); saveHistory();
         }
 
         function setImageShape(type) {
-            const obj = canvas.getActiveObject(); if(!obj || !obj.isMainImage) return;
+            const obj = canvas.getActiveObject(); if(!obj || obj.type !== 'image') return;
             let w = obj.width, h = obj.height;
             if (type === 'original') obj.set('clipPath', null); 
             else if (type === 'square') { let size = Math.min(w, h); const clipPath = new fabric.Rect({ width: size, height: size, originX: 'center', originY: 'center' }); obj.set('clipPath', clipPath); } 
@@ -956,11 +1004,11 @@
             obj.dirty = true; canvas.renderAll(); saveHistory();
         }
 
-        function changeColor(hex) { const obj = canvas.getActiveObject(); if(obj && !obj.isMainImage) { obj.set('fill', hex); canvas.renderAll(); } else if (!obj) { canvas.backgroundColor = hex; canvas.renderAll(); } }
+        function changeColor(hex) { const obj = canvas.getActiveObject(); if(obj && obj.type !== 'image') { obj.set('fill', hex); canvas.renderAll(); } else if (!obj) { canvas.backgroundColor = hex; canvas.renderAll(); } }
 
         function applyCustomGradient() {
             const obj = canvas.getActiveObject(), c1 = document.getElementById('grad1').value, c2 = document.getElementById('grad2').value;
-            if(obj && !obj.isMainImage) { const grad = new fabric.Gradient({ type: 'linear', gradientUnits: 'pixels', coords: { x1: 0, y1: 0, x2: obj.width, y2: obj.height }, colorStops:[ { offset: 0, color: c1 }, { offset: 1, color: c2 } ] }); obj.set('fill', grad); canvas.renderAll(); } 
+            if(obj && obj.type !== 'image') { const grad = new fabric.Gradient({ type: 'linear', gradientUnits: 'pixels', coords: { x1: 0, y1: 0, x2: obj.width, y2: obj.height }, colorStops:[ { offset: 0, color: c1 }, { offset: 1, color: c2 } ] }); obj.set('fill', grad); canvas.renderAll(); } 
             else if (!obj) { const grad = new fabric.Gradient({ type: 'linear', gradientUnits: 'pixels', coords: { x1: 0, y1: 0, x2: canvas.width, y2: canvas.height }, colorStops:[ { offset: 0, color: c1 }, { offset: 1, color: c2 } ] }); canvas.backgroundColor = grad; canvas.renderAll(); }
         }
 
@@ -968,7 +1016,7 @@
             const obj = canvas.getActiveObject();
             if(obj) {
                 let c = color !== null ? color : (obj.customStroke || obj.stroke || '#000000'), w = width !== null ? parseInt(width) : (obj.customStrokeWidth !== undefined ? obj.customStrokeWidth : obj.strokeWidth || 0);
-                if (obj.isMainImage) { obj.set({ customStroke: c, customStrokeWidth: w, strokeWidth: 0 }); obj.dirty = true; } 
+                if (obj.type === 'image') { obj.set({ customStroke: c, customStrokeWidth: w, strokeWidth: 0 }); obj.dirty = true; } 
                 else { obj.set({ stroke: c, strokeWidth: w, customStrokeWidth: 0 }); }
                 document.getElementById('strokeVal').innerText = w; if(width !== null) document.getElementById('strokeWidth').value = w; canvas.renderAll();
             }
@@ -994,11 +1042,11 @@
                 obj.set('opacity', val);
                 if(obj.filters) {
                     obj.filters = obj.filters.filter(f => f.type !== 'AlphaFade');
-                    if(obj.isMainImage) obj.applyFilters();
+                    if(obj.type === 'image') obj.applyFilters();
                 }
             } else {
                 obj.set('opacity', 1);
-                if(obj.isMainImage) {
+                if(obj.type === 'image') {
                     if(!obj.filters) obj.filters = [];
                     obj.filters = obj.filters.filter(f => f.type !== 'AlphaFade'); // remove old
                     obj.filters.push(new fabric.Image.filters.AlphaFade({ direction: dir, amount: val }));
@@ -1016,14 +1064,14 @@
             const reader = new FileReader();
             reader.onload = function(f) {
                 const obj = canvas.getActiveObject();
-                if(!obj || !obj.isMainImage) return;
+                if(!obj || obj.type !== 'image') return;
                 
                 let oldWidth = obj.width * obj.scaleX; // Store original visual width
                 
                 fabric.Image.fromURL(f.target.result, function(newImg) {
                     newImg.set({ 
                         left: obj.left, top: obj.top, originX: obj.originX, originY: obj.originY, 
-                        angle: obj.angle, isMainImage: true, clipPath: obj.clipPath, 
+                        angle: obj.angle, clipPath: obj.clipPath, 
                         customStrokeWidth: obj.customStrokeWidth, customStroke: obj.customStroke 
                     });
                     newImg.scaleToWidth(oldWidth); // Retain original scale
@@ -1040,7 +1088,7 @@
 
         async function removeBackground() {
             const obj = canvas.getActiveObject();
-            if (!obj || !obj.isMainImage) return showToast("Please select an Image first", "error");
+            if (!obj || obj.type !== 'image') return showToast("Please select an Image first", "error");
 
             document.getElementById('fullLoader').classList.remove('hidden');
             setTimeout(() => document.getElementById('fullLoader').classList.remove('opacity-0'), 10);
@@ -1069,7 +1117,7 @@
                     fabric.Image.fromURL(reader.result, function(newImg) {
                         newImg.set({
                             left: obj.left, top: obj.top, originX: obj.originX, originY: obj.originY,
-                            angle: obj.angle, isMainImage: true, customStrokeWidth: obj.customStrokeWidth,
+                            angle: obj.angle, customStrokeWidth: obj.customStrokeWidth,
                             customStroke: obj.customStroke, strokeWidth: 0, clipPath: obj.clipPath
                         });
                         
@@ -1105,7 +1153,8 @@
         
         function exportBanner() { 
             canvas.discardActiveObject(); canvas.renderAll(); 
-            const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 3 }); 
+            // Fixed Resolution bug due to new scale/zoom engine
+            const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 / canvas.getZoom() }); 
             const link = document.createElement('a'); link.download = 'ProBanner-Export.png'; link.href = dataURL; document.body.appendChild(link); link.click(); document.body.removeChild(link); 
             showToast("Design Exported Successfully!", "success");
         }
